@@ -4,13 +4,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::language::{LanguageInfo, ResolvedSourceLanguage, SourceLanguage, TargetLanguage};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub enum ProviderKindDto {
     Ollama,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct LanguageInfoDto {
     pub name: String,
     pub code: String,
@@ -34,7 +37,9 @@ impl From<LanguageInfo> for LanguageInfoDto {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ts_rs::TS)]
+#[serde(tag = "type", rename_all = "camelCase")]
+#[ts(export)]
 pub enum SourceLanguageDto {
     AutoDetect,
     Manual(LanguageInfoDto),
@@ -49,7 +54,8 @@ impl From<SourceLanguageDto> for SourceLanguage {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ts_rs::TS)]
+#[ts(export)]
 pub struct TargetLanguageDto(pub LanguageInfoDto);
 
 impl From<TargetLanguageDto> for TargetLanguage {
@@ -58,10 +64,11 @@ impl From<TargetLanguageDto> for TargetLanguage {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct TranslationRequestDto {
-    pub request_id: u64,
+    pub request_id: u32,
     pub provider: ProviderKindDto,
     pub model_id: String,
     pub source_language: SourceLanguageDto,
@@ -69,8 +76,9 @@ pub struct TranslationRequestDto {
     pub text: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
 #[serde(tag = "type", rename_all = "camelCase")]
+#[ts(export)]
 pub enum ResolvedSourceLanguageDto {
     Detected(LanguageInfoDto),
     Assumed(LanguageInfoDto),
@@ -87,10 +95,18 @@ impl From<ResolvedSourceLanguage> for ResolvedSourceLanguageDto {
     }
 }
 
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct TranslationRequestResultDto {
+    pub resolved_source_language: ResolvedSourceLanguageDto,
+}
+
 /// Translation stream event sent to the frontend.
-#[derive(Debug, Clone, Serialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
-pub enum TranslationEventDto {
-    Delta { request_id: u64, full_text: String },
-    Finished { request_id: u64, full_text: String },
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[serde(tag = "type", rename_all = "camelCase", rename_all_fields = "camelCase")]
+#[ts(export)]
+pub enum TranslationStreamEventDto {
+    Delta { request_id: u32, full_text: String },
+    Finished { request_id: u32, full_text: String },
 }

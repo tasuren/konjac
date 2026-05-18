@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --color-bg: #f7f7f5;
+    --color-surface: #efefec;
+    --color-border: #ddddd8;
+    --color-text: #1f1f1d;
+    --color-muted: #6e6e69;
+    --color-accent: #4a6fa5;
+}
+
+@layer theme {
+    .dark {
+        --color-bg: #1d1d1b;
+        --color-surface: #2a2a27;
+        --color-border: #3a3a36;
+        --color-text: #ecece7;
+        --color-muted: #a1a19b;
+        --color-accent: #6e93cc;
+    }
+}
+
+html,
+body,
+#root {
+    @apply bg-bg;
+    @apply text-text;
+}

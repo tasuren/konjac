@@ -20,8 +20,11 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![translation::translate])
         .setup(setup)
+        .invoke_handler(tauri::generate_handler![
+            translation::next_translation_request_id,
+            translation::request_translation
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

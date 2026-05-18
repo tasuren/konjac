@@ -1,3 +1,5 @@
+use std::sync::atomic::{self, AtomicU32};
+
 use futures_util::StreamExt;
 use tauri_plugin_log::log;
 use tokio::sync::Mutex;
@@ -6,7 +8,8 @@ use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::{
     ipc_dto::{
-        ProviderKindDto, ResolvedSourceLanguageDto, TranslationEventDto, TranslationRequestDto,
+        ProviderKindDto, TranslationRequestDto, TranslationRequestResultDto,
+        TranslationStreamEventDto,
     },
     language::{LanguageInfo, LanguageResolver, ResolvedLanguagePair},
     llm::{GenerationEvent, GenerationRequest, GenerationStream, LlmProvider, OllamaProvider},
@@ -21,11 +24,25 @@ pub fn setup(app: &tauri::App, settings: &Settings) {
     );
 
     app.manage(Mutex::new(language_resolver));
-    app.manage(Mutex::new(LlmProviders::new(&settings.providers)));
+    app.manage(Mutex::new(
+        LlmProviders::new(&settings.providers).expect("Failed to create LLM providers."),
+    ));
     app.manage(Mutex::new(TranslationSettings {
         system_prompt: settings.system_prompt.clone(),
         translation_prompt: settings.translation_prompt.clone(),
     }));
+    app.manage(TranslationRequestIdStore::default());
+}
+
+#[derive(Default)]
+pub struct TranslationRequestIdStore(AtomicU32);
+
+impl TranslationRequestIdStore {
+    fn next(&self) -> u32 {
+        self.0
+            .fetch_add(1, atomic::Ordering::Relaxed)
+            .wrapping_add(1)
+    }
 }
 
 pub struct LlmProviders {
@@ -56,21 +73,26 @@ pub struct TranslationSettings {
 }
 
 #[tauri::command]
-pub async fn translate(
+pub fn next_translation_request_id(request_id_store: State<'_, TranslationRequestIdStore>) -> u32 {
+    request_id_store.next()
+}
+
+#[tauri::command]
+pub async fn request_translation(
     app: AppHandle,
     providers: State<'_, Mutex<LlmProviders>>,
-    language_resolver: State<'_, LanguageResolver>,
-    settings: State<'_, TranslationSettings>,
+    language_resolver: State<'_, Mutex<LanguageResolver>>,
+    settings: State<'_, Mutex<TranslationSettings>>,
     request: TranslationRequestDto,
-) -> Result<ResolvedSourceLanguageDto, String> {
-    let ResolvedLanguagePair { source, target } = language_resolver.resolve(
+) -> Result<TranslationRequestResultDto, String> {
+    let ResolvedLanguagePair { source, target } = language_resolver.lock().await.resolve(
         request.source_language.into(),
         request.target_language.into(),
         &request.text,
     );
 
     let generation_request = build_generation_request(
-        &settings,
+        &*settings.lock().await,
         source.get_language_info(),
         target.get_language_info(),
         &request.text,
@@ -87,7 +109,9 @@ pub async fn translate(
 
     tauri::async_runtime::spawn(stream_translation_text(app, request.request_id, stream));
 
-    Ok(source.into())
+    Ok(TranslationRequestResultDto {
+        resolved_source_language: source.into(),
+    })
 }
 
 async fn build_generation_request(
@@ -116,12 +140,12 @@ async fn build_generation_request(
 
 async fn stream_translation_text(
     app: tauri::AppHandle,
-    request_id: u64,
+    request_id: u32,
     mut stream: GenerationStream,
 ) {
     let mut result = String::new();
 
-    let emit = move |event: TranslationEventDto| {
+    let emit = move |event: TranslationStreamEventDto| {
         if let Err(e) = app.emit("translation-stream-event", event) {
             log::warn!("Some translation event was not sent: {e:?}");
         };
@@ -131,16 +155,16 @@ async fn stream_translation_text(
         match event {
             GenerationEvent::Delta(delta) => {
                 result.push_str(&delta);
-                emit(TranslationEventDto::Delta {
+                emit(TranslationStreamEventDto::Delta {
                     request_id,
                     full_text: result.clone(),
                 });
             }
             GenerationEvent::Finished(full_text) => {
                 if let Some(full_text) = full_text {
-                    result.push_str(&full_text);
+                    result = full_text;
                 }
-                emit(TranslationEventDto::Finished {
+                emit(TranslationStreamEventDto::Finished {
                     request_id,
                     full_text: result,
                 });

@@ -106,6 +106,9 @@ impl LlmProvider for OllamaProvider {
                     MultiTurnStreamItem::StreamAssistantItem(StreamedAssistantContent::Text(
                         Text { text },
                     )) => Some(GenerationEvent::Delta(text)),
+                    MultiTurnStreamItem::StreamAssistantItem(StreamedAssistantContent::Final(
+                        _,
+                    )) => None,
                     _ => {
                         log::warn!("Ignore `MultiTurnStreamItem`");
                         None
