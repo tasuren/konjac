@@ -55,16 +55,17 @@ pub trait LlmProvider {
 
 pub struct OllamaProvider {
     client: ollama::Client,
+    keep_alive: Option<String>,
 }
 
 impl OllamaProvider {
-    pub fn new(base_url: impl AsRef<str>) -> anyhow::Result<Self> {
+    pub fn new(base_url: impl AsRef<str>, keep_alive: Option<String>) -> anyhow::Result<Self> {
         let client = ollama::Client::builder()
             .api_key(rig_core::client::Nothing)
             .base_url(base_url)
             .build()?;
 
-        Ok(Self { client })
+        Ok(Self { client, keep_alive })
     }
 }
 
@@ -90,9 +91,17 @@ impl LlmProvider for OllamaProvider {
         request: GenerationRequest,
     ) -> anyhow::Result<GenerationStream> {
         let mut agent = self.client.agent(request.model_id);
+
+        if let Some(keep_alive) = self.keep_alive.as_ref() {
+            agent = agent.additional_params(serde_json::json!({
+                "keep_alive": keep_alive
+            }));
+        }
+
         if let Some(system_prompt) = request.system_prompt {
             agent = agent.preamble(&system_prompt);
         }
+
         let agent = agent.build();
         let stream = agent.stream_chat(request.prompt, request.history).await;
 

@@ -52,7 +52,10 @@ pub struct LlmProviders {
 impl LlmProviders {
     pub fn new(settings: &ProviderSettings) -> anyhow::Result<Self> {
         Ok(Self {
-            ollama: OllamaProvider::new(&settings.ollama.base_url)?,
+            ollama: OllamaProvider::new(
+                &settings.ollama.base_url,
+                settings.ollama.keep_alive.clone(),
+            )?,
         })
     }
 

@@ -171,12 +171,14 @@ pub struct ProviderSettings {
 pub struct OllamaSettings {
     #[serde(default = "ollama_default_base_url")]
     pub base_url: String,
+    pub keep_alive: Option<String>,
 }
 
 impl Default for OllamaSettings {
     fn default() -> Self {
         Self {
             base_url: ollama_default_base_url(),
+            keep_alive: None,
         }
     }
 }
