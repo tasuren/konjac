@@ -24,6 +24,11 @@ export async function requestTranslation(
 ): Promise<TranslationRequestResult> {
   const requestId: number = await invoke("next_translation_request_id");
   let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    unlisten();
+  };
 
   const unlisten = await listen(
     "translation-stream-event",
@@ -36,6 +41,10 @@ export async function requestTranslation(
           break;
         case "finished":
           handlers.onFinished(event.payload.fullText);
+          dispose();
+          break;
+        case "cancelled":
+          dispose();
           break;
       }
     },
@@ -52,11 +61,7 @@ export async function requestTranslation(
       { request: requestData },
     );
     return {
-      dispose: () => {
-        if (disposed) return;
-        disposed = true;
-        unlisten();
-      },
+      dispose,
       ...result,
     };
   } catch (error) {

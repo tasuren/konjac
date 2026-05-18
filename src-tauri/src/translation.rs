@@ -4,7 +4,7 @@ use futures_util::StreamExt;
 use tauri_plugin_log::log;
 use tokio::sync::Mutex;
 
-use tauri::{AppHandle, Emitter, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State, async_runtime::JoinHandle};
 
 use crate::{
     ipc_dto::{
@@ -32,6 +32,7 @@ pub fn setup(app: &tauri::App, settings: &Settings) {
         translation_prompt: settings.translation_prompt.clone(),
     }));
     app.manage(TranslationRequestIdStore::default());
+    app.manage(Mutex::new(TranslationTaskStore::new(app.handle().clone())));
 }
 
 #[derive(Default)]
@@ -75,6 +76,41 @@ pub struct TranslationSettings {
     translation_prompt: String,
 }
 
+struct LatestTranslationTask {
+    request_id: u32,
+    handle: JoinHandle<()>,
+}
+
+pub struct TranslationTaskStore {
+    app: AppHandle,
+    latest_task: Option<LatestTranslationTask>,
+}
+
+impl TranslationTaskStore {
+    fn new(app: AppHandle) -> Self {
+        Self {
+            app,
+            latest_task: None,
+        }
+    }
+
+    fn set_latest_task(&mut self, request_id: u32, handle: JoinHandle<()>) {
+        self.latest_task = Some(LatestTranslationTask { request_id, handle });
+    }
+
+    fn abort_latest_task(&mut self) {
+        if let Some(task) = self.latest_task.take() {
+            task.handle.abort();
+            emit_stream_event(
+                &self.app,
+                TranslationStreamEventDto::Cancelled {
+                    request_id: task.request_id,
+                },
+            );
+        }
+    }
+}
+
 #[tauri::command]
 pub fn next_translation_request_id(request_id_store: State<'_, TranslationRequestIdStore>) -> u32 {
     request_id_store.next()
@@ -86,8 +122,12 @@ pub async fn request_translation(
     providers: State<'_, Mutex<LlmProviders>>,
     language_resolver: State<'_, Mutex<LanguageResolver>>,
     settings: State<'_, Mutex<TranslationSettings>>,
+    task_store: State<'_, Mutex<TranslationTaskStore>>,
     request: TranslationRequestDto,
 ) -> Result<TranslationRequestResultDto, String> {
+    let mut task_store = task_store.lock().await;
+    task_store.abort_latest_task();
+
     let ResolvedLanguagePair { source, target } = language_resolver.lock().await.resolve(
         request.source_language.into(),
         request.target_language.into(),
@@ -110,7 +150,9 @@ pub async fn request_translation(
             .map_err(|e| e.to_string())?
     };
 
-    tauri::async_runtime::spawn(stream_translation_text(app, request.request_id, stream));
+    let handle =
+        tauri::async_runtime::spawn(stream_translation_text(app, request.request_id, stream));
+    task_store.set_latest_task(request.request_id, handle);
 
     Ok(TranslationRequestResultDto {
         resolved_source_language: source.into(),
@@ -148,29 +190,29 @@ async fn stream_translation_text(
 ) {
     let mut result = String::new();
 
-    let emit = move |event: TranslationStreamEventDto| {
-        if let Err(e) = app.emit("translation-stream-event", event) {
-            log::warn!("Some translation event was not sent: {e:?}");
-        };
-    };
-
     while let Some(event) = stream.next().await {
         match event {
             GenerationEvent::Delta(delta) => {
                 result.push_str(&delta);
-                emit(TranslationStreamEventDto::Delta {
-                    request_id,
-                    full_text: result.clone(),
-                });
+                emit_stream_event(
+                    &app,
+                    TranslationStreamEventDto::Delta {
+                        request_id,
+                        full_text: result.clone(),
+                    },
+                );
             }
             GenerationEvent::Finished(full_text) => {
                 if let Some(full_text) = full_text {
                     result = full_text;
                 }
-                emit(TranslationStreamEventDto::Finished {
-                    request_id,
-                    full_text: result,
-                });
+                emit_stream_event(
+                    &app,
+                    TranslationStreamEventDto::Finished {
+                        request_id,
+                        full_text: result,
+                    },
+                );
 
                 break;
             }
@@ -179,4 +221,10 @@ async fn stream_translation_text(
             }
         }
     }
+}
+
+fn emit_stream_event(app: &AppHandle, payload: TranslationStreamEventDto) {
+    if let Err(e) = app.emit("translation-stream-event", payload) {
+        log::warn!("Some translation event was not sent: {e:?}");
+    };
 }
