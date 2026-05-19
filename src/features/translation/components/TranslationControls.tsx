@@ -4,7 +4,7 @@ export default function TranslationControls() {
       <div className="absolute h-fit left-1/2 -translate-x-1/2">
         <div className="flex justify-center gap-4">
           <div>
-            <select>
+            <select className="w-40">
               <option>あ</option>
             </select>
           </div>

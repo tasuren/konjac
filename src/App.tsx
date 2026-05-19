@@ -1,6 +1,6 @@
 import "./App.css";
-import TranslationControls from "./features/components/TranslationControls";
-import TranslationPane from "./features/components/TranslationPane";
+import TranslationControls from "./features/translation/components/TranslationControls";
+import TranslationPane from "./features/translation/components/TranslationPane";
 
 function App() {
   return (

@@ -1,6 +1,10 @@
-use std::sync::atomic::{self, AtomicU32};
+use std::{
+    collections::HashSet,
+    sync::atomic::{self, AtomicU32},
+};
 
 use futures_util::StreamExt;
+use lingua::Language;
 use tauri_plugin_log::log;
 use tokio::sync::Mutex;
 
@@ -227,4 +231,9 @@ fn emit_stream_event(app: &AppHandle, payload: TranslationStreamEventDto) {
     if let Err(e) = app.emit("translation-stream-event", payload) {
         log::warn!("Some translation event was not sent: {e:?}");
     };
+}
+
+#[tauri::command]
+pub fn list_languages() -> HashSet<Language> {
+    Language::all()
 }

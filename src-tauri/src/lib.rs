@@ -23,7 +23,8 @@ pub fn run() {
         .setup(setup)
         .invoke_handler(tauri::generate_handler![
             translation::next_translation_request_id,
-            translation::request_translation
+            translation::request_translation,
+            translation::list_languages
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

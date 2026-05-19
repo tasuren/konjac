@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { requestTranslation } from "../../shared/tauri/translation";
+import type { SourceLanguageDto } from "../../../rust-bindings/SourceLanguageDto";
+import type { TargetLanguageDto } from "../../../rust-bindings/TargetLanguageDto";
+import { requestTranslation } from "../../../shared/tauri/translation";
+import type { TranslationModelSelection } from "../stores/translationSelectionStore";
 
 export type TranslationStatus = "idle" | "translating" | "error";
 
 export type UseTranslationSessionOptions = {
-  sourceLanguage: string;
-  targetLanguage: string;
-  modelId: string;
+  sourceLanguage: SourceLanguageDto;
+  targetLanguage: TargetLanguageDto;
+  model: TranslationModelSelection;
   debounceMs: number;
 };
 
@@ -22,7 +25,7 @@ export type UseTranslationSessionResult = {
 export function useTranslationSession({
   sourceLanguage,
   targetLanguage,
-  modelId,
+  model,
   debounceMs,
 }: UseTranslationSessionOptions): UseTranslationSessionResult {
   const [input, setInput] = useState("");
@@ -50,10 +53,10 @@ export function useTranslationSession({
 
       const { dispose, resolvedSourceLanguage } = await requestTranslation(
         {
-          provider: "ollama",
-          modelId: "translategemma:12b",
-          sourceLanguage: { type: "autoDetect" },
-          targetLanguage: { code: "ja", name: "Japanese" },
+          provider: model.provider,
+          modelId: model.id,
+          sourceLanguage,
+          targetLanguage,
           text: normalizedText,
         },
         {
@@ -71,7 +74,7 @@ export function useTranslationSession({
         },
       );
     },
-    [], //[sourceLanguage, targetLanguage, modelId],
+    [sourceLanguage, targetLanguage, model.provider, model.id],
   );
 
   const handleCompositionStart = useCallback(() => {

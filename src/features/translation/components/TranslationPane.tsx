@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslationSession } from "../hooks/useTranslationEvent";
+import { useTranslationSelectionStore } from "../stores/translationSelectionStore";
 
 export default function TranslationPane() {
+  const { sourceLanguage, resolvedSourceLanguage, targetLanguage, model } =
+    useTranslationSelectionStore();
+
+  if (model === null) throw new Error(); // TODO: 今後モデル選択画面を実装する。
+
   const {
     output,
     setInput,
@@ -10,9 +16,9 @@ export default function TranslationPane() {
     handleCompositionStart,
     handleCompositionEnd,
   } = useTranslationSession({
-    sourceLanguage: "en",
-    targetLanguage: "ja",
-    modelId: "test",
+    sourceLanguage,
+    targetLanguage,
+    model,
     debounceMs: 600,
   });
 

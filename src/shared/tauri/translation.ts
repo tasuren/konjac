@@ -11,9 +11,9 @@ export type TranslationStreamHandlers = {
   onFailed: (message: string) => void;
 };
 
-type TranslationRequest = Omit<TranslationRequestDto, "requestId">;
+export type TranslationRequest = Omit<TranslationRequestDto, "requestId">;
 
-type TranslationRequestResult = {
+export type TranslationRequestResult = {
   resolvedSourceLanguage: ResolvedSourceLanguageDto;
   dispose: () => void;
 };
