@@ -1,14 +1,8 @@
 import "./App.css";
-import TranslationControls from "./features/translation/components/TranslationControls";
-import TranslationPane from "./features/translation/components/TranslationPane";
+import { TranslationView } from "./features/translation/TranslationView";
 
 function App() {
-  return (
-    <main className="w-screen h-screen p-6 flex flex-col gap-4">
-      <TranslationControls />
-      <TranslationPane />
-    </main>
-  );
+  return <TranslationView />;
 }
 
 export default App;

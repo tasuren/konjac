@@ -9,7 +9,7 @@ export type TranslationStatus = "idle" | "translating" | "error";
 export type UseTranslationSessionOptions = {
   sourceLanguage: SourceLanguageDto;
   targetLanguage: TargetLanguageDto;
-  model: TranslationModelSelection;
+  model: TranslationModelSelection | null;
   debounceMs: number;
 };
 
@@ -41,6 +41,7 @@ export function useTranslationSession({
       const normalizedText = text.trim();
 
       if (
+        model === null ||
         isComposingRef.current ||
         normalizedText === "" ||
         normalizedText === lastRequestedTextRef.current
@@ -74,7 +75,7 @@ export function useTranslationSession({
         },
       );
     },
-    [sourceLanguage, targetLanguage, model.provider, model.id],
+    [sourceLanguage, targetLanguage, model, model?.provider, model?.id],
   );
 
   const handleCompositionStart = useCallback(() => {

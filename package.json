@@ -10,10 +10,12 @@
     "cargo": "cargo +nightly -Z unstable-options -C src-tauri"
   },
   "dependencies": {
+    "@sglara/cn": "^1.0.0",
     "@tailwindcss/vite": "^4.3.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-log": "~2",
     "@tauri-apps/plugin-opener": "^2",
+    "lucide-react": "^1.16.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tailwindcss": "^4.3.0",
@@ -28,9 +30,11 @@
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
+  "engines": {
+    "runtime": {
+      "name": "node",
+      "version": "^24.15.0",
+      "onFail": "download"
+    }
   }
 }

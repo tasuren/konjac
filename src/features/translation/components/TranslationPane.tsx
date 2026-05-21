@@ -1,12 +1,9 @@
-import { useEffect, useState } from "react";
 import { useTranslationSession } from "../hooks/useTranslationEvent";
 import { useTranslationSelectionStore } from "../stores/translationSelectionStore";
 
 export default function TranslationPane() {
   const { sourceLanguage, resolvedSourceLanguage, targetLanguage, model } =
     useTranslationSelectionStore();
-
-  if (model === null) throw new Error(); // TODO: 今後モデル選択画面を実装する。
 
   const {
     output,
@@ -22,17 +19,11 @@ export default function TranslationPane() {
     debounceMs: 600,
   });
 
-  const [result, setResult] = useState("");
-
-  useEffect(() => {
-    setResult(output);
-  }, [output]);
-
   return (
     <div className="grow flex gap-6">
       <textarea
-        placeholder="翻訳前"
-        className="grow p-4 border border-border rounded-xl"
+        placeholder="翻訳したいテキストを入力"
+        className="p-4 w-1/2 border border-border rounded-xl"
         onChange={(event) => setInput(event.target.value)}
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={(event) => {
@@ -40,13 +31,17 @@ export default function TranslationPane() {
           setInput(event.currentTarget.value);
         }}
       ></textarea>
-      <textarea
-        value={result}
-        onChange={(event) => setResult(event.target.value)}
-        disabled={status === "translating"}
-        aria-disabled={status === "translating"}
-        className="grow p-4 border border-border rounded-xl"
-      ></textarea>
+      <div className="p-4 w-1/2 border border-border bg-surface rounded-xl">
+        {model === null ? (
+          <p>
+            現在、翻訳を処理するAIモデルが設定されていません。設定後、翻訳が可能となります。
+          </p>
+        ) : (
+          output || (
+            <p className="text-text/60">翻訳結果はこちらに表示されます。</p>
+          )
+        )}
+      </div>
     </div>
   );
 }

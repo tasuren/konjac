@@ -5,6 +5,7 @@
 @theme {
     --color-bg: #f7f7f5;
     --color-surface: #efefec;
+    --color-surface-elevated: #f5f5f2;
     --color-border: #ddddd8;
     --color-text: #1f1f1d;
     --color-muted: #6e6e69;
@@ -15,6 +16,7 @@
     .dark {
         --color-bg: #1d1d1b;
         --color-surface: #2a2a27;
+        --color-surface-elevated: #32322e;
         --color-border: #3a3a36;
         --color-text: #ecece7;
         --color-muted: #a1a19b;
