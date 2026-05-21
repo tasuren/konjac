@@ -4,7 +4,7 @@ import type { TargetLanguageDto } from "../../../rust-bindings/TargetLanguageDto
 import { requestTranslation } from "../../../shared/tauri/translation";
 import type { TranslationModelSelection } from "../stores/translationSelectionStore";
 
-export type TranslationStatus = "idle" | "translating" | "error";
+export type TranslationStatus = "idle" | "requesting" | "translating";
 
 export type UseTranslationSessionOptions = {
   sourceLanguage: SourceLanguageDto;
@@ -15,6 +15,7 @@ export type UseTranslationSessionOptions = {
 
 export type UseTranslationSessionResult = {
   output: string;
+  input: string;
   setInput: (value: string) => void;
   status: TranslationStatus;
   error: string | null;
@@ -33,24 +34,13 @@ export function useTranslationSession({
   const [status, setStatus] = useState<TranslationStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const isComposingRef = useRef(false);
-  const lastRequestedTextRef = useRef("");
-
   const translate = useCallback(
     async (text: string) => {
-      const normalizedText = text.trim();
-
-      if (
-        model === null ||
-        isComposingRef.current ||
-        normalizedText === "" ||
-        normalizedText === lastRequestedTextRef.current
-      ) {
+      if (model === null) {
         return;
       }
 
-      lastRequestedTextRef.current = normalizedText;
-      setStatus("translating");
+      setStatus("requesting");
 
       const { dispose, resolvedSourceLanguage } = await requestTranslation(
         {
@@ -58,19 +48,22 @@ export function useTranslationSession({
           modelId: model.id,
           sourceLanguage,
           targetLanguage,
-          text: normalizedText,
+          text: text,
         },
         {
           onDelta(fullText) {
+            setStatus("translating");
             setOutput(fullText);
           },
           onFinished(fullText) {
-            setStatus("idle");
             setOutput(fullText);
             dispose();
+            setStatus("idle");
           },
           onFailed(message) {
+            dispose();
             setError(message);
+            setStatus("idle");
           },
         },
       );
@@ -78,6 +71,10 @@ export function useTranslationSession({
     [sourceLanguage, targetLanguage, model, model?.provider, model?.id],
   );
 
+  const isComposingRef = useRef(false);
+  const lastRequestedTextRef = useRef("");
+
+  // Prevent translation during IME composition.
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;
   }, []);
@@ -87,12 +84,20 @@ export function useTranslationSession({
     void translate(input);
   }, [input, translate]);
 
+  // Translation runner with debounce
   const timeoutRef = useRef(0);
   useEffect(() => {
-    if (input.trim().length === 0) {
+    const normalizedText = input.trim();
+
+    if (
+      normalizedText.length === 0 ||
+      isComposingRef.current ||
+      normalizedText === lastRequestedTextRef.current
+    ) {
       return;
     }
 
+    lastRequestedTextRef.current = normalizedText;
     timeoutRef.current = setTimeout(() => {
       void translate(input);
     }, debounceMs);
@@ -104,8 +109,9 @@ export function useTranslationSession({
 
   return {
     output,
+    input,
     setInput,
-    status,
+    status: status,
     error,
     handleCompositionStart,
     handleCompositionEnd,

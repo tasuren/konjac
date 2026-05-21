@@ -1,5 +1,6 @@
 import { useTranslationSession } from "../hooks/useTranslationEvent";
 import { useTranslationSelectionStore } from "../stores/translationSelectionStore";
+import { TranslationResultBox } from "./TranslationResultBox";
 
 export default function TranslationPane() {
   const { sourceLanguage, resolvedSourceLanguage, targetLanguage, model } =
@@ -7,6 +8,7 @@ export default function TranslationPane() {
 
   const {
     output,
+    input,
     setInput,
     status,
     error,
@@ -31,17 +33,13 @@ export default function TranslationPane() {
           setInput(event.currentTarget.value);
         }}
       ></textarea>
-      <div className="p-4 w-1/2 border border-border bg-surface rounded-xl">
-        {model === null ? (
-          <p>
-            現在、翻訳を処理するAIモデルが設定されていません。設定後、翻訳が可能となります。
-          </p>
-        ) : (
-          output || (
-            <p className="text-text/60">翻訳結果はこちらに表示されます。</p>
-          )
-        )}
-      </div>
+
+      <TranslationResultBox
+        model={model}
+        input={input}
+        output={output}
+        status={status}
+      />
     </div>
   );
 }
