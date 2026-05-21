@@ -1,6 +1,7 @@
 import { cn } from "@sglara/cn";
 import { ArrowRightLeft, ChevronDown } from "lucide-react";
-import type { SelectHTMLAttributes } from "react";
+import { type SelectHTMLAttributes, useRef } from "react";
+import { useWindowDragging } from "../../../shared/hooks/useWindowDragging";
 
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
 
@@ -9,8 +10,8 @@ export function Select({ className, children, ...props }: SelectProps) {
     <div className="relative">
       <select
         className={cn(
-          "appearance-none border border-border bg-surface-elevated rounded-lg px-2 py-1 pr-8",
-          "",
+          "appearance-none select-none",
+          "border border-border bg-surface-elevated rounded-lg px-2 py-1 pr-8",
           className,
         )}
         {...props}
@@ -26,15 +27,26 @@ export function Select({ className, children, ...props }: SelectProps) {
 }
 
 export default function TranslationControls() {
+  const srcLangRef = useRef(null);
+  const srcLangClassName = useWindowDragging(srcLangRef);
+  const targetLangRef = useRef(null);
+  const targetLangClassName = useWindowDragging(targetLangRef);
+
   return (
     <div className="flex items-center gap-6 relative">
-      <div className="w-1/2 flex justify-end px-2">
+      <div
+        className={cn("w-1/2 flex justify-end px-2", srcLangClassName)}
+        ref={srcLangRef}
+      >
         <Select className="w-40">
           <option>あ</option>
         </Select>
       </div>
 
-      <div className="w-1/2 flex justify-between px-2">
+      <div
+        className={cn("w-1/2 flex justify-between px-2", targetLangClassName)}
+        ref={targetLangRef}
+      >
         <Select className="w-40">
           <option>あ</option>
         </Select>
