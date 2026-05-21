@@ -10,6 +10,7 @@
     --color-text: #1f1f1d;
     --color-muted: #6e6e69;
     --color-accent: #4a6fa5;
+    --color-titlebar: #f1f1ee;
 }
 
 @layer theme {
@@ -21,6 +22,7 @@
         --color-text: #ecece7;
         --color-muted: #a1a19b;
         --color-accent: #6e93cc;
+        --color-titlebar: #242421;
     }
 }
 

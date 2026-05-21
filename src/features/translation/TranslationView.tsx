@@ -10,16 +10,13 @@ export function TranslationView() {
   const winDragClassName = useWindowDragging(mainRef);
 
   return (
-    <div>
-      <header>
+    <div className="h-screen flex flex-col">
+      <header className="w-full h-11 pl-20.5 bg-titlebar border border-border">
         <TranslationTitleBar />
       </header>
 
       <main
-        className={cn(
-          "w-screen h-screen p-6 flex flex-col gap-6",
-          winDragClassName,
-        )}
+        className={cn("grow p-6 flex flex-col gap-6", winDragClassName)}
         ref={mainRef}
       >
         <TranslationControls />

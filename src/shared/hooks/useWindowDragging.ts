@@ -1,11 +1,16 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 
+export type UseWindowDraggingOptions = { includesChildren: boolean };
+
 /**
  * Tauri's `data-tauri-drag-region` works well, but
  * clicking the drag region does not remove focus from select elements.
  */
-export function useWindowDragging(ref: RefObject<HTMLElement | null>): string {
+export function useWindowDragging(
+  ref: RefObject<HTMLElement | null>,
+  opts?: UseWindowDraggingOptions,
+): string {
   const tauriWindow = useMemo(() => getCurrentWindow(), []);
   const dragStarting = useRef(false);
   const [className, setClassName] = useState("");
@@ -14,20 +19,36 @@ export function useWindowDragging(ref: RefObject<HTMLElement | null>): string {
     const element = ref.current;
     if (element === null) return;
 
-    const isTargetElement = (event: MouseEvent) => event.target === ref.current;
+    const isInteractiveElement = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+
+      return (
+        target.closest(
+          "button, input, select, textarea, a, [contenteditable='true']",
+        ) !== null
+      );
+    };
+
+    const isTargetElement = (event: MouseEvent) =>
+      (opts?.includesChildren &&
+        element.contains(event.target as Node) &&
+        !isInteractiveElement(event.target)) ||
+      event.target === ref.current;
 
     const onMouseDownOrUp = (event: MouseEvent) => {
       if (!isTargetElement(event)) return;
 
       const dragging = event.buttons === 1;
-      setClassName(dragging ? "cursor-default select-none" : "");
       dragStarting.current = dragging;
+      if (!dragging) setClassName("");
     };
 
     const onMouseMove = (event: MouseEvent) => {
       if (!isTargetElement(event)) return;
 
       if (dragStarting.current && event.buttons === 1) {
+        console.log(1);
+        setClassName("cursor-default select-none");
         tauriWindow.startDragging();
         dragStarting.current = false;
       }
@@ -42,7 +63,7 @@ export function useWindowDragging(ref: RefObject<HTMLElement | null>): string {
       window.removeEventListener("mousedown", onMouseDownOrUp);
       window.removeEventListener("mouseup", onMouseDownOrUp);
     };
-  }, [ref, tauriWindow]);
+  }, [ref, tauriWindow, opts?.includesChildren]);
 
   return className;
 }
