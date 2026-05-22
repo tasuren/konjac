@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -11,6 +12,7 @@
     --color-muted: #6e6e69;
     --color-accent: #4a6fa5;
     --color-titlebar: #f1f1ee;
+    --color-modal: #FCFCFA;
 }
 
 @layer theme {
@@ -23,6 +25,7 @@
         --color-muted: #a1a19b;
         --color-accent: #6e93cc;
         --color-titlebar: #242421;
+        --color-modal: #2F2F2B;
     }
 }
 
@@ -37,4 +40,8 @@ body {
     cursor: default;
     user-select: none;
     -webkit-user-select: none;
+}
+
+[data-streamdown="link"] {
+    cursor: pointer;
 }
