@@ -32,3 +32,9 @@ body,
     @apply bg-bg;
     @apply text-text;
 }
+
+body {
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+}

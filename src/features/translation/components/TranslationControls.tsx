@@ -10,7 +10,7 @@ export function Select({ className, children, ...props }: SelectProps) {
     <div className="relative">
       <select
         className={cn(
-          "appearance-none select-none",
+          "appearance-none",
           "border border-border bg-surface-elevated rounded-lg px-2 py-1 pr-8",
           className,
         )}

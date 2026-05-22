@@ -50,6 +50,7 @@ export function TranslationResultBox({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
+            className="h-full overflow-y-auto select-auto"
           >
             {output}
           </motion.div>

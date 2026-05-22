@@ -16,7 +16,7 @@ export function TranslationView() {
       </header>
 
       <main
-        className={cn("grow p-6 flex flex-col gap-6", winDragClassName)}
+        className={cn("grow min-h-0 p-6 flex flex-col gap-6", winDragClassName)}
         ref={mainRef}
       >
         <TranslationControls />

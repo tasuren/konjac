@@ -237,3 +237,14 @@ fn emit_stream_event(app: &AppHandle, payload: TranslationStreamEventDto) {
 pub fn list_languages() -> HashSet<Language> {
     Language::all()
 }
+
+#[tauri::command]
+pub fn to_markdown(html: String) -> Result<String, String> {
+    let converter = htmd::HtmlToMarkdownBuilder::new()
+        .skip_tags(vec![
+            "script", "style", "iframe", "object", "embed", "canvas", "svg", "noscript",
+        ])
+        .build();
+
+    converter.convert(&html).map_err(|e| e.to_string())
+}

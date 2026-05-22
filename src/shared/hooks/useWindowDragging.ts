@@ -47,7 +47,6 @@ export function useWindowDragging(
       if (!isTargetElement(event)) return;
 
       if (dragStarting.current && event.buttons === 1) {
-        console.log(1);
         setClassName("cursor-default select-none");
         tauriWindow.startDragging();
         dragStarting.current = false;

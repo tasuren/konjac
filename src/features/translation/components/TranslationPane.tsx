@@ -1,5 +1,6 @@
 import { useTranslationSession } from "../hooks/useTranslationEvent";
 import { useTranslationSelectionStore } from "../stores/translationSelectionStore";
+import { TranslationInputBox } from "./TranslationInputBox";
 import { TranslationResultBox } from "./TranslationResultBox";
 
 export default function TranslationPane() {
@@ -22,17 +23,12 @@ export default function TranslationPane() {
   });
 
   return (
-    <div className="grow flex gap-6">
-      <textarea
-        placeholder="翻訳したいテキストを入力"
-        className="p-4 w-1/2 border border-border rounded-xl"
-        onChange={(event) => setInput(event.target.value)}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={(event) => {
-          handleCompositionEnd();
-          setInput(event.currentTarget.value);
-        }}
-      ></textarea>
+    <div className="grow flex min-h-0 gap-6">
+      <TranslationInputBox
+        setInput={setInput}
+        handleCompositionStart={handleCompositionStart}
+        handleCompositionEnd={handleCompositionEnd}
+      />
 
       <TranslationResultBox
         model={model}

@@ -71,3 +71,7 @@ export async function requestTranslation(
     throw error;
   }
 }
+
+export async function toMarkdown(html: string): Promise<string> {
+  return await invoke("to_markdown", { html });
+}
