@@ -16,7 +16,6 @@ export function CustomLinkModal({
   }, [url, onClose]);
 
   return createPortal(
-    
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -39,12 +38,12 @@ export function CustomLinkModal({
           <div
             role="dialog"
             aria-modal="true"
-            className="relative z-10 select-none bg-modal p-4 rounded-xl flex flex-col gap-2 max-w-5/6 max-h-5/6"
+            className="relative z-10 select-none bg-modal p-4 rounded-xl flex flex-col gap-2 min-w-1/3 max-w-5/6"
             onMouseUp={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-bold">External Link</h2>
             <p>You're about to visit:</p>
-            <code>{url}</code>
+            <code className="overflow-auto">{url}</code>
 
             <div className="mt-4 px-2 flex gap-4">
               <button
@@ -66,6 +65,6 @@ export function CustomLinkModal({
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
