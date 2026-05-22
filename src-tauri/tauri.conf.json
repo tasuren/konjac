@@ -14,7 +14,7 @@
             {
                 "title": "konjac",
                 "width": 900,
-                "height": 700,
+                "height": 650,
                 "hiddenTitle": true,
                 "titleBarStyle": "Overlay",
                 "trafficLightPosition": { "x": 12, "y": 24 }
