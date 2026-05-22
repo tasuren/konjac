@@ -59,6 +59,7 @@ export function TranslationResultBox({
           >
             <Streamdown
               plugins={{ cjk }}
+              controls={{ code: { download: false } }}
               linkSafety={{
                 enabled: true,
                 renderModal: (props) => <CustomLinkModal {...props} />,
