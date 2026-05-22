@@ -23,6 +23,8 @@ export function TranslationInputBox({
 
       event.preventDefault();
 
+      // We mainly use deprecated `execCommand` to support undo.
+      // TODO: Use selection approach with undo feature.
       const methodName: string = "execCommand";
       // @ts-expect-error
       const execCommand = (...obj) => document[methodName](...obj);
