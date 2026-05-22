@@ -19,9 +19,9 @@ export function TranslationInputBox({
 
       const html = event.clipboardData.getData("text/html");
       if (!html) return;
-      const markdown = await toMarkdown(html);
 
       event.preventDefault();
+      const markdown = await toMarkdown(html);
 
       // We mainly use deprecated `execCommand` to support undo.
       // TODO: Use selection approach with undo feature.
