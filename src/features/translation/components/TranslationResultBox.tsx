@@ -1,5 +1,6 @@
 import { cn } from "@sglara/cn";
 import { cjk } from "@streamdown/cjk";
+import { Loader } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -37,18 +38,17 @@ export function TranslationResultBox({
       </div>
     );
 
-  if (status === "requesting")
-    return (
-      <Requesting className={cn(baseClassName, "p-4")} pulseStartsAt={500} />
-    );
-
+  const requesting = status === "requesting";
+  const translating = status === "translating";
   const showOutput =
-    status === "translating" || (input.length > 0 && input === lastInput);
+    (!requesting && translating) || (input.length > 0 && input === lastInput);
 
   return (
     <div className={baseClassName}>
       <AnimatePresence mode="wait">
-        {showOutput ? (
+        {requesting ? (
+          <Requesting />
+        ) : showOutput ? (
           <motion.div
             key="output"
             initial={{ opacity: 0 }}
@@ -85,19 +85,27 @@ export function TranslationResultBox({
   );
 }
 
-function Requesting({
-  className,
-  pulseStartsAt,
-}: {
-  className: string;
-  pulseStartsAt: number;
-}) {
-  const [pulse, setPulse] = useState("");
+function Requesting({ pulseStartsAt = 1000 }: { pulseStartsAt?: number }) {
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setPulse("animate-pulse"), pulseStartsAt);
+    const timeout = setTimeout(() => setLoading(true), pulseStartsAt);
     return () => clearTimeout(timeout);
   }, [pulseStartsAt]);
 
-  return <div className={cn(className, pulse)}>{}</div>;
+  if (!loading) return;
+
+  return (
+    <motion.div
+      key="requesting"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 0.4 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+      className="p-4 flex items-center gap-2"
+    >
+      リクエスト中です
+      <Loader size={14} className="inline animate-[spin_2s_linear_infinite]" />
+    </motion.div>
+  );
 }
