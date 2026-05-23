@@ -1,7 +1,4 @@
-use std::{
-    collections::HashSet,
-    sync::atomic::{self, AtomicU32},
-};
+use std::sync::atomic::{self, AtomicU32};
 
 use futures_util::StreamExt;
 use lingua::Language;
@@ -12,7 +9,7 @@ use tauri::{AppHandle, Emitter, Manager, State, async_runtime::JoinHandle};
 
 use crate::{
     ipc_dto::{
-        ProviderKindDto, TranslationRequestDto, TranslationRequestResultDto,
+        LanguageInfoDto, ProviderKindDto, TranslationRequestDto, TranslationRequestResultDto,
         TranslationStreamEventDto,
     },
     language::{LanguageInfo, LanguageResolver, ResolvedLanguagePair},
@@ -234,8 +231,8 @@ fn emit_stream_event(app: &AppHandle, payload: TranslationStreamEventDto) {
 }
 
 #[tauri::command]
-pub fn list_languages() -> HashSet<Language> {
-    Language::all()
+pub fn list_languages() -> Vec<LanguageInfoDto> {
+    Language::all().into_iter().map(Into::into).collect()
 }
 
 #[tauri::command]

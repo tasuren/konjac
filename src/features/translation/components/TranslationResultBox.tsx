@@ -1,4 +1,3 @@
-import { cn } from "@sglara/cn";
 import { cjk } from "@streamdown/cjk";
 import { Loader } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -13,6 +12,7 @@ export type TranslationResultBoxProps = {
   input: string;
   output: string;
   status: TranslationStatus;
+  error: string | null;
 };
 
 export function TranslationResultBox({
@@ -20,6 +20,7 @@ export function TranslationResultBox({
   input,
   output,
   status,
+  error,
 }: TranslationResultBoxProps) {
   const [lastInput, setLastInput] = useState("");
 
@@ -48,6 +49,17 @@ export function TranslationResultBox({
       <AnimatePresence mode="wait">
         {requesting ? (
           <Requesting />
+        ) : error ? (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            ⚠️ 翻訳に失敗しました:
+            <code>{error}</code>
+          </motion.div>
         ) : showOutput ? (
           <motion.div
             key="output"

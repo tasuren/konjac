@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
 import type { SourceLanguageDto } from "../../../rust-bindings/SourceLanguageDto";
 import type { TargetLanguageDto } from "../../../rust-bindings/TargetLanguageDto";
 import { requestTranslation } from "../../../shared/tauri/translation";
@@ -11,6 +12,7 @@ export type UseTranslationSessionOptions = {
   targetLanguage: TargetLanguageDto;
   model: TranslationModelSelection | null;
   debounceMs: number;
+  setResolvedSourceLanguage: (value: ResolvedSourceLanguageDto) => void;
 };
 
 export type UseTranslationSessionResult = {
@@ -28,6 +30,7 @@ export function useTranslationSession({
   targetLanguage,
   model,
   debounceMs,
+  setResolvedSourceLanguage,
 }: UseTranslationSessionOptions): UseTranslationSessionResult {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -67,8 +70,17 @@ export function useTranslationSession({
           },
         },
       );
+
+      setResolvedSourceLanguage(resolvedSourceLanguage);
     },
-    [sourceLanguage, targetLanguage, model, model?.provider, model?.id],
+    [
+      sourceLanguage,
+      targetLanguage,
+      model,
+      model?.provider,
+      model?.id,
+      setResolvedSourceLanguage,
+    ],
   );
 
   const isComposingRef = useRef(false);

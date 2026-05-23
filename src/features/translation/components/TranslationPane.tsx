@@ -4,7 +4,7 @@ import { TranslationInputBox } from "./TranslationInputBox";
 import { TranslationResultBox } from "./TranslationResultBox";
 
 export default function TranslationPane() {
-  const { sourceLanguage, resolvedSourceLanguage, targetLanguage, model } =
+  const { sourceLanguage, setResolvedSourceLanguage, targetLanguage, model } =
     useTranslationSelectionStore();
 
   const {
@@ -20,6 +20,7 @@ export default function TranslationPane() {
     targetLanguage,
     model,
     debounceMs: 600,
+    setResolvedSourceLanguage,
   });
 
   return (
@@ -35,6 +36,7 @@ export default function TranslationPane() {
         input={input}
         output={output}
         status={status}
+        error={error}
       />
     </div>
   );

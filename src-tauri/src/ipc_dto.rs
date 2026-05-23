@@ -37,6 +37,15 @@ impl From<LanguageInfo> for LanguageInfoDto {
     }
 }
 
+impl From<lingua::Language> for LanguageInfoDto {
+    fn from(value: lingua::Language) -> Self {
+        Self {
+            name: value.to_string(),
+            code: value.iso_code_639_1().to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, ts_rs::TS)]
 #[serde(tag = "type", rename_all = "camelCase")]
 #[ts(export)]
