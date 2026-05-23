@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { type Event, listen } from "@tauri-apps/api/event";
 import type { LanguageInfoDto } from "../../rust-bindings/LanguageInfoDto";
+import type { ModelDto } from "../../rust-bindings/ModelDto";
 import type { ResolvedSourceLanguageDto } from "../../rust-bindings/ResolvedSourceLanguageDto";
 import type { TranslationRequestDto } from "../../rust-bindings/TranslationRequestDto";
 import type { TranslationRequestResultDto } from "../../rust-bindings/TranslationRequestResultDto";
@@ -75,6 +76,10 @@ export async function requestTranslation(
 
 export async function listLanguages(): Promise<LanguageInfoDto[]> {
   return await invoke("list_languages");
+}
+
+export async function listModels(): Promise<ModelDto[]> {
+  return await invoke("list_models");
 }
 
 export async function toMarkdown(html: string): Promise<string> {

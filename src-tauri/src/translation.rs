@@ -9,8 +9,8 @@ use tauri::{AppHandle, Emitter, Manager, State, async_runtime::JoinHandle};
 
 use crate::{
     ipc_dto::{
-        LanguageInfoDto, ProviderKindDto, TranslationRequestDto, TranslationRequestResultDto,
-        TranslationStreamEventDto,
+        LanguageInfoDto, ModelDto, ProviderKindDto, TranslationRequestDto,
+        TranslationRequestResultDto, TranslationStreamEventDto,
     },
     language::{LanguageInfo, LanguageResolver, ResolvedLanguagePair},
     llm::{GenerationEvent, GenerationRequest, GenerationStream, LlmProvider, OllamaProvider},
@@ -48,7 +48,7 @@ impl TranslationRequestIdStore {
 }
 
 pub struct LlmProviders {
-    pub ollama: OllamaProvider,
+    ollama: OllamaProvider,
 }
 
 impl LlmProviders {
@@ -69,6 +69,11 @@ impl LlmProviders {
         match provider {
             ProviderKindDto::Ollama => self.ollama.generate_stream(request).await,
         }
+    }
+
+    pub async fn list_models(&self) -> anyhow::Result<Vec<ModelDto>> {
+        let ollama_models = self.ollama.list_models().await?;
+        Ok(ollama_models.into_iter().map(Into::into).collect())
     }
 }
 
@@ -233,6 +238,18 @@ fn emit_stream_event(app: &AppHandle, payload: TranslationStreamEventDto) {
 #[tauri::command]
 pub fn list_languages() -> Vec<LanguageInfoDto> {
     Language::all().into_iter().map(Into::into).collect()
+}
+
+#[tauri::command]
+pub async fn list_models(
+    providers: State<'_, Mutex<LlmProviders>>,
+) -> Result<Vec<ModelDto>, String> {
+    providers
+        .lock()
+        .await
+        .list_models()
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]

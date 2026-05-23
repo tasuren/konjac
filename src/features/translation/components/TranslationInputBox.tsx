@@ -1,5 +1,4 @@
-import type React from "react";
-import { useCallback } from "react";
+import { type ClipboardEvent, useCallback } from "react";
 import { toMarkdown } from "../../../shared/tauri/translation";
 
 export type TranslationInputBoxProps = {
@@ -14,7 +13,7 @@ export function TranslationInputBox({
   handleCompositionEnd,
 }: TranslationInputBoxProps) {
   const onPaste = useCallback(
-    async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    async (event: ClipboardEvent<HTMLTextAreaElement>) => {
       if (event.clipboardData === null) return;
 
       const html = event.clipboardData.getData("text/html");

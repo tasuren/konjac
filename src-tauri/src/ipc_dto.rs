@@ -2,13 +2,43 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::language::{LanguageInfo, ResolvedSourceLanguage, SourceLanguage, TargetLanguage};
+use crate::{
+    language::{LanguageInfo, ResolvedSourceLanguage, SourceLanguage, TargetLanguage},
+    llm::{Model, ProviderKind},
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub enum ProviderKindDto {
     Ollama,
+}
+
+impl From<ProviderKind> for ProviderKindDto {
+    fn from(value: ProviderKind) -> Self {
+        match value {
+            ProviderKind::Ollama => Self::Ollama,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct ModelDto {
+    pub provider: ProviderKindDto,
+    pub id: String,
+    pub display_name: Option<String>,
+}
+
+impl From<Model> for ModelDto {
+    fn from(value: Model) -> Self {
+        Self {
+            provider: value.provider.into(),
+            id: value.id,
+            display_name: value.display_name,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]

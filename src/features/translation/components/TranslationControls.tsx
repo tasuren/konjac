@@ -10,10 +10,14 @@ import {
   useState,
 } from "react";
 import type { LanguageInfoDto } from "../../../rust-bindings/LanguageInfoDto";
+import type { ModelDto } from "../../../rust-bindings/ModelDto";
 import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
 import { useWindowDragging } from "../../../shared/hooks/useWindowDragging";
-import { listLanguages } from "../../../shared/tauri/translation";
-import { useTranslationSelectionStore } from "../stores/translationSelectionStore";
+import { listLanguages, listModels } from "../../../shared/tauri/translation";
+import {
+  type TranslationModelSelection,
+  useTranslationSelectionStore,
+} from "../stores/translationSelectionStore";
 
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
 
@@ -69,9 +73,7 @@ export default function TranslationControls() {
       >
         <TargetLanguageSelect languages={languages} />
 
-        <Select>
-          <option>あ</option>
-        </Select>
+        <ModelSelect />
       </div>
 
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
@@ -165,6 +167,52 @@ function TargetLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
       {languages.map((lang) => (
         <option key={lang.code} value={lang.code}>
           {lang.name}
+        </option>
+      ))}
+    </Select>
+  );
+}
+
+function ModelSelect() {
+  const [models, setModels] = useState<Map<string, ModelDto>>(new Map());
+  const [firstModel, setFirstModel] = useState<ModelDto | null>(null);
+  const { model, setModel } = useTranslationSelectionStore();
+
+  const genKey = useCallback(
+    (model: TranslationModelSelection) => `${model.provider}-${model.id}`,
+    [],
+  );
+
+  useEffect(() => {
+    (async () => {
+      const models = await listModels();
+      if (models.length > 0) setFirstModel(models[0]);
+
+      setModels(new Map(models.map((model) => [genKey(model), model])));
+    })();
+  }, [genKey]);
+
+  const onChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const selected = models.get(event.currentTarget.value);
+      if (selected === undefined) return;
+      setModel(selected);
+    },
+    [models, setModel],
+  );
+
+  if (models.size === 0 || firstModel === null)
+    return (
+      <Select>
+        <option disabled={true}>モデル未設定</option>
+      </Select>
+    );
+
+  return (
+    <Select value={genKey(model ?? firstModel)} onChange={onChange}>
+      {Array.from(models).map(([key, model]) => (
+        <option key={key} value={key}>
+          {model.displayName ?? model.id}
         </option>
       ))}
     </Select>

@@ -25,6 +25,7 @@ pub fn run() {
             translation::next_translation_request_id,
             translation::request_translation,
             translation::list_languages,
+            translation::list_models,
             translation::to_markdown
         ])
         .run(tauri::generate_context!())

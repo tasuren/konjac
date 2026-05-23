@@ -18,10 +18,10 @@ pub enum ProviderKind {
     Ollama,
 }
 
-pub struct ModelInfo {
-    id: String,
-    display_name: Option<String>,
-    provider: ProviderKind,
+pub struct Model {
+    pub provider: ProviderKind,
+    pub id: String,
+    pub display_name: Option<String>,
 }
 
 pub enum GenerationEvent {
@@ -50,7 +50,7 @@ pub trait LlmProvider {
     async fn generate_stream(&self, request: GenerationRequest)
     -> anyhow::Result<GenerationStream>;
 
-    async fn list_models(&self) -> anyhow::Result<Vec<ModelInfo>>;
+    async fn list_models(&self) -> anyhow::Result<Vec<Model>>;
 }
 
 pub struct OllamaProvider {
@@ -130,12 +130,12 @@ impl LlmProvider for OllamaProvider {
         Ok(Box::pin(stream))
     }
 
-    async fn list_models(&self) -> anyhow::Result<Vec<ModelInfo>> {
+    async fn list_models(&self) -> anyhow::Result<Vec<Model>> {
         let list = self.client.list_models().await?;
 
         Ok(list
             .into_iter()
-            .map(|model| ModelInfo {
+            .map(|model| Model {
                 display_name: Some(model.display_name().to_owned()),
                 id: model.id,
                 provider: ProviderKind::Ollama,
