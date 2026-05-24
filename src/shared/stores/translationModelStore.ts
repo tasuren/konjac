@@ -13,19 +13,22 @@ export type TranslationModelSelection = {
 
 export type TranslationModelStore = {
   model: TranslationModelSelection | null;
-  models: Map<string, ModelDto>;
+  availableModels: Map<string, ModelDto>;
   setModel: (model: TranslationModelSelection) => void;
-  setModels: (models: ModelDto[]) => void;
+  setAvailableModels: (models: ModelDto[]) => void;
 };
 
 export const useTranslationModelStore = create<TranslationModelStore>(
   (set) => ({
     model: null,
-    models: new Map(),
+    availableModels: new Map(),
     setModel: (model) => set({ model }),
-    setModels: (models: ModelDto[]) =>
-      set({
-        models: new Map(models.map((model) => [genModelKey(model), model])),
-      }),
+    setAvailableModels: (models: ModelDto[]) =>
+      set(({model}) => ({
+        model: model === null && models.length > 0 ? models[0] : model,
+        availableModels: new Map(
+          models.map((model) => [genModelKey(model), model]),
+        ),
+      })),
   }),
 );

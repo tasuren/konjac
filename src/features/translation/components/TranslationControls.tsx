@@ -1,44 +1,16 @@
-import { cn } from "@sglara/cn";
-import { ArrowRightLeft, ChevronDown } from "lucide-react";
+import { ArrowRightLeft } from "lucide-react";
 import {
   type ChangeEvent,
   type OptionHTMLAttributes,
-  type SelectHTMLAttributes,
   useCallback,
   useEffect,
   useState,
 } from "react";
 import type { LanguageInfoDto } from "../../../rust-bindings/LanguageInfoDto";
 import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
-import {
-  genModelKey,
-  useTranslationModelStore,
-} from "../../../shared/stores/translationModelStore";
-import { listLanguages, listModels } from "../../../shared/tauri/translation";
+import { Select } from "../../../shared/components/Select";
+import { listLanguages } from "../../../shared/tauri/translation";
 import { useTranslationSelectionStore } from "../hooks/translationLanguageStore";
-
-type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
-
-export function Select({ className, children, ...props }: SelectProps) {
-  return (
-    <div className="relative">
-      <select
-        className={cn(
-          "appearance-none",
-          "border border-border bg-surface-elevated rounded-lg px-2 py-1 pr-8",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </select>
-
-      <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-        <ChevronDown className="h-4 w-4 opacity-60" />
-      </div>
-    </div>
-  );
-}
 
 export default function TranslationControls() {
   // TODO: Move them to global store?
@@ -59,8 +31,6 @@ export default function TranslationControls() {
 
       <div className="w-1/2 flex justify-between px-2">
         <TargetLanguageSelect languages={languages} />
-
-        <ModelSelect />
       </div>
 
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
@@ -154,44 +124,6 @@ function TargetLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
       {languages.map((lang) => (
         <option key={lang.code} value={lang.code}>
           {lang.name}
-        </option>
-      ))}
-    </Select>
-  );
-}
-
-function ModelSelect() {
-  const { model, models, setModel, setModels } = useTranslationModelStore();
-
-  useEffect(() => {
-    (async () => {
-      const models = await listModels();
-      if (models.length > 0 && model === null) setModel(models[0]);
-      setModels(models);
-    })();
-  }, [model, setModel, setModels]);
-
-  const onChange = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>) => {
-      const selected = models.get(event.currentTarget.value);
-      if (selected === undefined) return;
-      setModel(selected);
-    },
-    [models, setModel],
-  );
-
-  if (models.size === 0 || model === null)
-    return (
-      <Select>
-        <option disabled={true}>モデル未設定</option>
-      </Select>
-    );
-
-  return (
-    <Select value={genModelKey(model)} onChange={onChange}>
-      {Array.from(models).map(([key, model]) => (
-        <option key={key} value={key}>
-          {model.displayName ?? model.id}
         </option>
       ))}
     </Select>
