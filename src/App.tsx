@@ -1,12 +1,21 @@
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { AnimatePresence } from "motion/react";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TranslationView } from "./features/translation/TranslationView";
+import { useTranslationModelStore } from "./shared/stores/translationModelStore";
+import { listModels } from "./shared/tauri/translation";
 
 function App() {
   const [settings, setSettings] = useState(false);
+  const { setAvailableModels } = useTranslationModelStore();
+
+  useEffect(() => {
+    (async () => {
+      setAvailableModels(await listModels());
+    })();
+  }, [setAvailableModels]);
 
   return (
     <>

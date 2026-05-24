@@ -6,7 +6,6 @@ import {
   genModelKey,
   useTranslationModelStore,
 } from "../../shared/stores/translationModelStore";
-import { listModels } from "../../shared/tauri/translation";
 
 export function SettingsView({
   setSettings,
@@ -48,15 +47,7 @@ function ModelSelect(props: SelectProps) {
     model,
     availableModels: models,
     setModel,
-    setAvailableModels: setModels,
   } = useTranslationModelStore();
-
-  useEffect(() => {
-    (async () => {
-      const models = await listModels();
-      setModels(models);
-    })();
-  }, [setModels]);
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
