@@ -1,7 +1,6 @@
 use std::sync::atomic;
 
 use futures_util::StreamExt;
-use lingua::Language;
 use tauri::async_runtime::JoinHandle;
 use tauri_plugin_log::log;
 use tokio::sync::Mutex;
@@ -31,8 +30,8 @@ impl TranslationService {
     pub fn new(settings: &Settings) -> Self {
         let request_id_store = TranslationRequestIdStore::default();
         let language_resolver = LanguageResolver::new(
-            settings.auto_detection_settings.scope.clone().into(),
-            settings.auto_detection_settings.fallback_to.clone().into(),
+            settings.auto_detection.scope.clone().into(),
+            settings.auto_detection.fallback_to.clone().into(),
         );
         let providers =
             LlmProviders::new(&settings.providers).expect("Failed to create LLM providers.");
@@ -94,10 +93,6 @@ impl TranslationService {
 
     pub async fn list_models(&self) -> anyhow::Result<Vec<Model>> {
         self.providers.lock().await.list_models().await
-    }
-
-    pub fn list_languages(&self) -> Vec<Language> {
-        Language::all().into_iter().map(Into::into).collect()
     }
 }
 

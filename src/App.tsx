@@ -5,7 +5,7 @@ import { AnimatePresence } from "motion/react";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TranslationView } from "./features/translation/TranslationView";
 import { useTranslationModelStore } from "./shared/stores/translationModelStore";
-import { listModels } from "./shared/tauri/translation";
+import { listAvailableModels } from "./shared/tauri/translation";
 
 function App() {
   const [settings, setSettings] = useState(false);
@@ -13,7 +13,7 @@ function App() {
 
   useEffect(() => {
     (async () => {
-      setAvailableModels(await listModels());
+      setAvailableModels(await listAvailableModels());
     })();
   }, [setAvailableModels]);
 

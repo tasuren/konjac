@@ -74,12 +74,16 @@ export async function requestTranslation(
   }
 }
 
-export async function listLanguages(): Promise<LanguageInfoDto[]> {
-  return await invoke("list_languages");
+export async function listAvailableLanguages(): Promise<LanguageInfoDto[]> {
+  return await invoke("list_available_languages");
 }
 
-export async function listModels(): Promise<ModelDto[]> {
-  return await invoke("list_models");
+export async function listSupportedLanguages(): Promise<LanguageInfoDto[]> {
+  return await invoke("list_supported_languages");
+}
+
+export async function listAvailableModels(): Promise<ModelDto[]> {
+  return await invoke("list_available_models");
 }
 
 export async function toMarkdown(html: string): Promise<string> {

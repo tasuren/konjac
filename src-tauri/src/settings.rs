@@ -12,11 +12,7 @@ use tauri_plugin_log::log;
 
 use crate::language::{LanguageDetectionScope, LanguageInfo};
 
-pub fn setup(app: &tauri::App) -> Settings {
-    ensure_settings_available(app).expect("Failed to ensure `settings.json`")
-}
-
-fn ensure_settings_available(app: &tauri::App) -> anyhow::Result<Settings> {
+pub fn ensure_settings_available(app: &tauri::App) -> anyhow::Result<Settings> {
     let app_config_path = app
         .path()
         .app_config_dir()
@@ -78,7 +74,8 @@ pub struct Settings {
 
     pub default_source_language: SourceLanguageSetting,
     pub default_target_language: TargetLanguageSetting,
-    pub auto_detection_settings: AutoDetectionSettings,
+    pub language_list_scope: LanguageListScopeSetting,
+    pub auto_detection: AutoDetectionSettings,
 
     pub system_prompt: Option<String>,
     #[serde(default = "default_translation_prompt")]
@@ -91,9 +88,10 @@ impl Default for Settings {
             version: SETTINGS_VERSION,
             providers: ProviderSettings::default(),
             last_selected_model: None,
-            default_source_language: SourceLanguageSetting::AutoDetect,
+            default_source_language: SourceLanguageSetting::default(),
             default_target_language: TargetLanguageSetting::default(),
-            auto_detection_settings: AutoDetectionSettings::default(),
+            language_list_scope: LanguageListScopeSetting::default(),
+            auto_detection: AutoDetectionSettings::default(),
             system_prompt: None,
             translation_prompt: default_translation_prompt(),
         }
@@ -104,9 +102,10 @@ fn default_translation_prompt() -> String {
     include_str!("default_translation_prompt.md").to_owned()
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum SourceLanguageSetting {
+    #[default]
     AutoDetect,
     Manual(LanguageInfoSetting),
 }
@@ -139,10 +138,18 @@ impl From<LanguageInfoSetting> for LanguageInfo {
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
+pub enum LanguageListScopeSetting {
+    #[default]
+    All,
+    Common,
+    Custom(Vec<Language>),
+}
+
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub enum LanguageDetectionScopeSetting {
+    All,
     #[default]
     Common,
-    All,
     Custom(Vec<Language>),
 }
 

@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { type ChangeEvent, useCallback, useEffect } from "react";
+import { type ChangeEvent, useCallback } from "react";
 import { Select, type SelectProps } from "../../shared/components/Select";
 import { TitleBar } from "../../shared/components/TitleBar";
 import {

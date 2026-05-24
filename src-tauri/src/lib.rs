@@ -1,4 +1,5 @@
 use tauri::Manager;
+use tokio::sync::Mutex;
 
 use crate::translation::TranslationService;
 
@@ -11,8 +12,10 @@ mod settings;
 mod translation;
 
 fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let settings = settings::setup(app);
+    let settings =
+        settings::ensure_settings_available(app).expect("Failed to ensure `settings.json`");
     app.manage(TranslationService::new(&settings));
+    app.manage(Mutex::new(settings));
     Ok(())
 }
 
@@ -29,8 +32,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             ipc::next_translation_request_id,
             ipc::request_translation,
-            ipc::list_languages,
-            ipc::list_models,
+            ipc::list_supported_languages,
+            ipc::list_available_languages,
+            ipc::list_available_models,
             ipc::to_markdown
         ])
         .run(tauri::generate_context!())

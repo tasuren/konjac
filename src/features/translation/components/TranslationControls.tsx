@@ -9,7 +9,7 @@ import {
 import type { LanguageInfoDto } from "../../../rust-bindings/LanguageInfoDto";
 import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
 import { Select } from "../../../shared/components/Select";
-import { listLanguages } from "../../../shared/tauri/translation";
+import { listAvailableLanguages } from "../../../shared/tauri/translation";
 import { useTranslationSelectionStore } from "../hooks/translationLanguageStore";
 
 export default function TranslationControls() {
@@ -17,7 +17,7 @@ export default function TranslationControls() {
   const [languages, setLanguages] = useState<LanguageInfoDto[]>([]);
   useEffect(() => {
     (async () => {
-      const languages = await listLanguages();
+      const languages = await listAvailableLanguages();
       languages.sort((a, b) => a.name.localeCompare(b.name));
       setLanguages(languages);
     })();

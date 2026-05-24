@@ -1,11 +1,15 @@
+use lingua::Language;
 use tauri::{AppHandle, Emitter, State};
 use tauri_plugin_log::log;
+use tokio::sync::Mutex;
 
 use crate::{
     ipc_dto::{
         LanguageInfoDto, ModelDto, TranslationRequestDto, TranslationRequestResultDto,
         TranslationStreamEventDto,
     },
+    language::COMMON_LANGUAGES,
+    settings::{LanguageListScopeSetting, Settings},
     translation::{TranslationResponseEmitter, TranslationService, TranslationStreamEvent},
 };
 
@@ -43,16 +47,29 @@ pub fn next_translation_request_id(service: State<'_, TranslationService>) -> u3
 }
 
 #[tauri::command]
-pub fn list_languages(service: State<'_, TranslationService>) -> Vec<LanguageInfoDto> {
-    service
-        .list_languages()
-        .into_iter()
-        .map(|lang| lang.into())
-        .collect()
+pub fn list_supported_languages() -> Vec<LanguageInfoDto> {
+    Language::all().into_iter().map(Into::into).collect()
 }
 
 #[tauri::command]
-pub async fn list_models(service: State<'_, TranslationService>) -> Result<Vec<ModelDto>, String> {
+pub async fn list_available_languages(
+    settings: State<'_, Mutex<Settings>>,
+) -> Result<Vec<LanguageInfoDto>, ()> {
+    Ok(match &settings.lock().await.language_list_scope {
+        LanguageListScopeSetting::All => Language::all().into_iter().map(Into::into).collect(),
+        LanguageListScopeSetting::Common => {
+            COMMON_LANGUAGES.iter().cloned().map(Into::into).collect()
+        }
+        LanguageListScopeSetting::Custom(languages) => {
+            languages.iter().cloned().map(Into::into).collect()
+        }
+    })
+}
+
+#[tauri::command]
+pub async fn list_available_models(
+    service: State<'_, TranslationService>,
+) -> Result<Vec<ModelDto>, String> {
     service
         .list_models()
         .await
