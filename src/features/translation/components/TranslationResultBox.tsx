@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Streamdown } from "streamdown";
 import { CustomLinkModal } from "../../../shared/components/CustomLinkModal";
+import type { TranslationModelSelection } from "../../../shared/stores/translationModelStore";
 import type { TranslationStatus } from "../hooks/useTranslationEvent";
-import type { TranslationModelSelection } from "../stores/translationSelectionStore";
 
 export type TranslationResultBoxProps = {
   model: TranslationModelSelection | null;

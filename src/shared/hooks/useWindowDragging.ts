@@ -1,7 +1,10 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 
-export type UseWindowDraggingOptions = { includesChildren: boolean };
+export type UseWindowDraggingOptions = {
+  includesChildren?: boolean;
+  maximizable?: boolean;
+};
 
 /**
  * Tauri's `data-tauri-drag-region` works well, but
@@ -20,7 +23,8 @@ export function useWindowDragging(
     if (element === null) return;
 
     const isInteractiveElement = (target: EventTarget | null) => {
-      if (!(target instanceof HTMLElement)) return false;
+      if (!(target instanceof HTMLElement || target instanceof SVGElement))
+        return false;
 
       return (
         target.closest(
@@ -38,9 +42,15 @@ export function useWindowDragging(
     const onMouseDownOrUp = (event: MouseEvent) => {
       if (!isTargetElement(event)) return;
 
+      // Update dragging state
       const dragging = event.buttons === 1;
       dragStarting.current = dragging;
       if (!dragging) setClassName("");
+
+      // Support maximizing window
+      if (opts?.maximizable && event.buttons === 1 && event.detail === 2) {
+        tauriWindow.toggleMaximize();
+      }
     };
 
     const onMouseMove = (event: MouseEvent) => {
@@ -54,15 +64,15 @@ export function useWindowDragging(
     };
 
     element.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mousedown", onMouseDownOrUp);
-    window.addEventListener("mouseup", onMouseDownOrUp);
+    element.addEventListener("mousedown", onMouseDownOrUp);
+    element.addEventListener("mouseup", onMouseDownOrUp);
 
     return () => {
       element.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mousedown", onMouseDownOrUp);
-      window.removeEventListener("mouseup", onMouseDownOrUp);
+      element.removeEventListener("mousedown", onMouseDownOrUp);
+      element.removeEventListener("mouseup", onMouseDownOrUp);
     };
-  }, [ref, tauriWindow, opts?.includesChildren]);
+  }, [ref, tauriWindow, opts?.includesChildren, opts?.maximizable]);
 
   return className;
 }

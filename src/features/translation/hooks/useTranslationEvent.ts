@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ProviderKindDto } from "../../../rust-bindings/ProviderKindDto";
 import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
 import type { SourceLanguageDto } from "../../../rust-bindings/SourceLanguageDto";
 import type { TargetLanguageDto } from "../../../rust-bindings/TargetLanguageDto";
 import { requestTranslation } from "../../../shared/tauri/translation";
-import type { TranslationModelSelection } from "../stores/translationSelectionStore";
 
 export type TranslationStatus = "idle" | "requesting" | "translating";
 
 export type UseTranslationSessionOptions = {
   sourceLanguage: SourceLanguageDto;
   targetLanguage: TargetLanguageDto;
-  model: TranslationModelSelection | null;
+  model: { provider: ProviderKindDto; id: string } | null;
   debounceMs: number;
   setResolvedSourceLanguage: (value: ResolvedSourceLanguageDto) => void;
 };

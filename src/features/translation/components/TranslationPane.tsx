@@ -1,11 +1,13 @@
+import { useTranslationModelStore } from "../../../shared/stores/translationModelStore";
+import { useTranslationSelectionStore } from "../hooks/translationLanguageStore";
 import { useTranslationSession } from "../hooks/useTranslationEvent";
-import { useTranslationSelectionStore } from "../stores/translationSelectionStore";
 import { TranslationInputBox } from "./TranslationInputBox";
 import { TranslationResultBox } from "./TranslationResultBox";
 
 export default function TranslationPane() {
-  const { sourceLanguage, setResolvedSourceLanguage, targetLanguage, model } =
+  const { sourceLanguage, setResolvedSourceLanguage, targetLanguage } =
     useTranslationSelectionStore();
+  const { model } = useTranslationModelStore();
 
   const {
     output,

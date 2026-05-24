@@ -6,18 +6,16 @@ import {
   type SelectHTMLAttributes,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import type { LanguageInfoDto } from "../../../rust-bindings/LanguageInfoDto";
-import type { ModelDto } from "../../../rust-bindings/ModelDto";
 import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
-import { useWindowDragging } from "../../../shared/hooks/useWindowDragging";
-import { listLanguages, listModels } from "../../../shared/tauri/translation";
 import {
-  type TranslationModelSelection,
-  useTranslationSelectionStore,
-} from "../stores/translationSelectionStore";
+  genModelKey,
+  useTranslationModelStore,
+} from "../../../shared/stores/translationModelStore";
+import { listLanguages, listModels } from "../../../shared/tauri/translation";
+import { useTranslationSelectionStore } from "../hooks/translationLanguageStore";
 
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
 
@@ -43,11 +41,6 @@ export function Select({ className, children, ...props }: SelectProps) {
 }
 
 export default function TranslationControls() {
-  const srcLangRef = useRef(null);
-  const srcLangClassName = useWindowDragging(srcLangRef);
-  const targetLangRef = useRef(null);
-  const targetLangClassName = useWindowDragging(targetLangRef);
-
   // TODO: Move them to global store?
   const [languages, setLanguages] = useState<LanguageInfoDto[]>([]);
   useEffect(() => {
@@ -59,18 +52,12 @@ export default function TranslationControls() {
   }, []);
 
   return (
-    <div className="flex items-center gap-6 relative">
-      <div
-        className={cn("w-1/2 flex justify-end px-2", srcLangClassName)}
-        ref={srcLangRef}
-      >
+    <div className="flex items-center gap-6 relative pointer-events-none [&>*>*]:pointer-events-auto">
+      <div className="w-1/2 flex justify-end px-2">
         <SourceLanguageSelect languages={languages} />
       </div>
 
-      <div
-        className={cn("w-1/2 flex justify-between px-2", targetLangClassName)}
-        ref={targetLangRef}
-      >
+      <div className="w-1/2 flex justify-between px-2">
         <TargetLanguageSelect languages={languages} />
 
         <ModelSelect />
@@ -174,23 +161,15 @@ function TargetLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
 }
 
 function ModelSelect() {
-  const [models, setModels] = useState<Map<string, ModelDto>>(new Map());
-  const [firstModel, setFirstModel] = useState<ModelDto | null>(null);
-  const { model, setModel } = useTranslationSelectionStore();
-
-  const genKey = useCallback(
-    (model: TranslationModelSelection) => `${model.provider}-${model.id}`,
-    [],
-  );
+  const { model, models, setModel, setModels } = useTranslationModelStore();
 
   useEffect(() => {
     (async () => {
       const models = await listModels();
-      if (models.length > 0) setFirstModel(models[0]);
-
-      setModels(new Map(models.map((model) => [genKey(model), model])));
+      if (models.length > 0 && model === null) setModel(models[0]);
+      setModels(models);
     })();
-  }, [genKey]);
+  }, [model, setModel, setModels]);
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -201,7 +180,7 @@ function ModelSelect() {
     [models, setModel],
   );
 
-  if (models.size === 0 || firstModel === null)
+  if (models.size === 0 || model === null)
     return (
       <Select>
         <option disabled={true}>モデル未設定</option>
@@ -209,7 +188,7 @@ function ModelSelect() {
     );
 
   return (
-    <Select value={genKey(model ?? firstModel)} onChange={onChange}>
+    <Select value={genModelKey(model)} onChange={onChange}>
       {Array.from(models).map(([key, model]) => (
         <option key={key} value={key}>
           {model.displayName ?? model.id}
