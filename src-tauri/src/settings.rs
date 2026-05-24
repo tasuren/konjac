@@ -63,11 +63,29 @@ fn recreate_settings_file(
     Ok(settings)
 }
 
+pub async fn write_settings(app: &tauri::AppHandle, settings: &Settings) -> anyhow::Result<()> {
+    let settings_path = app
+        .path()
+        .app_config_dir()
+        .context("Failed to get the configuration directory path")?
+        .join("settings.json");
+
+    let data = serde_json::to_vec_pretty(settings)?;
+    tokio::fs::write(&settings_path, data)
+        .await
+        .context("Failed to write settings file")?;
+    log::debug!("Wrote settings: {}", settings_path.display());
+
+    Ok(())
+}
+
 const SETTINGS_VERSION: u32 = 0;
 
 #[derive(Serialize, Deserialize)]
 pub struct Settings {
     pub version: u32,
+
+    pub theme: ThemeSetting,
 
     pub providers: ProviderSettings,
     pub last_selected_model: Option<ModelSelection>,
@@ -86,6 +104,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             version: SETTINGS_VERSION,
+            theme: ThemeSetting::default(),
             providers: ProviderSettings::default(),
             last_selected_model: None,
             default_source_language: SourceLanguageSetting::default(),
@@ -96,6 +115,14 @@ impl Default for Settings {
             translation_prompt: default_translation_prompt(),
         }
     }
+}
+
+#[derive(Default, Clone, Copy, Serialize, Deserialize)]
+pub enum ThemeSetting {
+    Light,
+    Dark,
+    #[default]
+    System,
 }
 
 fn default_translation_prompt() -> String {

@@ -35,7 +35,9 @@ pub fn run() {
             ipc::list_supported_languages,
             ipc::list_available_languages,
             ipc::list_available_models,
-            ipc::to_markdown
+            ipc::to_markdown,
+            ipc::get_theme,
+            ipc::set_theme
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
