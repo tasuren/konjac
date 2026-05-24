@@ -1,3 +1,8 @@
+use tauri::Manager;
+
+use crate::translation::TranslationService;
+
+mod ipc;
 mod ipc_dto;
 mod language;
 mod llm;
@@ -7,7 +12,7 @@ mod translation;
 
 fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let settings = settings::setup(app);
-    translation::setup(app, &settings);
+    app.manage(TranslationService::new(&settings));
     Ok(())
 }
 
@@ -22,11 +27,11 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .setup(setup)
         .invoke_handler(tauri::generate_handler![
-            translation::next_translation_request_id,
-            translation::request_translation,
-            translation::list_languages,
-            translation::list_models,
-            translation::to_markdown
+            ipc::next_translation_request_id,
+            ipc::request_translation,
+            ipc::list_languages,
+            ipc::list_models,
+            ipc::to_markdown
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -13,9 +13,19 @@ use rig_core::{
 };
 use tauri_plugin_log::log;
 
+use crate::{ipc_dto::ProviderKindDto, settings::ProviderSettings};
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum ProviderKind {
     Ollama,
+}
+
+impl From<ProviderKindDto> for ProviderKind {
+    fn from(value: ProviderKindDto) -> Self {
+        match value {
+            ProviderKindDto::Ollama => Self::Ollama,
+        }
+    }
 }
 
 pub struct Model {
@@ -34,6 +44,35 @@ pub enum Message {
     SystemMessage(String),
     UserMessage(String),
     AssistantMessage(String),
+}
+
+pub struct LlmProviders {
+    ollama: OllamaProvider,
+}
+
+impl LlmProviders {
+    pub fn new(settings: &ProviderSettings) -> anyhow::Result<Self> {
+        Ok(Self {
+            ollama: OllamaProvider::new(
+                &settings.ollama.base_url,
+                settings.ollama.keep_alive.clone(),
+            )?,
+        })
+    }
+
+    pub async fn generate_stream(
+        &self,
+        provider: ProviderKind,
+        request: GenerationRequest,
+    ) -> anyhow::Result<GenerationStream> {
+        match provider {
+            ProviderKind::Ollama => self.ollama.generate_stream(request).await,
+        }
+    }
+
+    pub async fn list_models(&self) -> anyhow::Result<Vec<Model>> {
+        Ok(self.ollama.list_models().await?)
+    }
 }
 
 pub struct GenerationRequest {

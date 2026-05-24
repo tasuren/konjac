@@ -1,79 +1,136 @@
-use std::sync::atomic::{self, AtomicU32};
+use std::sync::atomic;
 
 use futures_util::StreamExt;
 use lingua::Language;
+use tauri::async_runtime::JoinHandle;
 use tauri_plugin_log::log;
 use tokio::sync::Mutex;
 
-use tauri::{AppHandle, Emitter, Manager, State, async_runtime::JoinHandle};
-
 use crate::{
-    ipc_dto::{
-        LanguageInfoDto, ModelDto, ProviderKindDto, TranslationRequestDto,
-        TranslationRequestResultDto, TranslationStreamEventDto,
+    ipc_dto::{TranslationRequestDto, TranslationStreamEventDto},
+    language::{
+        LanguageInfo, LanguageResolver, ResolvedLanguagePair, ResolvedSourceLanguage,
+        SourceLanguage, TargetLanguage,
     },
-    language::{LanguageInfo, LanguageResolver, ResolvedLanguagePair},
-    llm::{GenerationEvent, GenerationRequest, GenerationStream, LlmProvider, OllamaProvider},
+    llm::{
+        GenerationEvent, GenerationRequest, GenerationStream, LlmProviders, Model, ProviderKind,
+    },
     prompt::{RenderTranslationPromptOptions, render_translation_prompt},
-    settings::{ProviderSettings, Settings},
+    settings::Settings,
 };
 
-pub fn setup(app: &tauri::App, settings: &Settings) {
-    let language_resolver = LanguageResolver::new(
-        settings.auto_detection_settings.scope.clone().into(),
-        settings.auto_detection_settings.fallback_to.clone().into(),
-    );
+pub struct TranslationService {
+    request_id_store: TranslationRequestIdStore,
+    language_resolver: Mutex<LanguageResolver>,
+    providers: Mutex<LlmProviders>,
+    settings: Mutex<TranslationSettings>,
+    task_store: Mutex<TranslationTaskStore>,
+}
 
-    app.manage(Mutex::new(language_resolver));
-    app.manage(Mutex::new(
-        LlmProviders::new(&settings.providers).expect("Failed to create LLM providers."),
-    ));
-    app.manage(Mutex::new(TranslationSettings {
-        system_prompt: settings.system_prompt.clone(),
-        translation_prompt: settings.translation_prompt.clone(),
-    }));
-    app.manage(TranslationRequestIdStore::default());
-    app.manage(Mutex::new(TranslationTaskStore::new(app.handle().clone())));
+impl TranslationService {
+    pub fn new(settings: &Settings) -> Self {
+        let request_id_store = TranslationRequestIdStore::default();
+        let language_resolver = LanguageResolver::new(
+            settings.auto_detection_settings.scope.clone().into(),
+            settings.auto_detection_settings.fallback_to.clone().into(),
+        );
+        let providers =
+            LlmProviders::new(&settings.providers).expect("Failed to create LLM providers.");
+        let settings = TranslationSettings {
+            system_prompt: settings.system_prompt.clone(),
+            translation_prompt: settings.translation_prompt.clone(),
+        };
+        let task_store = TranslationTaskStore::new();
+
+        Self {
+            request_id_store,
+            language_resolver: Mutex::new(language_resolver),
+            providers: Mutex::new(providers),
+            settings: Mutex::new(settings),
+            task_store: Mutex::new(task_store),
+        }
+    }
+
+    pub fn next_request_id(&self) -> u32 {
+        self.request_id_store.next()
+    }
+
+    pub async fn request_translation(
+        &self,
+        request: TranslationRequest,
+        emitter: Box<dyn TranslationResponseEmitter>,
+    ) -> anyhow::Result<ResolvedSourceLanguage> {
+        let mut task_store = self.task_store.lock().await;
+        task_store.abort_latest_task(&*emitter);
+
+        let ResolvedLanguagePair { source, target } = self.language_resolver.lock().await.resolve(
+            request.source_language.into(),
+            request.target_language.into(),
+            &request.text,
+        );
+
+        let generation_request = build_generation_request(
+            &*self.settings.lock().await,
+            source.get_language_info(),
+            target.get_language_info(),
+            &request.text,
+            request.model_id,
+        )
+        .await;
+
+        let stream = {
+            let lock = self.providers.lock().await;
+            lock.generate_stream(request.provider, generation_request)
+                .await?
+        };
+
+        let handle = tauri::async_runtime::spawn(async move {
+            stream_translation_text(&*emitter, request.request_id, stream).await;
+        });
+        task_store.set_latest_task(request.request_id, handle);
+
+        Ok(source)
+    }
+
+    pub async fn list_models(&self) -> anyhow::Result<Vec<Model>> {
+        self.providers.lock().await.list_models().await
+    }
+
+    pub fn list_languages(&self) -> Vec<Language> {
+        Language::all().into_iter().map(Into::into).collect()
+    }
 }
 
 #[derive(Default)]
-pub struct TranslationRequestIdStore(AtomicU32);
+pub struct TranslationRequestIdStore(atomic::AtomicU32);
 
 impl TranslationRequestIdStore {
-    fn next(&self) -> u32 {
+    pub fn next(&self) -> u32 {
         self.0
             .fetch_add(1, atomic::Ordering::Relaxed)
             .wrapping_add(1)
     }
 }
 
-pub struct LlmProviders {
-    ollama: OllamaProvider,
+pub struct TranslationRequest {
+    pub request_id: u32,
+    pub provider: ProviderKind,
+    pub model_id: String,
+    pub source_language: SourceLanguage,
+    pub target_language: TargetLanguage,
+    pub text: String,
 }
 
-impl LlmProviders {
-    pub fn new(settings: &ProviderSettings) -> anyhow::Result<Self> {
-        Ok(Self {
-            ollama: OllamaProvider::new(
-                &settings.ollama.base_url,
-                settings.ollama.keep_alive.clone(),
-            )?,
-        })
-    }
-
-    pub async fn generate_stream(
-        &self,
-        provider: ProviderKindDto,
-        request: GenerationRequest,
-    ) -> anyhow::Result<GenerationStream> {
-        match provider {
-            ProviderKindDto::Ollama => self.ollama.generate_stream(request).await,
+impl From<TranslationRequestDto> for TranslationRequest {
+    fn from(value: TranslationRequestDto) -> Self {
+        Self {
+            request_id: value.request_id,
+            provider: value.provider.into(),
+            model_id: value.model_id,
+            source_language: value.source_language.into(),
+            target_language: value.target_language.into(),
+            text: value.text,
         }
-    }
-
-    pub async fn list_models(&self) -> anyhow::Result<Vec<ModelDto>> {
-        let ollama_models = self.ollama.list_models().await?;
-        Ok(ollama_models.into_iter().map(Into::into).collect())
     }
 }
 
@@ -88,81 +145,26 @@ struct LatestTranslationTask {
 }
 
 pub struct TranslationTaskStore {
-    app: AppHandle,
     latest_task: Option<LatestTranslationTask>,
 }
 
 impl TranslationTaskStore {
-    fn new(app: AppHandle) -> Self {
-        Self {
-            app,
-            latest_task: None,
-        }
+    fn new() -> Self {
+        Self { latest_task: None }
     }
 
     fn set_latest_task(&mut self, request_id: u32, handle: JoinHandle<()>) {
         self.latest_task = Some(LatestTranslationTask { request_id, handle });
     }
 
-    fn abort_latest_task(&mut self) {
+    fn abort_latest_task(&mut self, emitter: &dyn TranslationResponseEmitter) {
         if let Some(task) = self.latest_task.take() {
             task.handle.abort();
-            emit_stream_event(
-                &self.app,
-                TranslationStreamEventDto::Cancelled {
-                    request_id: task.request_id,
-                },
-            );
+            emitter.emit(TranslationStreamEvent::Cancelled {
+                request_id: task.request_id,
+            });
         }
     }
-}
-
-#[tauri::command]
-pub fn next_translation_request_id(request_id_store: State<'_, TranslationRequestIdStore>) -> u32 {
-    request_id_store.next()
-}
-
-#[tauri::command]
-pub async fn request_translation(
-    app: AppHandle,
-    providers: State<'_, Mutex<LlmProviders>>,
-    language_resolver: State<'_, Mutex<LanguageResolver>>,
-    settings: State<'_, Mutex<TranslationSettings>>,
-    task_store: State<'_, Mutex<TranslationTaskStore>>,
-    request: TranslationRequestDto,
-) -> Result<TranslationRequestResultDto, String> {
-    let mut task_store = task_store.lock().await;
-    task_store.abort_latest_task();
-
-    let ResolvedLanguagePair { source, target } = language_resolver.lock().await.resolve(
-        request.source_language.into(),
-        request.target_language.into(),
-        &request.text,
-    );
-
-    let generation_request = build_generation_request(
-        &*settings.lock().await,
-        source.get_language_info(),
-        target.get_language_info(),
-        &request.text,
-        request.model_id,
-    )
-    .await;
-
-    let stream = {
-        let lock = providers.lock().await;
-        lock.generate_stream(request.provider, generation_request)
-            .await
-            .map_err(|e| e.to_string())?
-    };
-
-    let handle =
-        tauri::async_runtime::spawn(stream_translation_text(app, request.request_id, stream));
-    task_store.set_latest_task(request.request_id, handle);
-
-    Ok(TranslationRequestResultDto {
-        resolved_source_language: source.into(),
-    })
 }
 
 async fn build_generation_request(
@@ -189,8 +191,40 @@ async fn build_generation_request(
     }
 }
 
+pub enum TranslationStreamEvent {
+    Delta { request_id: u32, full_text: String },
+    Finished { request_id: u32, full_text: String },
+    Cancelled { request_id: u32 },
+}
+
+impl From<TranslationStreamEvent> for TranslationStreamEventDto {
+    fn from(value: TranslationStreamEvent) -> Self {
+        match value {
+            TranslationStreamEvent::Delta {
+                request_id,
+                full_text,
+            } => Self::Delta {
+                request_id,
+                full_text,
+            },
+            TranslationStreamEvent::Finished {
+                request_id,
+                full_text,
+            } => Self::Finished {
+                request_id,
+                full_text,
+            },
+            TranslationStreamEvent::Cancelled { request_id } => Self::Cancelled { request_id },
+        }
+    }
+}
+
+pub trait TranslationResponseEmitter: Send + Sync {
+    fn emit(&self, payload: TranslationStreamEvent);
+}
+
 async fn stream_translation_text(
-    app: tauri::AppHandle,
+    emitter: &dyn TranslationResponseEmitter,
     request_id: u32,
     mut stream: GenerationStream,
 ) {
@@ -200,25 +234,19 @@ async fn stream_translation_text(
         match event {
             GenerationEvent::Delta(delta) => {
                 result.push_str(&delta);
-                emit_stream_event(
-                    &app,
-                    TranslationStreamEventDto::Delta {
-                        request_id,
-                        full_text: result.clone(),
-                    },
-                );
+                emitter.emit(TranslationStreamEvent::Delta {
+                    request_id,
+                    full_text: result.clone(),
+                });
             }
             GenerationEvent::Finished(full_text) => {
                 if let Some(full_text) = full_text {
                     result = full_text;
                 }
-                emit_stream_event(
-                    &app,
-                    TranslationStreamEventDto::Finished {
-                        request_id,
-                        full_text: result,
-                    },
-                );
+                emitter.emit(TranslationStreamEvent::Finished {
+                    request_id,
+                    full_text: result,
+                });
 
                 break;
             }
@@ -227,38 +255,4 @@ async fn stream_translation_text(
             }
         }
     }
-}
-
-fn emit_stream_event(app: &AppHandle, payload: TranslationStreamEventDto) {
-    if let Err(e) = app.emit("translation-stream-event", payload) {
-        log::warn!("Some translation event was not sent: {e:?}");
-    };
-}
-
-#[tauri::command]
-pub fn list_languages() -> Vec<LanguageInfoDto> {
-    Language::all().into_iter().map(Into::into).collect()
-}
-
-#[tauri::command]
-pub async fn list_models(
-    providers: State<'_, Mutex<LlmProviders>>,
-) -> Result<Vec<ModelDto>, String> {
-    providers
-        .lock()
-        .await
-        .list_models()
-        .await
-        .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-pub fn to_markdown(html: String) -> Result<String, String> {
-    let converter = htmd::HtmlToMarkdownBuilder::new()
-        .skip_tags(vec![
-            "script", "style", "iframe", "object", "embed", "canvas", "svg", "noscript",
-        ])
-        .build();
-
-    converter.convert(&html).map_err(|e| e.to_string())
 }
