@@ -5,7 +5,7 @@ use tokio::sync::Mutex;
 
 use crate::{
     ipc_dto::{
-        LanguageInfoDto, ModelDto, ThemeDto, TranslationRequestDto, TranslationRequestResultDto,
+        LanguageInfoDto, ModelDto, SettingsDto, TranslationRequestDto, TranslationRequestResultDto,
         TranslationStreamEventDto,
     },
     language::COMMON_LANGUAGES,
@@ -89,20 +89,22 @@ pub fn to_markdown(html: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn get_theme(settings: State<'_, Mutex<Settings>>) -> Result<ThemeDto, ()> {
-    Ok(settings.lock().await.theme.into())
+pub async fn get_settings(settings: State<'_, Mutex<Settings>>) -> Result<SettingsDto, String> {
+    Ok(settings.lock().await.clone().into())
 }
 
 #[tauri::command]
-pub async fn set_theme(
+pub async fn save_settings(
     app: AppHandle,
-    settings: State<'_, Mutex<Settings>>,
-    theme: ThemeDto,
+    app_settings_state: State<'_, Mutex<Settings>>,
+    settings: SettingsDto,
 ) -> Result<(), String> {
-    let mut settings = settings.lock().await;
-    settings.theme = theme.into();
-    write_settings(&app, &settings)
+    let mut app_settings = app_settings_state.lock().await;
+    *app_settings = Settings::from(settings);
+
+    write_settings(&app, &app_settings)
         .await
         .map_err(|e| e.to_string())?;
+
     Ok(())
 }

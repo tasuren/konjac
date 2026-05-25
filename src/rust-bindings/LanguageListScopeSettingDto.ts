@@ -2,6 +2,6 @@
 import type { LanguageInfoDto } from "./LanguageInfoDto";
 
 /**
- * Target language selection sent with a translation request.
+ * Language-list scope for selectable translation languages.
  */
-export type TargetLanguageDto = LanguageInfoDto;
+export type LanguageListScopeSettingDto = "All" | "Common" | { "Custom": Array<LanguageInfoDto> };

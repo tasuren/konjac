@@ -2,6 +2,6 @@
 import type { LanguageInfoDto } from "./LanguageInfoDto";
 
 /**
- * Target language selection sent with a translation request.
+ * Persisted default target language setting.
  */
-export type TargetLanguageDto = LanguageInfoDto;
+export type TargetLanguageSettingDto = LanguageInfoDto;

@@ -10,7 +10,7 @@ import type { LanguageInfoDto } from "../../../rust-bindings/LanguageInfoDto";
 import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
 import { Select } from "../../../shared/components/Select";
 import { listAvailableLanguages } from "../../../shared/tauri/translation";
-import { useTranslationSelectionStore } from "../hooks/translationLanguageStore";
+import { useTranslationSelectionStore } from "../stores/translationLanguageStore";
 
 export default function TranslationControls() {
   // TODO: Move them to global store?
@@ -51,7 +51,7 @@ function SourceLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
       const selected = event.currentTarget.value;
 
       if (selected === "auto-detection") {
-        setSourceLanguage({ type: "autoDetect" });
+        setSourceLanguage({ type: "auto_detect" });
         return;
       }
 
@@ -69,7 +69,7 @@ function SourceLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
     <Select
       className="w-40"
       value={
-        sourceLanguage.type === "autoDetect"
+        sourceLanguage.type === "auto_detect"
           ? "auto-detection"
           : sourceLanguage.code
       }

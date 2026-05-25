@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
 import type { SourceLanguageDto } from "../../../rust-bindings/SourceLanguageDto";
 import type { TargetLanguageDto } from "../../../rust-bindings/TargetLanguageDto";
+import { getSettings } from "../../../shared/tauri/settings";
 
 export type TranslationSelectionStore = {
   sourceLanguage: SourceLanguageDto;
@@ -15,11 +16,12 @@ export type TranslationSelectionStore = {
   setTargetLanguage: (targetLanguage: TargetLanguageDto) => void;
 };
 
+const settings = await getSettings();
 export const useTranslationSelectionStore = create<TranslationSelectionStore>(
   (set) => ({
-    sourceLanguage: { type: "autoDetect" },
+    sourceLanguage: settings.defaultSourceLanguage,
     resolvedSourceLanguage: null,
-    targetLanguage: { name: "English", code: "en" },
+    targetLanguage: settings.defaultTargetLanguage,
 
     setSourceLanguage: (sourceLanguage) => set({ sourceLanguage }),
     setResolvedSourceLanguage: (resolvedSourceLanguage) =>

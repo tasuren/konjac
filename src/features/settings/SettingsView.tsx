@@ -1,13 +1,13 @@
 import { X } from "lucide-react";
-import { type ChangeEvent, useCallback } from "react";
-import type { ThemeDto } from "../../rust-bindings/ThemeDto";
+import { type ChangeEvent, useCallback, useEffect, useState } from "react";
+import type { ModelDto } from "../../rust-bindings/ModelDto";
+import type { ModelSelectionDto } from "../../rust-bindings/ModelSelectionDto";
+import type { SettingsDto } from "../../rust-bindings/SettingsDto";
+import type { ThemeSettingDto } from "../../rust-bindings/ThemeSettingDto";
 import { Select, type SelectProps } from "../../shared/components/Select";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
-import {
-  genModelKey,
-  useTranslationModelStore,
-} from "../../shared/stores/translationModelStore";
+import { listAvailableModels } from "../../shared/tauri/translation";
 
 export function SettingsView({
   setSettings,
@@ -52,16 +52,19 @@ export function SettingsView({
 }
 
 function ThemeSelect(props: SelectProps) {
-  const { theme, setTheme } = useSettingsStore();
+  const { theme, updateSettings } = useSettingsStore();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const selected = event.currentTarget.value;
       if (selected !== "light" && selected !== "dark" && selected !== "system")
         throw "Invalid theme was set on options";
-      setTheme(selected as ThemeDto);
+      updateSettings((settings: SettingsDto) => ({
+        ...settings,
+        theme: selected as ThemeSettingDto,
+      }));
     },
-    [setTheme],
+    [updateSettings],
   );
 
   return (
@@ -73,20 +76,35 @@ function ThemeSelect(props: SelectProps) {
   );
 }
 
+function genModelKey(model: ModelSelectionDto) {
+  return `${model.provider}-${model.id}`;
+}
+
 function ModelSelect(props: SelectProps) {
-  const {
-    model,
-    availableModels: models,
-    setModel,
-  } = useTranslationModelStore();
+  const [models, setModels] = useState<Map<string, ModelDto>>(new Map());
+  const { model, updateSettings } = useSettingsStore();
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      const availableModels = await listAvailableModels();
+      setModels(
+        new Map(availableModels.map((model) => [genModelKey(model), model])),
+      );
+    };
+
+    void fetchModels();
+  }, []);
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const selected = models.get(event.currentTarget.value);
       if (selected === undefined) return;
-      setModel(selected);
+      updateSettings((settings) => ({
+        ...settings,
+        model: selected,
+      }));
     },
-    [models, setModel],
+    [models, updateSettings],
   );
 
   if (models.size === 0 || model === null)

@@ -26,6 +26,9 @@ importers:
       '@tauri-apps/plugin-opener':
         specifier: ^2.5.4
         version: 2.5.4
+      es-toolkit:
+        specifier: ^1.46.1
+        version: 1.46.1
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.6)

@@ -13,19 +13,11 @@ use rig_core::{
 };
 use tauri_plugin_log::log;
 
-use crate::{ipc_dto::ProviderKindDto, settings::ProviderSettings};
+use crate::settings::ProviderSettings;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum ProviderKind {
     Ollama,
-}
-
-impl From<ProviderKindDto> for ProviderKind {
-    fn from(value: ProviderKindDto) -> Self {
-        match value {
-            ProviderKindDto::Ollama => Self::Ollama,
-        }
-    }
 }
 
 pub struct Model {

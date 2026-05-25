@@ -10,7 +10,10 @@ use serde::{Deserialize, Serialize};
 use tauri::Manager;
 use tauri_plugin_log::log;
 
-use crate::language::{LanguageDetectionScope, LanguageInfo};
+use crate::{
+    language::{LanguageDetectionScope, LanguageInfo},
+    llm::ProviderKind,
+};
 
 pub fn ensure_settings_available(app: &tauri::App) -> anyhow::Result<Settings> {
     let app_config_path = app
@@ -81,14 +84,14 @@ pub async fn write_settings(app: &tauri::AppHandle, settings: &Settings) -> anyh
 
 const SETTINGS_VERSION: u32 = 0;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Settings {
     pub version: u32,
 
     pub theme: ThemeSetting,
 
     pub providers: ProviderSettings,
-    pub last_selected_model: Option<ModelSelection>,
+    pub model: Option<ModelSelection>,
 
     pub default_source_language: SourceLanguageSetting,
     pub default_target_language: TargetLanguageSetting,
@@ -106,7 +109,7 @@ impl Default for Settings {
             version: SETTINGS_VERSION,
             theme: ThemeSetting::default(),
             providers: ProviderSettings::default(),
-            last_selected_model: None,
+            model: None,
             default_source_language: SourceLanguageSetting::default(),
             default_target_language: TargetLanguageSetting::default(),
             language_list_scope: LanguageListScopeSetting::default(),
@@ -118,6 +121,7 @@ impl Default for Settings {
 }
 
 #[derive(Default, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ThemeSetting {
     Light,
     Dark,
@@ -130,15 +134,15 @@ fn default_translation_prompt() -> String {
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum SourceLanguageSetting {
     #[default]
     AutoDetect,
     Manual(LanguageInfoSetting),
 }
 
-#[derive(Default, Serialize, Deserialize)]
-pub struct TargetLanguageSetting(LanguageInfoSetting);
+#[derive(Default, Clone, Serialize, Deserialize)]
+pub struct TargetLanguageSetting(pub LanguageInfoSetting);
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LanguageInfoSetting {
@@ -165,14 +169,16 @@ impl From<LanguageInfoSetting> for LanguageInfo {
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum LanguageListScopeSetting {
     #[default]
     All,
     Common,
-    Custom(Vec<Language>),
+    Custom(Vec<LanguageInfoSetting>),
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum LanguageDetectionScopeSetting {
     All,
     #[default]
@@ -190,18 +196,27 @@ impl From<LanguageDetectionScopeSetting> for LanguageDetectionScope {
     }
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct AutoDetectionSettings {
     pub scope: LanguageDetectionScopeSetting,
-    pub fallback_to: LanguageInfoSetting,
+    pub fallback_to: Language,
 }
 
-#[derive(Default, Serialize, Deserialize)]
+impl Default for AutoDetectionSettings {
+    fn default() -> Self {
+        Self {
+            scope: LanguageDetectionScopeSetting::default(),
+            fallback_to: Language::English,
+        }
+    }
+}
+
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct ProviderSettings {
     pub ollama: OllamaSettings,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OllamaSettings {
     #[serde(default = "ollama_default_base_url")]
     pub base_url: String,
@@ -221,14 +236,30 @@ fn ollama_default_base_url() -> String {
     "http://127.0.0.1:11434".to_owned()
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ModelSelection {
-    pub model_name: String,
+    pub id: String,
     pub provider: ProviderKindSetting,
 }
 
-#[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ProviderKindSetting {
     Ollama,
+}
+
+impl From<ProviderKind> for ProviderKindSetting {
+    fn from(value: ProviderKind) -> Self {
+        match value {
+            ProviderKind::Ollama => Self::Ollama,
+        }
+    }
+}
+
+impl From<ProviderKindSetting> for ProviderKind {
+    fn from(value: ProviderKindSetting) -> Self {
+        match value {
+            ProviderKindSetting::Ollama => Self::Ollama,
+        }
+    }
 }

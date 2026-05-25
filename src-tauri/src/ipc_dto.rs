@@ -1,15 +1,21 @@
 //! DTO implementation for IPC.
 
+mod language;
+
 use serde::{Deserialize, Serialize};
 
+pub use language::*;
+
 use crate::{
-    language::{LanguageInfo, ResolvedSourceLanguage, SourceLanguage, TargetLanguage},
     llm::{Model, ProviderKind},
-    settings::ThemeSetting,
+    settings::{
+        ModelSelection, OllamaSettings, ProviderKindSetting, ProviderSettings, Settings,
+        ThemeSetting,
+    },
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 #[ts(export)]
 pub enum ProviderKindDto {
     Ollama,
@@ -19,6 +25,30 @@ impl From<ProviderKind> for ProviderKindDto {
     fn from(value: ProviderKind) -> Self {
         match value {
             ProviderKind::Ollama => Self::Ollama,
+        }
+    }
+}
+
+impl From<ProviderKindDto> for ProviderKind {
+    fn from(value: ProviderKindDto) -> Self {
+        match value {
+            ProviderKindDto::Ollama => Self::Ollama,
+        }
+    }
+}
+
+impl From<ProviderKindSetting> for ProviderKindDto {
+    fn from(value: ProviderKindSetting) -> Self {
+        match value {
+            ProviderKindSetting::Ollama => Self::Ollama,
+        }
+    }
+}
+
+impl From<ProviderKindDto> for ProviderKindSetting {
+    fn from(value: ProviderKindDto) -> Self {
+        match value {
+            ProviderKindDto::Ollama => Self::Ollama,
         }
     }
 }
@@ -42,68 +72,6 @@ impl From<Model> for ModelDto {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
-#[serde(rename_all = "camelCase")]
-#[ts(export)]
-pub struct LanguageInfoDto {
-    pub name: String,
-    pub code: String,
-}
-
-impl From<LanguageInfoDto> for LanguageInfo {
-    fn from(value: LanguageInfoDto) -> Self {
-        Self {
-            name: value.name,
-            code: value.code,
-        }
-    }
-}
-
-impl From<LanguageInfo> for LanguageInfoDto {
-    fn from(value: LanguageInfo) -> Self {
-        Self {
-            name: value.name,
-            code: value.code,
-        }
-    }
-}
-
-impl From<lingua::Language> for LanguageInfoDto {
-    fn from(value: lingua::Language) -> Self {
-        Self {
-            name: value.to_string(),
-            code: value.iso_code_639_1().to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, ts_rs::TS)]
-#[serde(tag = "type", rename_all = "camelCase")]
-#[ts(export)]
-pub enum SourceLanguageDto {
-    AutoDetect,
-    Manual(LanguageInfoDto),
-}
-
-impl From<SourceLanguageDto> for SourceLanguage {
-    fn from(value: SourceLanguageDto) -> Self {
-        match value {
-            SourceLanguageDto::AutoDetect => Self::AutoDetect,
-            SourceLanguageDto::Manual(lang) => Self::Manual(lang.into()),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, ts_rs::TS)]
-#[ts(export)]
-pub struct TargetLanguageDto(pub LanguageInfoDto);
-
-impl From<TargetLanguageDto> for TargetLanguage {
-    fn from(value: TargetLanguageDto) -> Self {
-        Self(value.0.into())
-    }
-}
-
 #[derive(Debug, Clone, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -117,25 +85,6 @@ pub struct TranslationRequestDto {
 }
 
 #[derive(Debug, Clone, Serialize, ts_rs::TS)]
-#[serde(tag = "type", rename_all = "camelCase")]
-#[ts(export)]
-pub enum ResolvedSourceLanguageDto {
-    Detected(LanguageInfoDto),
-    Assumed(LanguageInfoDto),
-    Manual(LanguageInfoDto),
-}
-
-impl From<ResolvedSourceLanguage> for ResolvedSourceLanguageDto {
-    fn from(value: ResolvedSourceLanguage) -> Self {
-        match value {
-            ResolvedSourceLanguage::Assumed(lang) => Self::Assumed(lang.into()),
-            ResolvedSourceLanguage::Detected(lang) => Self::Detected(lang.into()),
-            ResolvedSourceLanguage::Manual(lang) => Self::Manual(lang.into()),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct TranslationRequestResultDto {
@@ -146,7 +95,7 @@ pub struct TranslationRequestResultDto {
 #[derive(Debug, Clone, Serialize, ts_rs::TS)]
 #[serde(
     tag = "type",
-    rename_all = "camelCase",
+    rename_all = "snake_case",
     rename_all_fields = "camelCase"
 )]
 #[ts(export)]
@@ -157,15 +106,15 @@ pub enum TranslationStreamEventDto {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, ts_rs::TS)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "snake_case")]
 #[ts(export)]
-pub enum ThemeDto {
+pub enum ThemeSettingDto {
     Light,
     Dark,
     System,
 }
 
-impl From<ThemeSetting> for ThemeDto {
+impl From<ThemeSetting> for ThemeSettingDto {
     fn from(value: ThemeSetting) -> Self {
         match value {
             ThemeSetting::Dark => Self::Dark,
@@ -175,12 +124,138 @@ impl From<ThemeSetting> for ThemeDto {
     }
 }
 
-impl From<ThemeDto> for ThemeSetting {
-    fn from(value: ThemeDto) -> Self {
+impl From<ThemeSettingDto> for ThemeSetting {
+    fn from(value: ThemeSettingDto) -> Self {
         match value {
-            ThemeDto::Dark => Self::Dark,
-            ThemeDto::Light => Self::Light,
-            ThemeDto::System => Self::System,
+            ThemeSettingDto::Dark => Self::Dark,
+            ThemeSettingDto::Light => Self::Light,
+            ThemeSettingDto::System => Self::System,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct SettingsDto {
+    pub theme: ThemeSettingDto,
+
+    pub providers: ProviderSettingsDto,
+    pub model: Option<ModelSelectionDto>,
+
+    pub default_source_language: SourceLanguageSettingDto,
+    pub default_target_language: TargetLanguageSettingDto,
+    pub language_list_scope: LanguageListScopeSettingDto,
+    pub auto_detection: AutoDetectionSettingsDto,
+
+    pub system_prompt: Option<String>,
+    pub translation_prompt: String,
+}
+
+impl From<Settings> for SettingsDto {
+    fn from(value: Settings) -> Self {
+        Self {
+            theme: value.theme.into(),
+            providers: value.providers.into(),
+            model: value.model.map(Into::into),
+            default_source_language: value.default_source_language.into(),
+            default_target_language: value.default_target_language.into(),
+            language_list_scope: value.language_list_scope.into(),
+            auto_detection: value.auto_detection.into(),
+            system_prompt: value.system_prompt,
+            translation_prompt: value.translation_prompt,
+        }
+    }
+}
+
+impl From<SettingsDto> for Settings {
+    fn from(value: SettingsDto) -> Self {
+        Self {
+            version: Settings::default().version,
+            theme: value.theme.into(),
+            providers: value.providers.into(),
+            model: value.model.map(Into::into),
+            default_source_language: value.default_source_language.into(),
+            default_target_language: value.default_target_language.into(),
+            language_list_scope: value.language_list_scope.into(),
+            auto_detection: value.auto_detection.into(),
+            system_prompt: value.system_prompt,
+            translation_prompt: value.translation_prompt,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct ProviderSettingsDto {
+    pub ollama: OllamaSettingsDto,
+}
+
+impl From<ProviderSettings> for ProviderSettingsDto {
+    fn from(value: ProviderSettings) -> Self {
+        Self {
+            ollama: value.ollama.into(),
+        }
+    }
+}
+
+impl From<ProviderSettingsDto> for ProviderSettings {
+    fn from(value: ProviderSettingsDto) -> Self {
+        Self {
+            ollama: value.ollama.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct OllamaSettingsDto {
+    pub base_url: String,
+    pub keep_alive: Option<String>,
+}
+
+impl From<OllamaSettings> for OllamaSettingsDto {
+    fn from(value: OllamaSettings) -> Self {
+        Self {
+            base_url: value.base_url,
+            keep_alive: value.keep_alive,
+        }
+    }
+}
+
+impl From<OllamaSettingsDto> for OllamaSettings {
+    fn from(value: OllamaSettingsDto) -> Self {
+        Self {
+            base_url: value.base_url,
+            keep_alive: value.keep_alive,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct ModelSelectionDto {
+    pub provider: ProviderKindDto,
+    pub id: String,
+}
+
+impl From<ModelSelection> for ModelSelectionDto {
+    fn from(value: ModelSelection) -> Self {
+        Self {
+            provider: value.provider.into(),
+            id: value.id,
+        }
+    }
+}
+
+impl From<ModelSelectionDto> for ModelSelection {
+    fn from(value: ModelSelectionDto) -> Self {
+        Self {
+            id: value.id,
+            provider: value.provider.into(),
         }
     }
 }

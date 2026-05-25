@@ -68,11 +68,11 @@ pub struct ResolvedLanguagePair {
 
 pub struct LanguageResolver {
     detector: LanguageDetector,
-    fallback_to: LanguageInfo,
+    fallback_to: Language,
 }
 
 impl LanguageResolver {
-    pub fn new(scope: LanguageDetectionScope, fallback_to: LanguageInfo) -> Self {
+    pub fn new(scope: LanguageDetectionScope, fallback_to: Language) -> Self {
         let detector = match scope {
             LanguageDetectionScope::All => LanguageDetectorBuilder::from_all_languages(),
             LanguageDetectionScope::Common => {
@@ -99,7 +99,9 @@ impl LanguageResolver {
         let source = match source {
             SourceLanguage::AutoDetect => match self.detector.detect_language_of(text) {
                 Some(lang) => ResolvedSourceLanguage::Detected(LanguageInfo::from_lingua(lang)),
-                None => ResolvedSourceLanguage::Assumed(self.fallback_to.clone()),
+                None => {
+                    ResolvedSourceLanguage::Assumed(LanguageInfo::from_lingua(self.fallback_to))
+                }
             },
             SourceLanguage::Manual(lang) => ResolvedSourceLanguage::Manual(lang),
         };
