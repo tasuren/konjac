@@ -60,7 +60,7 @@ pub async fn list_available_languages(
         LanguageListScopeSetting::Common => {
             COMMON_LANGUAGES.iter().cloned().map(Into::into).collect()
         }
-        LanguageListScopeSetting::Custom(languages) => {
+        LanguageListScopeSetting::Custom { languages } => {
             languages.iter().cloned().map(Into::into).collect()
         }
     })

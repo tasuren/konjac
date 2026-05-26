@@ -4,4 +4,4 @@ import type { LanguageInfoDto } from "./LanguageInfoDto";
 /**
  * Language-list scope for selectable translation languages.
  */
-export type LanguageListScopeSettingDto = "All" | "Common" | { "Custom": Array<LanguageInfoDto> };
+export type LanguageListScopeSettingDto = { "type": "all" } | { "type": "common" } | { "type": "custom", languages: Array<LanguageInfoDto>, };

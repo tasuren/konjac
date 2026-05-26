@@ -4,4 +4,4 @@ import type { DetectableLanguageDto } from "./DetectableLanguageDto";
 /**
  * Language-detection scope setting used by the Lingua detector.
  */
-export type LanguageDetectionScopeSettingDto = "All" | "Common" | { "Custom": Array<DetectableLanguageDto> };
+export type LanguageDetectionScopeSettingDto = { "type": "all" } | { "type": "common" } | { "type": "custom", languages: Array<DetectableLanguageDto>, };

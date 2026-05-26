@@ -25,7 +25,7 @@ impl LanguageInfo {
 pub enum LanguageDetectionScope {
     Common,
     All,
-    Custom(Vec<Language>),
+    Custom { languages: Vec<Language> },
 }
 
 pub const COMMON_LANGUAGES: [Language; 6] = [
@@ -78,7 +78,7 @@ impl LanguageResolver {
             LanguageDetectionScope::Common => {
                 LanguageDetectorBuilder::from_languages(&COMMON_LANGUAGES)
             }
-            LanguageDetectionScope::Custom(languages) => {
+            LanguageDetectionScope::Custom { languages } => {
                 LanguageDetectorBuilder::from_languages(&languages)
             }
         }

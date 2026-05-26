@@ -169,21 +169,25 @@ impl From<LanguageInfoSetting> for LanguageInfo {
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum LanguageListScopeSetting {
     #[default]
     All,
     Common,
-    Custom(Vec<LanguageInfoSetting>),
+    Custom {
+        languages: Vec<LanguageInfoSetting>,
+    },
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum LanguageDetectionScopeSetting {
     All,
     #[default]
     Common,
-    Custom(Vec<Language>),
+    Custom {
+        languages: Vec<Language>,
+    },
 }
 
 impl From<LanguageDetectionScopeSetting> for LanguageDetectionScope {
@@ -191,7 +195,7 @@ impl From<LanguageDetectionScopeSetting> for LanguageDetectionScope {
         match value {
             LanguageDetectionScopeSetting::All => Self::All,
             LanguageDetectionScopeSetting::Common => Self::Common,
-            LanguageDetectionScopeSetting::Custom(languages) => Self::Custom(languages),
+            LanguageDetectionScopeSetting::Custom { languages } => Self::Custom { languages },
         }
     }
 }

@@ -160,11 +160,16 @@ impl From<TargetLanguageSettingDto> for TargetLanguageSetting {
 
 /// Language-list scope for selectable translation languages.
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum LanguageListScopeSettingDto {
     All,
     Common,
-    Custom(Vec<LanguageInfoDto>),
+    Custom { languages: Vec<LanguageInfoDto> },
 }
 
 impl From<LanguageListScopeSetting> for LanguageListScopeSettingDto {
@@ -172,9 +177,9 @@ impl From<LanguageListScopeSetting> for LanguageListScopeSettingDto {
         match value {
             LanguageListScopeSetting::All => Self::All,
             LanguageListScopeSetting::Common => Self::Common,
-            LanguageListScopeSetting::Custom(languages) => {
-                Self::Custom(languages.into_iter().map(Into::into).collect())
-            }
+            LanguageListScopeSetting::Custom { languages } => Self::Custom {
+                languages: languages.into_iter().map(Into::into).collect(),
+            },
         }
     }
 }
@@ -184,9 +189,9 @@ impl From<LanguageListScopeSettingDto> for LanguageListScopeSetting {
         match value {
             LanguageListScopeSettingDto::All => Self::All,
             LanguageListScopeSettingDto::Common => Self::Common,
-            LanguageListScopeSettingDto::Custom(languages) => {
-                Self::Custom(languages.into_iter().map(Into::into).collect())
-            }
+            LanguageListScopeSettingDto::Custom { languages } => Self::Custom {
+                languages: languages.into_iter().map(Into::into).collect(),
+            },
         }
     }
 }
@@ -513,11 +518,18 @@ impl From<DetectableLanguageDto> for Language {
 
 /// Language-detection scope setting used by the Lingua detector.
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum LanguageDetectionScopeSettingDto {
     All,
     Common,
-    Custom(Vec<DetectableLanguageDto>),
+    Custom {
+        languages: Vec<DetectableLanguageDto>,
+    },
 }
 
 impl From<LanguageDetectionScopeSetting> for LanguageDetectionScopeSettingDto {
@@ -525,9 +537,9 @@ impl From<LanguageDetectionScopeSetting> for LanguageDetectionScopeSettingDto {
         match value {
             LanguageDetectionScopeSetting::All => Self::All,
             LanguageDetectionScopeSetting::Common => Self::Common,
-            LanguageDetectionScopeSetting::Custom(languages) => {
-                Self::Custom(languages.into_iter().map(Into::into).collect())
-            }
+            LanguageDetectionScopeSetting::Custom { languages } => Self::Custom {
+                languages: languages.into_iter().map(Into::into).collect(),
+            },
         }
     }
 }
@@ -537,9 +549,9 @@ impl From<LanguageDetectionScopeSettingDto> for LanguageDetectionScopeSetting {
         match value {
             LanguageDetectionScopeSettingDto::All => Self::All,
             LanguageDetectionScopeSettingDto::Common => Self::Common,
-            LanguageDetectionScopeSettingDto::Custom(languages) => {
-                Self::Custom(languages.into_iter().map(Into::into).collect())
-            }
+            LanguageDetectionScopeSettingDto::Custom { languages } => Self::Custom {
+                languages: languages.into_iter().map(Into::into).collect(),
+            },
         }
     }
 }
