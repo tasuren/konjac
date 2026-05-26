@@ -1,13 +1,6 @@
 import { ArrowRightLeft } from "lucide-react";
-import {
-  type ChangeEvent,
-  type OptionHTMLAttributes,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 import type { LanguageInfoDto } from "../../../rust-bindings/LanguageInfoDto";
-import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
 import { Select } from "../../../shared/components/Select";
 import { listAvailableLanguages } from "../../../shared/tauri/translation";
 import { useTranslationSelectionStore } from "../stores/translationLanguageStore";
@@ -16,11 +9,13 @@ export default function TranslationControls() {
   // TODO: Move them to global store?
   const [languages, setLanguages] = useState<LanguageInfoDto[]>([]);
   useEffect(() => {
-    (async () => {
+    const fetchLanguages = async () => {
       const languages = await listAvailableLanguages();
       languages.sort((a, b) => a.name.localeCompare(b.name));
       setLanguages(languages);
-    })();
+    };
+
+    void fetchLanguages();
   }, []);
 
   return (
@@ -55,12 +50,9 @@ function SourceLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
         return;
       }
 
-      for (const language of languages) {
-        if (language.code === selected) {
-          setSourceLanguage({ type: "manual", ...language });
-          break;
-        }
-      }
+      const language = languages.find((lang) => lang.code === selected);
+      if (!language) return; // TODO: handle not found
+      setSourceLanguage({ type: "manual", ...language });
     },
     [languages, setSourceLanguage],
   );
@@ -75,30 +67,17 @@ function SourceLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
       }
       onChange={onSelectSrcLang}
     >
-      <AutoDetectionOption
-        resolved={resolvedSourceLanguage}
-        value="auto-detection"
-      />
+      <option value="auto-detection">
+        自動検出
+        {resolvedSourceLanguage && ` (${resolvedSourceLanguage.name})`}
+      </option>
+
       {languages.map((lang) => (
         <option key={lang.code} value={lang.code}>
           {lang.name}
         </option>
       ))}
     </Select>
-  );
-}
-
-function AutoDetectionOption({
-  resolved,
-  ...props
-}: OptionHTMLAttributes<HTMLOptionElement> & {
-  resolved: ResolvedSourceLanguageDto | null;
-}) {
-  return (
-    <option {...props}>
-      自動検出
-      {resolved && ` (${resolved.name})`}
-    </option>
   );
 }
 

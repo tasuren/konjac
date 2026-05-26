@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
+import type { LanguageInfoDto } from "../../rust-bindings/LanguageInfoDto";
 import type { ModelDto } from "../../rust-bindings/ModelDto";
 import type { ModelSelectionDto } from "../../rust-bindings/ModelSelectionDto";
 import type { SettingsDto } from "../../rust-bindings/SettingsDto";
@@ -7,13 +8,27 @@ import type { ThemeSettingDto } from "../../rust-bindings/ThemeSettingDto";
 import { Select, type SelectProps } from "../../shared/components/Select";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
-import { listAvailableModels } from "../../shared/tauri/translation";
+import {
+  listAvailableLanguages,
+  listAvailableModels,
+} from "../../shared/tauri/translation";
 
 export function SettingsView({
   setSettings,
 }: {
   setSettings: (settings: boolean) => void;
 }) {
+  const [languages, setLanguages] = useState<LanguageInfoDto[]>([]);
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      const languages = await listAvailableLanguages();
+      languages.sort((a, b) => a.name.localeCompare(b.name));
+      setLanguages(languages);
+    };
+
+    void fetchLanguages();
+  }, []);
+
   return (
     <div className="absolute top-0 left-0 z-10 h-screen w-screen bg-bg flex flex-col">
       <TitleBar>
@@ -35,16 +50,42 @@ export function SettingsView({
       <main className="grow min-h-0 p-6 min-w-[60ch] mx-auto">
         <h1 className="text-2xl mb-4">全般</h1>
 
-        <div>
-          <label htmlFor="theme-select">テーマ</label>
-          <ThemeSelect name="theme" id="theme-select" />
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="theme-select">テーマ</label>
+            <ThemeSelect name="theme" id="theme-select" />
+          </div>
         </div>
 
-        <h1 className="text-2xl mt-10 mb-4">翻訳設定</h1>
+        <h1 className="text-2xl mt-8 mb-4">翻訳設定</h1>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="model-select">翻訳で使用するモデル</label>
-          <ModelSelect name="model" id="model-select" />
+        <div className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="model-select">翻訳で使用するモデル</label>
+            <ModelSelect name="model" id="model-select" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="default-source-language">
+              デフォルトの翻訳前の言語
+            </label>
+            <SourceLanguageSelect
+              languages={languages}
+              name="default-source-language"
+              id="default-source-language-select"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="defaultTargetLanguage">
+              デフォルトの翻訳後の言語
+            </label>
+            <TargetLanguageSelect
+              languages={languages}
+              name="default-target-language"
+              id="default-target-language-select"
+            />
+          </div>
         </div>
       </main>
     </div>
@@ -119,6 +160,93 @@ function ModelSelect(props: SelectProps) {
       {Array.from(models).map(([key, model]) => (
         <option key={key} value={key}>
           {model.displayName ?? model.id}
+        </option>
+      ))}
+    </Select>
+  );
+}
+
+function SourceLanguageSelect({
+  languages,
+  ...props
+}: { languages: LanguageInfoDto[] } & SelectProps) {
+  const { defaultSourceLanguage, updateSettings } = useSettingsStore();
+
+  const onSelectSrcLang = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const selected = event.currentTarget.value;
+
+      if (selected === "auto-detect") {
+        updateSettings((settings) => ({
+          ...settings,
+          defaultSourceLanguage: { type: "auto_detect" },
+        }));
+        return;
+      }
+
+      const language = languages.find((lang) => lang.code === selected);
+      if (!language) return; // TODO: handle not found
+
+      updateSettings((settings) => ({
+        ...settings,
+        defaultSourceLanguage: { type: "manual", ...language },
+      }));
+    },
+    [languages, updateSettings],
+  );
+
+  return (
+    <Select
+      className="w-40"
+      value={
+        defaultSourceLanguage.type === "auto_detect"
+          ? "auto-detect"
+          : defaultSourceLanguage.code
+      }
+      onChange={onSelectSrcLang}
+      {...props}
+    >
+      <option value="auto-detect">自動検出</option>
+
+      {languages.map((lang) => (
+        <option key={lang.code} value={lang.code}>
+          {lang.name}
+        </option>
+      ))}
+    </Select>
+  );
+}
+
+function TargetLanguageSelect({
+  languages,
+  ...props
+}: { languages: LanguageInfoDto[] } & SelectProps) {
+  const { defaultTargetLanguage, updateSettings } = useSettingsStore();
+
+  const onChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const selected = event.currentTarget.value;
+      const language = languages.find((lang) => lang.code === selected);
+      if (!language) return; // TODO: handle not found
+
+      updateSettings((settings) => ({
+        ...settings,
+        defaultTargetLanguage: language,
+      }));
+    },
+    [languages, updateSettings],
+  );
+
+  return (
+    <Select
+      className="w-40"
+      value={defaultTargetLanguage.code}
+      onChange={onChange}
+      {...props}
+    >
+      {languages.map((lang) => (
+        <option key={lang.code} value={lang.code}>
+          {lang.name}
         </option>
       ))}
     </Select>
