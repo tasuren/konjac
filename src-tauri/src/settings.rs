@@ -5,13 +5,12 @@ use std::{
 };
 
 use anyhow::Context;
-use lingua::Language;
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
 use tauri_plugin_log::log;
 
 use crate::{
-    language::{LanguageDetectionScope, LanguageInfo},
+    language::{COMMON_LANGUAGES, DetectableLanguage, LanguageCode, LanguageDetectionScope},
     llm::ProviderKind,
 };
 
@@ -96,6 +95,7 @@ pub struct Settings {
     pub default_source_language: SourceLanguageSetting,
     pub default_target_language: TargetLanguageSetting,
     pub language_list_scope: LanguageListScopeSetting,
+    pub custom_language_list_scope: Vec<LanguageCode>,
     pub auto_detection: AutoDetectionSettings,
 
     pub system_prompt: Option<String>,
@@ -113,6 +113,10 @@ impl Default for Settings {
             default_source_language: SourceLanguageSetting::default(),
             default_target_language: TargetLanguageSetting::default(),
             language_list_scope: LanguageListScopeSetting::default(),
+            custom_language_list_scope: COMMON_LANGUAGES
+                .iter()
+                .map(|l| LanguageCode(l.code.to_owned()))
+                .collect::<Vec<_>>(),
             auto_detection: AutoDetectionSettings::default(),
             system_prompt: None,
             translation_prompt: default_translation_prompt(),
@@ -138,56 +142,30 @@ fn default_translation_prompt() -> String {
 pub enum SourceLanguageSetting {
     #[default]
     AutoDetect,
-    Manual(LanguageInfoSetting),
+    Manual {
+        code: LanguageCode,
+    },
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
-pub struct TargetLanguageSetting(pub LanguageInfoSetting);
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct LanguageInfoSetting {
-    pub name: String,
-    pub code: String,
-}
-
-impl Default for LanguageInfoSetting {
-    fn default() -> Self {
-        Self {
-            name: "English".to_owned(),
-            code: "en".to_owned(),
-        }
-    }
-}
-
-impl From<LanguageInfoSetting> for LanguageInfo {
-    fn from(value: LanguageInfoSetting) -> Self {
-        Self {
-            name: value.name,
-            code: value.code,
-        }
-    }
-}
+pub struct TargetLanguageSetting(pub LanguageCode);
 
 #[derive(Default, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum LanguageListScopeSetting {
     #[default]
     All,
     Common,
-    Custom {
-        languages: Vec<LanguageInfoSetting>,
-    },
+    Custom,
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum LanguageDetectionScopeSetting {
     All,
     #[default]
     Common,
-    Custom {
-        languages: Vec<Language>,
-    },
+    Custom,
 }
 
 impl From<LanguageDetectionScopeSetting> for LanguageDetectionScope {
@@ -195,7 +173,7 @@ impl From<LanguageDetectionScopeSetting> for LanguageDetectionScope {
         match value {
             LanguageDetectionScopeSetting::All => Self::All,
             LanguageDetectionScopeSetting::Common => Self::Common,
-            LanguageDetectionScopeSetting::Custom { languages } => Self::Custom { languages },
+            LanguageDetectionScopeSetting::Custom => Self::Custom,
         }
     }
 }
@@ -203,14 +181,16 @@ impl From<LanguageDetectionScopeSetting> for LanguageDetectionScope {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct AutoDetectionSettings {
     pub scope: LanguageDetectionScopeSetting,
-    pub fallback_to: Language,
+    pub custom_detection_scope: Vec<DetectableLanguage>,
+    pub fallback_to: LanguageCode,
 }
 
 impl Default for AutoDetectionSettings {
     fn default() -> Self {
         Self {
             scope: LanguageDetectionScopeSetting::default(),
-            fallback_to: Language::English,
+            custom_detection_scope: Vec::new(),
+            fallback_to: LanguageCode::default(),
         }
     }
 }

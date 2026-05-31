@@ -1,5 +1,13 @@
-import { X } from "lucide-react";
-import { type ChangeEvent, useCallback, useEffect, useState } from "react";
+import { cn } from "@sglara/cn";
+import { Trash2, X } from "lucide-react";
+import {
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import type { LanguageCodeDto } from "../../rust-bindings/LanguageCodeDto";
 import type { LanguageInfoDto } from "../../rust-bindings/LanguageInfoDto";
 import type { ModelDto } from "../../rust-bindings/ModelDto";
 import type { ModelSelectionDto } from "../../rust-bindings/ModelSelectionDto";
@@ -8,26 +16,29 @@ import type { ThemeSettingDto } from "../../rust-bindings/ThemeSettingDto";
 import { Select, type SelectProps } from "../../shared/components/Select";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
-import {
-  listAvailableLanguages,
-  listAvailableModels,
-} from "../../shared/tauri/translation";
+import { getLanguage, LANGUAGES } from "../../shared/tauri/language";
+import { listAvailableModels } from "../../shared/tauri/translation";
+import { useLanguageCatalog } from "../translation/hooks/useLanguageCatalog";
 
 export function SettingsView({
   setSettings,
 }: {
   setSettings: (settings: boolean) => void;
 }) {
-  const [languages, setLanguages] = useState<LanguageInfoDto[]>([]);
   useEffect(() => {
-    const fetchLanguages = async () => {
-      const languages = await listAvailableLanguages();
-      languages.sort((a, b) => a.name.localeCompare(b.name));
-      setLanguages(languages);
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setSettings(false);
+      }
     };
 
-    void fetchLanguages();
-  }, []);
+    addEventListener("keydown", handleEscape);
+
+    return () => {
+      removeEventListener("keydown", handleEscape);
+    };
+  }, [setSettings]);
 
   return (
     <div className="absolute top-0 left-0 z-10 h-screen w-screen bg-bg flex flex-col">
@@ -47,47 +58,57 @@ export function SettingsView({
         </div>
       </TitleBar>
 
-      <main className="grow min-h-0 p-6 min-w-[60ch] mx-auto">
-        <h1 className="text-2xl mb-4">全般</h1>
+      <div className="overflow-y-auto w-full">
+        <main className="grow min-h-0 p-6 max-w-[70ch] mx-auto">
+          <h1 className="text-2xl mb-4">全般</h1>
 
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="theme-select">テーマ</label>
-            <ThemeSelect name="theme" id="theme-select" />
-          </div>
-        </div>
-
-        <h1 className="text-2xl mt-8 mb-4">翻訳設定</h1>
-
-        <div className="space-y-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="model-select">翻訳で使用するモデル</label>
-            <ModelSelect name="model" id="model-select" />
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="theme-select">テーマ</label>
+              <ThemeSelect name="theme" id="theme-select" />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="default-source-language">
-              デフォルトの翻訳前の言語
-            </label>
-            <SourceLanguageSelect
-              languages={languages}
-              name="default-source-language"
-              id="default-source-language-select"
-            />
-          </div>
+          <h1 className="text-2xl mt-8 mb-4">翻訳設定</h1>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="defaultTargetLanguage">
-              デフォルトの翻訳後の言語
-            </label>
-            <TargetLanguageSelect
-              languages={languages}
-              name="default-target-language"
-              id="default-target-language-select"
-            />
+          <div className="space-y-6">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="model-select">翻訳で使用するモデル</label>
+              <ModelSelect name="model" id="model-select" />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="default-source-language">
+                デフォルトの翻訳前の言語
+              </label>
+              <SourceLanguageSelect
+                name="default-source-language"
+                id="default-source-language-select"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="defaultTargetLanguage">
+                デフォルトの翻訳後の言語
+              </label>
+              <TargetLanguageSelect
+                name="default-target-language"
+                id="default-target-language-select"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="language-list-scope">
+                言語選択に表示する言語
+              </label>
+              <LanguageListScopeSelect
+                name="language-list-scope"
+                id="language-list-scope-select"
+              />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
@@ -166,11 +187,9 @@ function ModelSelect(props: SelectProps) {
   );
 }
 
-function SourceLanguageSelect({
-  languages,
-  ...props
-}: { languages: LanguageInfoDto[] } & SelectProps) {
+function SourceLanguageSelect(props: SelectProps) {
   const { defaultSourceLanguage, updateSettings } = useSettingsStore();
+  const { languages } = useLanguageCatalog();
 
   const onSelectSrcLang = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -184,15 +203,12 @@ function SourceLanguageSelect({
         return;
       }
 
-      const language = languages.find((lang) => lang.code === selected);
-      if (!language) return; // TODO: handle not found
-
       updateSettings((settings) => ({
         ...settings,
-        defaultSourceLanguage: { type: "manual", ...language },
+        defaultSourceLanguage: { type: "manual", code: selected },
       }));
     },
-    [languages, updateSettings],
+    [updateSettings],
   );
 
   return (
@@ -217,38 +233,200 @@ function SourceLanguageSelect({
   );
 }
 
-function TargetLanguageSelect({
-  languages,
-  ...props
-}: { languages: LanguageInfoDto[] } & SelectProps) {
+function TargetLanguageSelect(props: SelectProps) {
   const { defaultTargetLanguage, updateSettings } = useSettingsStore();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const selected = event.currentTarget.value;
-      const language = languages.find((lang) => lang.code === selected);
-      if (!language) return; // TODO: handle not found
-
       updateSettings((settings) => ({
         ...settings,
-        defaultTargetLanguage: language,
+        defaultTargetLanguage: selected,
       }));
     },
-    [languages, updateSettings],
+    [updateSettings],
   );
 
   return (
     <Select
       className="w-40"
-      value={defaultTargetLanguage.code}
+      value={defaultTargetLanguage}
       onChange={onChange}
       {...props}
     >
-      {languages.map((lang) => (
+      {LANGUAGES.map((lang) => (
         <option key={lang.code} value={lang.code}>
           {lang.name}
         </option>
       ))}
     </Select>
+  );
+}
+
+function LanguageListScopeSelect(props: SelectProps) {
+  const { languageListScope, customLanguageListScope, updateSettings } =
+    useSettingsStore();
+  const [customLanguages, setCustomLanguages] = useState<LanguageCodeDto[]>(
+    customLanguageListScope,
+  );
+
+  const onChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      switch (event.currentTarget.value) {
+        case "all":
+          updateSettings((settings) => ({
+            ...settings,
+            languageListScope: "all",
+          }));
+          break;
+        case "common":
+          updateSettings((settings) => ({
+            ...settings,
+            languageListScope: "common",
+          }));
+          break;
+        case "custom": {
+          const newCustomLanguages =
+            customLanguages.length === 0 ? ["en"] : customLanguages;
+
+          setCustomLanguages(newCustomLanguages);
+          updateSettings((settings) => ({
+            ...settings,
+            languageListScope: "custom",
+            customLanguageListScope: newCustomLanguages,
+          }));
+          break;
+        }
+      }
+    },
+    [customLanguages, updateSettings],
+  );
+
+  const setCustomLanguageList = useCallback(
+    (languages: LanguageCodeDto[]) => {
+      setCustomLanguages(languages);
+
+      updateSettings((settings) => ({
+        ...settings,
+        customLanguageListScope: languages,
+      }));
+    },
+    [updateSettings],
+  );
+
+  return (
+    <>
+      <Select
+        className="w-40"
+        onChange={onChange}
+        value={languageListScope}
+        {...props}
+      >
+        <option value="all">全ての言語</option>
+        <option value="common">主要な言語</option>
+        <option value="custom">選択した言語のみ</option>
+      </Select>
+
+      {languageListScope === "custom" && (
+        <div className="flex flex-col gap-2">
+          <label htmlFor="custom-language-select" className="text-sm">
+            表示する言語
+          </label>
+
+          <LanguageList
+            languageList={customLanguageListScope}
+            setLanguageList={setCustomLanguageList}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
+export function LanguageList({
+  languageList,
+  setLanguageList,
+}: {
+  languageList: LanguageCodeDto[];
+  setLanguageList: (languages: LanguageCodeDto[]) => void;
+}) {
+  const selectRef = useRef<HTMLSelectElement>(null);
+
+  const onRemoveLanguage = useCallback(
+    (code: string) => {
+      if (languageList.length === 1) return;
+
+      setLanguageList(languageList.filter((c) => c !== code));
+    },
+    [languageList, setLanguageList],
+  );
+
+  const onAddLanguage = useCallback(() => {
+    const code = selectRef.current?.value;
+    if (code === undefined) return;
+    if (languageList.includes(code)) return;
+
+    setLanguageList([...languageList, code]);
+  }, [languageList, setLanguageList]);
+
+  return (
+    <div className="border border-border rounded-lg w-fit p-3.5 space-y-4">
+      <ul className="space-y-2 pl-2">
+        {languageList?.map((code) => {
+          const language = getLanguage(code);
+          const lastOne = languageList.length <= 1;
+
+          return (
+            language && (
+              <li key={language.code} className="flex justify-between">
+                {language.name}
+
+                {!lastOne && (
+                  <button
+                    type="button"
+                    className={cn(
+                      "inline-flex size-7 items-center justify-center rounded-md",
+                      "text-muted hover:bg-surface hover:text-text",
+                      "disabled:pointer-events-none disabled:opacity-40",
+                    )}
+                    disabled={lastOne}
+                    title="削除"
+                    aria-label="削除"
+                    onClick={() => onRemoveLanguage(language.code)}
+                  >
+                    <Trash2 className="size-5" />
+                  </button>
+                )}
+              </li>
+            )
+          );
+        })}
+      </ul>
+
+      <div className="flex gap-4 w-fit">
+        <Select
+          id="custom-language-select"
+          className="w-40"
+          defaultValue="en"
+          ref={selectRef}
+        >
+          {LANGUAGES.filter(
+            (language) => !languageList.some((code) => code === language.code),
+          ).map((language) => (
+            <option key={language.code} value={language.code}>
+              {language.name}
+            </option>
+          ))}
+        </Select>
+
+        <button
+          type="button"
+          onClick={onAddLanguage}
+          className="border border-border px-2 rounded-lg bg-surface-elevated"
+        >
+          追加
+        </button>
+      </div>
+    </div>
   );
 }

@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 import { type Event, listen } from "@tauri-apps/api/event";
-import type { LanguageInfoDto } from "../../rust-bindings/LanguageInfoDto";
 import type { ModelDto } from "../../rust-bindings/ModelDto";
 import type { ResolvedSourceLanguageDto } from "../../rust-bindings/ResolvedSourceLanguageDto";
 import type { TranslationRequestDto } from "../../rust-bindings/TranslationRequestDto";
@@ -72,14 +71,6 @@ export async function requestTranslation(
     handlers.onFailed(error as string);
     throw error;
   }
-}
-
-export async function listAvailableLanguages(): Promise<LanguageInfoDto[]> {
-  return await invoke("list_available_languages");
-}
-
-export async function listSupportedLanguages(): Promise<LanguageInfoDto[]> {
-  return await invoke("list_supported_languages");
 }
 
 export async function listAvailableModels(): Promise<ModelDto[]> {

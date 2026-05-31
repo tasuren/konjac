@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useSettingsStore } from "../../../shared/stores/settingsStore";
 import { useTranslationSession } from "../hooks/useTranslationEvent";
 import { useTranslationSelectionStore } from "../stores/translationLanguageStore";
@@ -24,6 +25,12 @@ export default function TranslationPane() {
     debounceMs: 600,
     setResolvedSourceLanguage,
   });
+
+  useEffect(() => {
+    if (input.length === 0) {
+      setResolvedSourceLanguage(null);
+    }
+  }, [input, setResolvedSourceLanguage]);
 
   return (
     <div className="grow flex min-h-0 gap-6">

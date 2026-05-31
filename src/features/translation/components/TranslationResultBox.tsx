@@ -72,6 +72,7 @@ export function TranslationResultBox({
             <Streamdown
               plugins={{ cjk }}
               controls={{ code: { download: false } }}
+              remend={{ linkMode: "text-only" }}
               linkSafety={{
                 enabled: true,
                 renderModal: (props) => <CustomLinkModal {...props} />,

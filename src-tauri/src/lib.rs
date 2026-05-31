@@ -57,8 +57,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             ipc::next_translation_request_id,
             ipc::request_translation,
-            ipc::list_supported_languages,
-            ipc::list_available_languages,
+            ipc::list_languages,
+            ipc::list_common_languages,
             ipc::list_available_models,
             ipc::to_markdown,
             ipc::get_settings,

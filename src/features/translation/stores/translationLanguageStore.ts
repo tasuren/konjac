@@ -11,7 +11,7 @@ export type TranslationSelectionStore = {
 
   setSourceLanguage: (sourceLanguage: SourceLanguageDto) => void;
   setResolvedSourceLanguage: (
-    resolvedSourceLanguage: ResolvedSourceLanguageDto,
+    resolvedSourceLanguage: ResolvedSourceLanguageDto | null,
   ) => void;
   setTargetLanguage: (targetLanguage: TargetLanguageDto) => void;
 };

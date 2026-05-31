@@ -1,8 +1,8 @@
 import { cn } from "@sglara/cn";
 import { ChevronDown } from "lucide-react";
-import type { SelectHTMLAttributes } from "react";
+import type { ComponentPropsWithRef } from "react";
 
-export type SelectProps = SelectHTMLAttributes<HTMLSelectElement>;
+export type SelectProps = ComponentPropsWithRef<"select">;
 
 export function Select({ className, children, ...props }: SelectProps) {
   return (

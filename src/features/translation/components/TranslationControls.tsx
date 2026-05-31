@@ -1,31 +1,19 @@
 import { ArrowRightLeft } from "lucide-react";
-import { type ChangeEvent, useCallback, useEffect, useState } from "react";
-import type { LanguageInfoDto } from "../../../rust-bindings/LanguageInfoDto";
+import { type ChangeEvent, useCallback } from "react";
 import { Select } from "../../../shared/components/Select";
-import { listAvailableLanguages } from "../../../shared/tauri/translation";
+import { getLanguage } from "../../../shared/tauri/language";
+import { useLanguageCatalog } from "../hooks/useLanguageCatalog";
 import { useTranslationSelectionStore } from "../stores/translationLanguageStore";
 
 export default function TranslationControls() {
-  // TODO: Move them to global store?
-  const [languages, setLanguages] = useState<LanguageInfoDto[]>([]);
-  useEffect(() => {
-    const fetchLanguages = async () => {
-      const languages = await listAvailableLanguages();
-      languages.sort((a, b) => a.name.localeCompare(b.name));
-      setLanguages(languages);
-    };
-
-    void fetchLanguages();
-  }, []);
-
   return (
     <div className="flex items-center gap-6 relative pointer-events-none [&>*>*]:pointer-events-auto">
       <div className="w-1/2 flex justify-end px-2">
-        <SourceLanguageSelect languages={languages} />
+        <SourceLanguageSelect />
       </div>
 
       <div className="w-1/2 flex justify-between px-2">
-        <TargetLanguageSelect languages={languages} />
+        <TargetLanguageSelect />
       </div>
 
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
@@ -37,9 +25,10 @@ export default function TranslationControls() {
   );
 }
 
-function SourceLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
+function SourceLanguageSelect() {
   const { sourceLanguage, resolvedSourceLanguage, setSourceLanguage } =
     useTranslationSelectionStore();
+  const { languages } = useLanguageCatalog();
 
   const onSelectSrcLang = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -50,11 +39,9 @@ function SourceLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
         return;
       }
 
-      const language = languages.find((lang) => lang.code === selected);
-      if (!language) return; // TODO: handle not found
-      setSourceLanguage({ type: "manual", ...language });
+      setSourceLanguage({ type: "manual", code: selected });
     },
-    [languages, setSourceLanguage],
+    [setSourceLanguage],
   );
 
   return (
@@ -69,7 +56,8 @@ function SourceLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
     >
       <option value="auto-detection">
         自動検出
-        {resolvedSourceLanguage && ` (${resolvedSourceLanguage.name})`}
+        {resolvedSourceLanguage &&
+          ` (${getLanguage(resolvedSourceLanguage.code)?.name ?? resolvedSourceLanguage.code})`}
       </option>
 
       {languages.map((lang) => (
@@ -81,25 +69,20 @@ function SourceLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
   );
 }
 
-function TargetLanguageSelect({ languages }: { languages: LanguageInfoDto[] }) {
+function TargetLanguageSelect() {
   const { targetLanguage, setTargetLanguage } = useTranslationSelectionStore();
+  const { languages } = useLanguageCatalog();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const selected = event.currentTarget.value;
-
-      for (const language of languages) {
-        if (language.code === selected) {
-          setTargetLanguage(language);
-          break;
-        }
-      }
+      setTargetLanguage(selected);
     },
-    [languages, setTargetLanguage],
+    [setTargetLanguage],
   );
 
   return (
-    <Select className="w-40" value={targetLanguage.code} onChange={onChange}>
+    <Select className="w-40" value={targetLanguage} onChange={onChange}>
       {languages.map((lang) => (
         <option key={lang.code} value={lang.code}>
           {lang.name}

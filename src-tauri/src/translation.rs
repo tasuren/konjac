@@ -8,8 +8,8 @@ use tokio::sync::Mutex;
 use crate::{
     ipc_dto::{TranslationRequestDto, TranslationStreamEventDto},
     language::{
-        LanguageInfo, LanguageResolver, ResolvedLanguagePair, ResolvedSourceLanguage,
-        SourceLanguage, TargetLanguage,
+        DetectableLanguage, LanguageCode, LanguageResolver, ResolvedLanguagePair,
+        ResolvedSourceLanguage, SourceLanguage, TargetLanguage, language_name_or_code,
     },
     llm::{
         GenerationEvent, GenerationRequest, GenerationStream, LlmProviders, Model, ProviderKind,
@@ -31,7 +31,20 @@ impl TranslationService {
         let request_id_store = TranslationRequestIdStore::default();
         let language_resolver = LanguageResolver::new(
             settings.auto_detection.scope.clone().into(),
-            settings.auto_detection.fallback_to.clone().into(),
+            settings
+                .auto_detection
+                .custom_detection_scope
+                .iter()
+                .cloned()
+                .map(Into::into)
+                .collect(),
+            settings
+                .auto_detection
+                .fallback_to
+                .clone()
+                .0
+                .parse()
+                .unwrap_or(DetectableLanguage::English),
         );
         let providers =
             LlmProviders::new(&settings.providers).expect("Failed to create LLM providers.");
@@ -71,7 +84,7 @@ impl TranslationService {
         let generation_request = build_generation_request(
             &*self.settings.lock().await,
             source.get_language_info(),
-            target.get_language_info(),
+            &target.0,
             &request.text,
             request.model_id,
         )
@@ -164,17 +177,17 @@ impl TranslationTaskStore {
 
 async fn build_generation_request(
     settings: &TranslationSettings,
-    source: &LanguageInfo,
-    target: &LanguageInfo,
+    source: &LanguageCode,
+    target: &LanguageCode,
     text: &str,
     model_id: String,
 ) -> GenerationRequest {
     let generation_prompt = render_translation_prompt(RenderTranslationPromptOptions {
         template: &settings.translation_prompt,
-        source_language_name: &source.name,
-        source_language_code: &source.code,
-        target_language_name: &target.name,
-        target_language_code: &target.code,
+        source_language_name: &language_name_or_code(&source.0),
+        source_language_code: &source.0,
+        target_language_name: &language_name_or_code(&target.0),
+        target_language_code: &target.0,
         text: text,
     });
 

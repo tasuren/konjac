@@ -115,7 +115,7 @@ export function useTranslationSession({
     }, debounceMs);
 
     return () => {
-      window.clearTimeout(timeoutRef.current);
+      clearTimeout(timeoutRef.current);
     };
   }, [input, debounceMs, translate]);
 

@@ -1,13 +1,16 @@
 //! Language-related DTOs for IPC.
 
-use lingua::Language;
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    language::{LanguageInfo, ResolvedSourceLanguage, SourceLanguage, TargetLanguage},
+    language::{
+        DetectableLanguage, LanguageCode, ResolvedSourceLanguage, SourceLanguage, TargetLanguage,
+    },
     settings::{
-        AutoDetectionSettings, LanguageDetectionScopeSetting, LanguageInfoSetting,
-        LanguageListScopeSetting, SourceLanguageSetting, TargetLanguageSetting,
+        AutoDetectionSettings, LanguageDetectionScopeSetting, LanguageListScopeSetting,
+        SourceLanguageSetting, TargetLanguageSetting,
     },
 };
 
@@ -18,67 +21,62 @@ use crate::{
 pub struct LanguageInfoDto {
     pub name: String,
     pub code: String,
+    pub detectable: bool,
 }
 
-impl From<LanguageInfoDto> for LanguageInfo {
-    fn from(value: LanguageInfoDto) -> Self {
+impl LanguageInfoDto {
+    pub fn from_app_language(language: &crate::language::AppLanguage) -> Self {
         Self {
-            name: value.name,
-            code: value.code,
+            name: language.name.to_owned(),
+            code: language.code.to_owned(),
+            detectable: language.detectable.is_some(),
         }
     }
 }
 
-impl From<LanguageInfo> for LanguageInfoDto {
-    fn from(value: LanguageInfo) -> Self {
-        Self {
-            name: value.name,
-            code: value.code,
-        }
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[ts(export)]
+pub struct LanguageCodeDto(pub String);
+
+impl From<LanguageCode> for LanguageCodeDto {
+    fn from(value: LanguageCode) -> Self {
+        Self(value.0)
     }
 }
 
-impl From<LanguageInfoSetting> for LanguageInfoDto {
-    fn from(value: LanguageInfoSetting) -> Self {
-        Self {
-            name: value.name,
-            code: value.code,
-        }
-    }
-}
-
-impl From<LanguageInfoDto> for LanguageInfoSetting {
-    fn from(value: LanguageInfoDto) -> Self {
-        Self {
-            name: value.name,
-            code: value.code,
-        }
-    }
-}
-
-impl From<Language> for LanguageInfoDto {
-    fn from(value: Language) -> Self {
-        Self {
-            name: value.to_string(),
-            code: value.iso_code_639_1().to_string(),
-        }
+impl From<LanguageCodeDto> for LanguageCode {
+    fn from(value: LanguageCodeDto) -> Self {
+        Self(value.0)
     }
 }
 
 /// Source language selection sent with a translation request.
 #[derive(Debug, Clone, Deserialize, ts_rs::TS)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum SourceLanguageDto {
     AutoDetect,
-    Manual(LanguageInfoDto),
+    Manual { code: LanguageCodeDto },
 }
 
 impl From<SourceLanguageDto> for SourceLanguage {
     fn from(value: SourceLanguageDto) -> Self {
         match value {
             SourceLanguageDto::AutoDetect => Self::AutoDetect,
-            SourceLanguageDto::Manual(lang) => Self::Manual(lang.into()),
+            SourceLanguageDto::Manual { code } => Self::Manual(code.into()),
+        }
+    }
+}
+
+impl From<SourceLanguage> for SourceLanguageDto {
+    fn from(value: SourceLanguage) -> Self {
+        match value {
+            SourceLanguage::AutoDetect => Self::AutoDetect,
+            SourceLanguage::Manual(code) => Self::Manual { code: code.into() },
         }
     }
 }
@@ -86,7 +84,7 @@ impl From<SourceLanguageDto> for SourceLanguage {
 /// Target language selection sent with a translation request.
 #[derive(Debug, Clone, Deserialize, ts_rs::TS)]
 #[ts(export)]
-pub struct TargetLanguageDto(pub LanguageInfoDto);
+pub struct TargetLanguageDto(pub LanguageCodeDto);
 
 impl From<TargetLanguageDto> for TargetLanguage {
     fn from(value: TargetLanguageDto) -> Self {
@@ -94,40 +92,54 @@ impl From<TargetLanguageDto> for TargetLanguage {
     }
 }
 
+impl From<TargetLanguage> for TargetLanguageDto {
+    fn from(value: TargetLanguage) -> Self {
+        Self(value.0.into())
+    }
+}
 /// Source language resolved during translation.
 #[derive(Debug, Clone, Serialize, ts_rs::TS)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum ResolvedSourceLanguageDto {
-    Detected(LanguageInfoDto),
-    Assumed(LanguageInfoDto),
-    Manual(LanguageInfoDto),
+    Detected { code: LanguageCodeDto },
+    Assumed { code: LanguageCodeDto },
+    Manual { code: LanguageCodeDto },
 }
 
 impl From<ResolvedSourceLanguage> for ResolvedSourceLanguageDto {
     fn from(value: ResolvedSourceLanguage) -> Self {
         match value {
-            ResolvedSourceLanguage::Assumed(lang) => Self::Assumed(lang.into()),
-            ResolvedSourceLanguage::Detected(lang) => Self::Detected(lang.into()),
-            ResolvedSourceLanguage::Manual(lang) => Self::Manual(lang.into()),
+            ResolvedSourceLanguage::Assumed(code) => Self::Assumed { code: code.into() },
+            ResolvedSourceLanguage::Detected(code) => Self::Detected { code: code.into() },
+
+            ResolvedSourceLanguage::Manual(code) => Self::Manual { code: code.into() },
         }
     }
 }
 
 /// Persisted default source language setting.
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(
+    tag = "type",
+    rename_all = "snake_case",
+    rename_all_fields = "camelCase"
+)]
 #[ts(export)]
 pub enum SourceLanguageSettingDto {
     AutoDetect,
-    Manual(LanguageInfoDto),
+    Manual { code: LanguageCodeDto },
 }
 
 impl From<SourceLanguageSetting> for SourceLanguageSettingDto {
     fn from(value: SourceLanguageSetting) -> Self {
         match value {
             SourceLanguageSetting::AutoDetect => Self::AutoDetect,
-            SourceLanguageSetting::Manual(lang) => Self::Manual(lang.into()),
+            SourceLanguageSetting::Manual { code } => Self::Manual { code: code.into() },
         }
     }
 }
@@ -136,7 +148,7 @@ impl From<SourceLanguageSettingDto> for SourceLanguageSetting {
     fn from(value: SourceLanguageSettingDto) -> Self {
         match value {
             SourceLanguageSettingDto::AutoDetect => Self::AutoDetect,
-            SourceLanguageSettingDto::Manual(lang) => Self::Manual(lang.into()),
+            SourceLanguageSettingDto::Manual { code } => Self::Manual { code: code.into() },
         }
     }
 }
@@ -144,7 +156,7 @@ impl From<SourceLanguageSettingDto> for SourceLanguageSetting {
 /// Persisted default target language setting.
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[ts(export)]
-pub struct TargetLanguageSettingDto(pub LanguageInfoDto);
+pub struct TargetLanguageSettingDto(pub LanguageCodeDto);
 
 impl From<TargetLanguageSetting> for TargetLanguageSettingDto {
     fn from(value: TargetLanguageSetting) -> Self {
@@ -160,16 +172,12 @@ impl From<TargetLanguageSettingDto> for TargetLanguageSetting {
 
 /// Language-list scope for selectable translation languages.
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
-#[serde(
-    tag = "type",
-    rename_all = "snake_case",
-    rename_all_fields = "camelCase"
-)]
+#[serde(rename_all = "snake_case")]
 #[ts(export)]
 pub enum LanguageListScopeSettingDto {
     All,
     Common,
-    Custom { languages: Vec<LanguageInfoDto> },
+    Custom,
 }
 
 impl From<LanguageListScopeSetting> for LanguageListScopeSettingDto {
@@ -177,9 +185,7 @@ impl From<LanguageListScopeSetting> for LanguageListScopeSettingDto {
         match value {
             LanguageListScopeSetting::All => Self::All,
             LanguageListScopeSetting::Common => Self::Common,
-            LanguageListScopeSetting::Custom { languages } => Self::Custom {
-                languages: languages.into_iter().map(Into::into).collect(),
-            },
+            LanguageListScopeSetting::Custom => Self::Custom,
         }
     }
 }
@@ -189,9 +195,7 @@ impl From<LanguageListScopeSettingDto> for LanguageListScopeSetting {
         match value {
             LanguageListScopeSettingDto::All => Self::All,
             LanguageListScopeSettingDto::Common => Self::Common,
-            LanguageListScopeSettingDto::Custom { languages } => Self::Custom {
-                languages: languages.into_iter().map(Into::into).collect(),
-            },
+            LanguageListScopeSettingDto::Custom => Self::Custom,
         }
     }
 }
@@ -352,89 +356,89 @@ pub enum DetectableLanguageDto {
     Zulu,
 }
 
-impl From<Language> for DetectableLanguageDto {
-    fn from(value: Language) -> Self {
+impl From<DetectableLanguage> for DetectableLanguageDto {
+    fn from(value: DetectableLanguage) -> Self {
         match value {
-            Language::Afrikaans => Self::Afrikaans,
-            Language::Albanian => Self::Albanian,
-            Language::Arabic => Self::Arabic,
-            Language::Armenian => Self::Armenian,
-            Language::Azerbaijani => Self::Azerbaijani,
-            Language::Basque => Self::Basque,
-            Language::Belarusian => Self::Belarusian,
-            Language::Bengali => Self::Bengali,
-            Language::Bokmal => Self::Bokmal,
-            Language::Bosnian => Self::Bosnian,
-            Language::Bulgarian => Self::Bulgarian,
-            Language::Catalan => Self::Catalan,
-            Language::Chinese => Self::Chinese,
-            Language::Croatian => Self::Croatian,
-            Language::Czech => Self::Czech,
-            Language::Danish => Self::Danish,
-            Language::Dutch => Self::Dutch,
-            Language::English => Self::English,
-            Language::Esperanto => Self::Esperanto,
-            Language::Estonian => Self::Estonian,
-            Language::Finnish => Self::Finnish,
-            Language::French => Self::French,
-            Language::Ganda => Self::Ganda,
-            Language::Georgian => Self::Georgian,
-            Language::German => Self::German,
-            Language::Greek => Self::Greek,
-            Language::Gujarati => Self::Gujarati,
-            Language::Hebrew => Self::Hebrew,
-            Language::Hindi => Self::Hindi,
-            Language::Hungarian => Self::Hungarian,
-            Language::Icelandic => Self::Icelandic,
-            Language::Indonesian => Self::Indonesian,
-            Language::Irish => Self::Irish,
-            Language::Italian => Self::Italian,
-            Language::Japanese => Self::Japanese,
-            Language::Kazakh => Self::Kazakh,
-            Language::Korean => Self::Korean,
-            Language::Latin => Self::Latin,
-            Language::Latvian => Self::Latvian,
-            Language::Lithuanian => Self::Lithuanian,
-            Language::Macedonian => Self::Macedonian,
-            Language::Malay => Self::Malay,
-            Language::Maori => Self::Maori,
-            Language::Marathi => Self::Marathi,
-            Language::Mongolian => Self::Mongolian,
-            Language::Nynorsk => Self::Nynorsk,
-            Language::Persian => Self::Persian,
-            Language::Polish => Self::Polish,
-            Language::Portuguese => Self::Portuguese,
-            Language::Punjabi => Self::Punjabi,
-            Language::Romanian => Self::Romanian,
-            Language::Russian => Self::Russian,
-            Language::Serbian => Self::Serbian,
-            Language::Shona => Self::Shona,
-            Language::Slovak => Self::Slovak,
-            Language::Slovene => Self::Slovene,
-            Language::Somali => Self::Somali,
-            Language::Sotho => Self::Sotho,
-            Language::Spanish => Self::Spanish,
-            Language::Swahili => Self::Swahili,
-            Language::Swedish => Self::Swedish,
-            Language::Tagalog => Self::Tagalog,
-            Language::Tamil => Self::Tamil,
-            Language::Telugu => Self::Telugu,
-            Language::Thai => Self::Thai,
-            Language::Tsonga => Self::Tsonga,
-            Language::Tswana => Self::Tswana,
-            Language::Turkish => Self::Turkish,
-            Language::Ukrainian => Self::Ukrainian,
-            Language::Urdu => Self::Urdu,
-            Language::Vietnamese => Self::Vietnamese,
-            Language::Welsh => Self::Welsh,
-            Language::Xhosa => Self::Xhosa,
-            Language::Yoruba => Self::Yoruba,
-            Language::Zulu => Self::Zulu,
+            DetectableLanguage::Afrikaans => Self::Afrikaans,
+            DetectableLanguage::Albanian => Self::Albanian,
+            DetectableLanguage::Arabic => Self::Arabic,
+            DetectableLanguage::Armenian => Self::Armenian,
+            DetectableLanguage::Azerbaijani => Self::Azerbaijani,
+            DetectableLanguage::Basque => Self::Basque,
+            DetectableLanguage::Belarusian => Self::Belarusian,
+            DetectableLanguage::Bengali => Self::Bengali,
+            DetectableLanguage::Bokmal => Self::Bokmal,
+            DetectableLanguage::Bosnian => Self::Bosnian,
+            DetectableLanguage::Bulgarian => Self::Bulgarian,
+            DetectableLanguage::Catalan => Self::Catalan,
+            DetectableLanguage::Chinese => Self::Chinese,
+            DetectableLanguage::Croatian => Self::Croatian,
+            DetectableLanguage::Czech => Self::Czech,
+            DetectableLanguage::Danish => Self::Danish,
+            DetectableLanguage::Dutch => Self::Dutch,
+            DetectableLanguage::English => Self::English,
+            DetectableLanguage::Esperanto => Self::Esperanto,
+            DetectableLanguage::Estonian => Self::Estonian,
+            DetectableLanguage::Finnish => Self::Finnish,
+            DetectableLanguage::French => Self::French,
+            DetectableLanguage::Ganda => Self::Ganda,
+            DetectableLanguage::Georgian => Self::Georgian,
+            DetectableLanguage::German => Self::German,
+            DetectableLanguage::Greek => Self::Greek,
+            DetectableLanguage::Gujarati => Self::Gujarati,
+            DetectableLanguage::Hebrew => Self::Hebrew,
+            DetectableLanguage::Hindi => Self::Hindi,
+            DetectableLanguage::Hungarian => Self::Hungarian,
+            DetectableLanguage::Icelandic => Self::Icelandic,
+            DetectableLanguage::Indonesian => Self::Indonesian,
+            DetectableLanguage::Irish => Self::Irish,
+            DetectableLanguage::Italian => Self::Italian,
+            DetectableLanguage::Japanese => Self::Japanese,
+            DetectableLanguage::Kazakh => Self::Kazakh,
+            DetectableLanguage::Korean => Self::Korean,
+            DetectableLanguage::Latin => Self::Latin,
+            DetectableLanguage::Latvian => Self::Latvian,
+            DetectableLanguage::Lithuanian => Self::Lithuanian,
+            DetectableLanguage::Macedonian => Self::Macedonian,
+            DetectableLanguage::Malay => Self::Malay,
+            DetectableLanguage::Maori => Self::Maori,
+            DetectableLanguage::Marathi => Self::Marathi,
+            DetectableLanguage::Mongolian => Self::Mongolian,
+            DetectableLanguage::Nynorsk => Self::Nynorsk,
+            DetectableLanguage::Persian => Self::Persian,
+            DetectableLanguage::Polish => Self::Polish,
+            DetectableLanguage::Portuguese => Self::Portuguese,
+            DetectableLanguage::Punjabi => Self::Punjabi,
+            DetectableLanguage::Romanian => Self::Romanian,
+            DetectableLanguage::Russian => Self::Russian,
+            DetectableLanguage::Serbian => Self::Serbian,
+            DetectableLanguage::Shona => Self::Shona,
+            DetectableLanguage::Slovak => Self::Slovak,
+            DetectableLanguage::Slovene => Self::Slovene,
+            DetectableLanguage::Somali => Self::Somali,
+            DetectableLanguage::Sotho => Self::Sotho,
+            DetectableLanguage::Spanish => Self::Spanish,
+            DetectableLanguage::Swahili => Self::Swahili,
+            DetectableLanguage::Swedish => Self::Swedish,
+            DetectableLanguage::Tagalog => Self::Tagalog,
+            DetectableLanguage::Tamil => Self::Tamil,
+            DetectableLanguage::Telugu => Self::Telugu,
+            DetectableLanguage::Thai => Self::Thai,
+            DetectableLanguage::Tsonga => Self::Tsonga,
+            DetectableLanguage::Tswana => Self::Tswana,
+            DetectableLanguage::Turkish => Self::Turkish,
+            DetectableLanguage::Ukrainian => Self::Ukrainian,
+            DetectableLanguage::Urdu => Self::Urdu,
+            DetectableLanguage::Vietnamese => Self::Vietnamese,
+            DetectableLanguage::Welsh => Self::Welsh,
+            DetectableLanguage::Xhosa => Self::Xhosa,
+            DetectableLanguage::Yoruba => Self::Yoruba,
+            DetectableLanguage::Zulu => Self::Zulu,
         }
     }
 }
 
-impl From<DetectableLanguageDto> for Language {
+impl From<DetectableLanguageDto> for DetectableLanguage {
     fn from(value: DetectableLanguageDto) -> Self {
         match value {
             DetectableLanguageDto::Afrikaans => Self::Afrikaans,
@@ -518,18 +522,12 @@ impl From<DetectableLanguageDto> for Language {
 
 /// Language-detection scope setting used by the Lingua detector.
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
-#[serde(
-    tag = "type",
-    rename_all = "snake_case",
-    rename_all_fields = "camelCase"
-)]
+#[serde(rename_all = "snake_case")]
 #[ts(export)]
 pub enum LanguageDetectionScopeSettingDto {
     All,
     Common,
-    Custom {
-        languages: Vec<DetectableLanguageDto>,
-    },
+    Custom,
 }
 
 impl From<LanguageDetectionScopeSetting> for LanguageDetectionScopeSettingDto {
@@ -537,9 +535,7 @@ impl From<LanguageDetectionScopeSetting> for LanguageDetectionScopeSettingDto {
         match value {
             LanguageDetectionScopeSetting::All => Self::All,
             LanguageDetectionScopeSetting::Common => Self::Common,
-            LanguageDetectionScopeSetting::Custom { languages } => Self::Custom {
-                languages: languages.into_iter().map(Into::into).collect(),
-            },
+            LanguageDetectionScopeSetting::Custom => Self::Custom,
         }
     }
 }
@@ -549,18 +545,18 @@ impl From<LanguageDetectionScopeSettingDto> for LanguageDetectionScopeSetting {
         match value {
             LanguageDetectionScopeSettingDto::All => Self::All,
             LanguageDetectionScopeSettingDto::Common => Self::Common,
-            LanguageDetectionScopeSettingDto::Custom { languages } => Self::Custom {
-                languages: languages.into_iter().map(Into::into).collect(),
-            },
+            LanguageDetectionScopeSettingDto::Custom => Self::Custom,
         }
     }
 }
 
 /// Automatic source-language detection settings.
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct AutoDetectionSettingsDto {
     pub scope: LanguageDetectionScopeSettingDto,
+    pub custom_detection_scope: Vec<DetectableLanguageDto>,
     pub fallback_to: DetectableLanguageDto,
 }
 
@@ -568,7 +564,14 @@ impl From<AutoDetectionSettings> for AutoDetectionSettingsDto {
     fn from(value: AutoDetectionSettings) -> Self {
         Self {
             scope: value.scope.into(),
-            fallback_to: value.fallback_to.into(),
+            custom_detection_scope: value
+                .custom_detection_scope
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            fallback_to: DetectableLanguage::from_str(value.fallback_to.0.as_str())
+                .unwrap_or(DetectableLanguage::English)
+                .into(),
         }
     }
 }
@@ -577,7 +580,16 @@ impl From<AutoDetectionSettingsDto> for AutoDetectionSettings {
     fn from(value: AutoDetectionSettingsDto) -> Self {
         Self {
             scope: value.scope.into(),
-            fallback_to: value.fallback_to.into(),
+            custom_detection_scope: value
+                .custom_detection_scope
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            fallback_to: LanguageCode(
+                DetectableLanguage::from(value.fallback_to)
+                    .as_str()
+                    .to_owned(),
+            ),
         }
     }
 }
