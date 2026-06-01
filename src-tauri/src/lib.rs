@@ -11,7 +11,10 @@ mod ipc;
 mod ipc_dto;
 mod language;
 mod llm;
+mod markdown;
+mod platform;
 mod prompt;
+mod quick_copy_translate;
 mod settings;
 mod translation;
 
@@ -36,6 +39,10 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             Ok(_) => {}
             Err(e) => log::warn!("Failed to get available models to set default model: {}", e),
         };
+    }
+
+    if let Err(e) = quick_copy_translate::start(app.app_handle(), &settings.quick_copy_translate) {
+        log::warn!("Failed to start quick-copy translation: {e:?}");
     }
 
     app.manage(translation);

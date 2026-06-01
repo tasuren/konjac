@@ -89,6 +89,8 @@ pub struct Settings {
     pub version: u32,
 
     pub theme: ThemeSetting,
+    #[serde(default)]
+    pub quick_copy_translate: QuickCopyTranslateSettings,
 
     pub providers: ProviderSettings,
     pub model: Option<ModelSelection>,
@@ -109,6 +111,7 @@ impl Default for Settings {
         Self {
             version: SETTINGS_VERSION,
             theme: ThemeSetting::default(),
+            quick_copy_translate: QuickCopyTranslateSettings::default(),
             providers: ProviderSettings::default(),
             model: None,
             default_source_language: SourceLanguageSetting::default(),
@@ -121,6 +124,24 @@ impl Default for Settings {
             auto_detection: AutoDetectionSettings::default(),
             system_prompt: None,
             translation_prompt: default_translation_prompt(),
+        }
+    }
+}
+
+/// Settings for opening translation from repeated copy shortcuts.
+#[derive(Clone, Serialize, Deserialize)]
+pub struct QuickCopyTranslateSettings {
+    pub enabled: bool,
+    pub double_press_interval_ms: u64,
+    pub pasteboard_wait_ms: u64,
+}
+
+impl Default for QuickCopyTranslateSettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            double_press_interval_ms: 500,
+            pasteboard_wait_ms: 150,
         }
     }
 }

@@ -9,8 +9,8 @@ pub use language::*;
 use crate::{
     llm::{Model, ProviderKind},
     settings::{
-        ModelSelection, OllamaSettings, ProviderKindSetting, ProviderSettings, Settings,
-        ThemeSetting,
+        ModelSelection, OllamaSettings, ProviderKindSetting, ProviderSettings,
+        QuickCopyTranslateSettings, Settings, ThemeSetting,
     },
 };
 
@@ -105,6 +105,24 @@ pub enum TranslationStreamEventDto {
     Cancelled { request_id: u32 },
 }
 
+/// Clipboard input sent when quick-copy translation is triggered.
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct QuickCopyTranslationInputDto {
+    pub text: String,
+    pub format: ClipboardInputFormatDto,
+}
+
+/// Clipboard format captured before normalization.
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum ClipboardInputFormatDto {
+    PlainText,
+    Html,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export)]
@@ -139,6 +157,7 @@ impl From<ThemeSettingDto> for ThemeSetting {
 #[ts(export)]
 pub struct SettingsDto {
     pub theme: ThemeSettingDto,
+    pub quick_copy_translate: QuickCopyTranslateSettingsDto,
 
     pub providers: ProviderSettingsDto,
     pub model: Option<ModelSelectionDto>,
@@ -157,6 +176,7 @@ impl From<Settings> for SettingsDto {
     fn from(value: Settings) -> Self {
         Self {
             theme: value.theme.into(),
+            quick_copy_translate: value.quick_copy_translate.into(),
             providers: value.providers.into(),
             model: value.model.map(Into::into),
             default_source_language: value.default_source_language.into(),
@@ -179,6 +199,7 @@ impl From<SettingsDto> for Settings {
         Self {
             version: Settings::default().version,
             theme: value.theme.into(),
+            quick_copy_translate: value.quick_copy_translate.into(),
             providers: value.providers.into(),
             model: value.model.map(Into::into),
             default_source_language: value.default_source_language.into(),
@@ -192,6 +213,35 @@ impl From<SettingsDto> for Settings {
             auto_detection: value.auto_detection.into(),
             system_prompt: value.system_prompt,
             translation_prompt: value.translation_prompt,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct QuickCopyTranslateSettingsDto {
+    pub enabled: bool,
+    pub double_press_interval_ms: u64,
+    pub pasteboard_wait_ms: u64,
+}
+
+impl From<QuickCopyTranslateSettings> for QuickCopyTranslateSettingsDto {
+    fn from(value: QuickCopyTranslateSettings) -> Self {
+        Self {
+            enabled: value.enabled,
+            double_press_interval_ms: value.double_press_interval_ms,
+            pasteboard_wait_ms: value.pasteboard_wait_ms,
+        }
+    }
+}
+
+impl From<QuickCopyTranslateSettingsDto> for QuickCopyTranslateSettings {
+    fn from(value: QuickCopyTranslateSettingsDto) -> Self {
+        Self {
+            enabled: value.enabled,
+            double_press_interval_ms: value.double_press_interval_ms,
+            pasteboard_wait_ms: value.pasteboard_wait_ms,
         }
     }
 }

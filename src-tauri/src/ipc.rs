@@ -74,13 +74,7 @@ pub async fn list_available_models(
 
 #[tauri::command]
 pub fn to_markdown(html: String) -> Result<String, String> {
-    let converter = htmd::HtmlToMarkdownBuilder::new()
-        .skip_tags(vec![
-            "script", "style", "iframe", "object", "embed", "canvas", "svg", "noscript",
-        ])
-        .build();
-
-    converter.convert(&html).map_err(|e| e.to_string())
+    crate::markdown::html_to_markdown(&html).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

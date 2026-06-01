@@ -4,8 +4,9 @@ import type { LanguageCodeDto } from "./LanguageCodeDto";
 import type { LanguageListScopeSettingDto } from "./LanguageListScopeSettingDto";
 import type { ModelSelectionDto } from "./ModelSelectionDto";
 import type { ProviderSettingsDto } from "./ProviderSettingsDto";
+import type { QuickCopyTranslateSettingsDto } from "./QuickCopyTranslateSettingsDto";
 import type { SourceLanguageSettingDto } from "./SourceLanguageSettingDto";
 import type { TargetLanguageSettingDto } from "./TargetLanguageSettingDto";
 import type { ThemeSettingDto } from "./ThemeSettingDto";
 
-export type SettingsDto = { theme: ThemeSettingDto, providers: ProviderSettingsDto, model: ModelSelectionDto | null, defaultSourceLanguage: SourceLanguageSettingDto, defaultTargetLanguage: TargetLanguageSettingDto, languageListScope: LanguageListScopeSettingDto, customLanguageListScope: Array<LanguageCodeDto>, autoDetection: AutoDetectionSettingsDto, systemPrompt: string | null, translationPrompt: string, };
+export type SettingsDto = { theme: ThemeSettingDto, quickCopyTranslate: QuickCopyTranslateSettingsDto, providers: ProviderSettingsDto, model: ModelSelectionDto | null, defaultSourceLanguage: SourceLanguageSettingDto, defaultTargetLanguage: TargetLanguageSettingDto, languageListScope: LanguageListScopeSettingDto, customLanguageListScope: Array<LanguageCodeDto>, autoDetection: AutoDetectionSettingsDto, systemPrompt: string | null, translationPrompt: string, };

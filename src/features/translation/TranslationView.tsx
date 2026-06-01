@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useWindowDragging } from "../../shared/hooks/useWindowDragging";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
+import { listenQuickCopyTranslationInput } from "../../shared/tauri/quickCopyTranslate";
 import { TranslationControls } from "./components/TranslationControls";
 import { TranslationInput } from "./components/TranslationInput";
 import { TranslationOutput } from "./components/TranslationOutput";
@@ -22,7 +23,7 @@ export function TranslationView({
     <div className="h-screen flex flex-col">
       <TitleBar>
         <div className="h-full flex items-center">
-          <div>Konjac / コンニャク</div>
+          <div>Konjac / コンニャク (Beta)</div>
 
           <div className="ml-auto px-2.5 flex items-center">
             <button
@@ -74,9 +75,31 @@ function TranslationPane() {
     }
   }, [input, setResolvedSourceLanguage]);
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let disposed = false;
+
+    listenQuickCopyTranslationInput(({ text }) => {
+      setInput(text);
+    }).then((dispose) => {
+      if (disposed) {
+        dispose();
+        return;
+      }
+
+      unlisten = dispose;
+    });
+
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, [setInput]);
+
   return (
     <div className="grow flex min-h-0 gap-6">
       <TranslationInput
+        input={input}
         setInput={setInput}
         handleCompositionStart={handleCompositionStart}
         handleCompositionEnd={handleCompositionEnd}
