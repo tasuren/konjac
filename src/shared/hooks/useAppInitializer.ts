@@ -10,6 +10,10 @@ export function useAppInitializer() {
 
   // Set up OS theme change listener
   useEffect(() => {
+    (async () => {
+      applyTheme(await resolveTheme(theme));
+    })();
+
     let unlisten = () => {};
 
     const setUpThemeChangeListener = async () => {
