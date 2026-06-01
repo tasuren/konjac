@@ -2,7 +2,6 @@ import { cn } from "@sglara/cn";
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { debounce } from "es-toolkit";
 import { Trash2, X } from "lucide-react";
-import { use } from "motion/react-m";
 import {
   type ChangeEvent,
   type ComponentPropsWithoutRef,
@@ -102,6 +101,23 @@ export function SettingsView({
               <TranslationPromptTextArea
                 name="translation-prompt"
                 id="translation-prompt"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="ollama-base-url">
+                Ollamaの<code>base_url</code>
+              </label>
+              <OllamaBaseUrl name="ollama-base-url" id="ollama-base-url" />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="ollama-keep-alive">
+                Ollamaの<code>keep_alive</code>
+              </label>
+              <OllamaKeepAlive
+                name="ollama-keep-alive"
+                id="ollama-keep-alive"
               />
             </div>
           </div>
@@ -362,6 +378,73 @@ function TranslationPromptTextArea(
         最初の状態に戻す
       </button>
     </>
+  );
+}
+
+function OllamaBaseUrl({ name, id }: { name: string; id: string }) {
+  const { providers, updateSettings } = useSettingsStore();
+
+  const writeBaseUrl = useMemo(
+    () =>
+      debounce((value: string) => {
+        updateSettings((settings) => ({
+          ...settings,
+          providers: {
+            ...settings.providers,
+            ollama: {
+              ...settings.providers.ollama,
+              baseUrl: value,
+            },
+          },
+        }));
+      }, 500),
+    [updateSettings],
+  );
+
+  return (
+    <input
+      type="url"
+      name={name}
+      id={id}
+      defaultValue={providers.ollama.baseUrl}
+      className="border border-border bg-surface-elevated rounded-lg px-2 py-1"
+      onChange={(e) => writeBaseUrl(e.currentTarget.value)}
+    />
+  );
+}
+
+function OllamaKeepAlive({ name, id }: { name: string; id: string }) {
+  const { providers, updateSettings } = useSettingsStore();
+
+  const writeKeepAlive = useMemo(
+    () =>
+      debounce((value: string | null) => {
+        console.log(value);
+        if (value !== null && value.length === 0) value = null;
+
+        updateSettings((settings) => ({
+          ...settings,
+          providers: {
+            ...settings.providers,
+            ollama: {
+              ...settings.providers.ollama,
+              keepAlive: value,
+            },
+          },
+        }));
+      }, 500),
+    [updateSettings],
+  );
+
+  return (
+    <input
+      type="text"
+      name={name}
+      id={id}
+      className="border border-border bg-surface-elevated rounded-lg px-2 py-1"
+      defaultValue={providers.ollama.keepAlive || ""}
+      onChange={(e) => writeKeepAlive(e.currentTarget.value)}
+    />
   );
 }
 
