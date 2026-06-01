@@ -5,7 +5,7 @@ import { getLanguage } from "../../../shared/tauri/language";
 import { useLanguageCatalog } from "../hooks/useLanguageCatalog";
 import { useTranslationSelectionStore } from "../stores/translationLanguageStore";
 
-export default function TranslationControls() {
+export function TranslationControls() {
   return (
     <div className="flex items-center gap-6 relative pointer-events-none [&>*>*]:pointer-events-auto">
       <div className="w-1/2 flex justify-end px-2">

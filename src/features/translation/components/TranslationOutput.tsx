@@ -7,7 +7,7 @@ import type { ModelSelectionDto } from "../../../rust-bindings/ModelSelectionDto
 import { CustomLinkModal } from "../../../shared/components/CustomLinkModal";
 import type { TranslationStatus } from "../hooks/useTranslationEvent";
 
-export type TranslationResultBoxProps = {
+export type TranslationOutputProps = {
   model: ModelSelectionDto | null;
   input: string;
   output: string;
@@ -15,13 +15,13 @@ export type TranslationResultBoxProps = {
   error: string | null;
 };
 
-export function TranslationResultBox({
+export function TranslationOutput({
   model,
   input,
   output,
   status,
   error,
-}: TranslationResultBoxProps) {
+}: TranslationOutputProps) {
   const [lastInput, setLastInput] = useState("");
 
   useEffect(() => {

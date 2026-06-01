@@ -1,10 +1,14 @@
 import { cn } from "@sglara/cn";
 import { Settings } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useWindowDragging } from "../../shared/hooks/useWindowDragging";
-import TranslationControls from "./components/TranslationControls";
-import TranslationPane from "./components/TranslationPane";
+import { useSettingsStore } from "../../shared/stores/settingsStore";
+import { TranslationControls } from "./components/TranslationControls";
+import { TranslationInput } from "./components/TranslationInput";
+import { TranslationOutput } from "./components/TranslationOutput";
+import { useTranslationSession } from "./hooks/useTranslationEvent";
+import { useTranslationSelectionStore } from "./stores/translationLanguageStore";
 
 export function TranslationView({
   setSettings,
@@ -39,6 +43,52 @@ export function TranslationView({
         <TranslationControls />
         <TranslationPane />
       </main>
+    </div>
+  );
+}
+
+function TranslationPane() {
+  const { sourceLanguage, setResolvedSourceLanguage, targetLanguage } =
+    useTranslationSelectionStore();
+  const { model } = useSettingsStore();
+
+  const {
+    output,
+    input,
+    setInput,
+    status,
+    error,
+    handleCompositionStart,
+    handleCompositionEnd,
+  } = useTranslationSession({
+    sourceLanguage,
+    targetLanguage,
+    model,
+    debounceMs: 600,
+    setResolvedSourceLanguage,
+  });
+
+  useEffect(() => {
+    if (input.length === 0) {
+      setResolvedSourceLanguage(null);
+    }
+  }, [input, setResolvedSourceLanguage]);
+
+  return (
+    <div className="grow flex min-h-0 gap-6">
+      <TranslationInput
+        setInput={setInput}
+        handleCompositionStart={handleCompositionStart}
+        handleCompositionEnd={handleCompositionEnd}
+      />
+
+      <TranslationOutput
+        model={model}
+        input={input}
+        output={output}
+        status={status}
+        error={error}
+      />
     </div>
   );
 }
