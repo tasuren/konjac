@@ -124,6 +124,16 @@ export function SettingsView({
                 id="detection-list-scope-select"
               />
             </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="detection-fallback-select">
+                自動検出のフォールバック先
+              </label>
+              <LanguageDetectionFallbackSelect
+                name="detection-fallback"
+                id="detection-fallback-select"
+              />
+            </div>
           </div>
         </main>
       </div>
@@ -346,12 +356,12 @@ function LanguageDetectionScopeSelect(props: SelectProps) {
       updateSettings((settings) => ({
         ...settings,
         autoDetection: {
-          ...autoDetection,
+          ...settings.autoDetection,
           scope: event.currentTarget.value as LanguageDetectionScopeSettingDto,
         },
       }));
     },
-    [autoDetection, updateSettings],
+    [updateSettings],
   );
 
   const setDetectionLanguageList = useCallback(
@@ -359,12 +369,12 @@ function LanguageDetectionScopeSelect(props: SelectProps) {
       updateSettings((settings) => ({
         ...settings,
         autoDetection: {
-          ...autoDetection,
+          ...settings.autoDetection,
           customDetectionScope: languages as DetectableLanguageDto[],
         },
       }));
     },
-    [updateSettings, autoDetection],
+    [updateSettings],
   );
 
   return (
@@ -497,5 +507,32 @@ function LanguageList({
         </button>
       </div>
     </div>
+  );
+}
+
+function LanguageDetectionFallbackSelect(props: SelectProps) {
+  const { autoDetection, updateSettings } = useSettingsStore();
+
+  const onChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      updateSettings((settings) => ({
+        ...settings,
+        autoDetection: {
+          ...settings.autoDetection,
+          fallbackTo: event.target.value as DetectableLanguageDto,
+        },
+      }));
+    },
+    [updateSettings],
+  );
+
+  return (
+    <Select value={autoDetection.fallbackTo} onChange={onChange} {...props}>
+      {filterWithDetectable("all").map((language) => (
+        <option key={language.code} value={language.code}>
+          {language.name}
+        </option>
+      ))}
+    </Select>
   );
 }
