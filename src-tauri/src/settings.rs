@@ -2,6 +2,7 @@ use std::{
     fs::File,
     io::{BufReader, BufWriter},
     path::Path,
+    str::FromStr,
 };
 
 use anyhow::Context;
@@ -189,7 +190,10 @@ impl Default for AutoDetectionSettings {
     fn default() -> Self {
         Self {
             scope: LanguageDetectionScopeSetting::default(),
-            custom_detection_scope: Vec::new(),
+            custom_detection_scope: COMMON_LANGUAGES
+                .iter()
+                .filter_map(|l| DetectableLanguage::from_str(l.code).ok())
+                .collect(),
             fallback_to: LanguageCode::default(),
         }
     }

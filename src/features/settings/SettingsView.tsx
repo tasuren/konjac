@@ -7,8 +7,11 @@ import {
   useRef,
   useState,
 } from "react";
+import type { DetectableLanguageDto } from "../../rust-bindings/DetectableLanguageDto";
 import type { LanguageCodeDto } from "../../rust-bindings/LanguageCodeDto";
+import type { LanguageDetectionScopeSettingDto } from "../../rust-bindings/LanguageDetectionScopeSettingDto";
 import type { LanguageInfoDto } from "../../rust-bindings/LanguageInfoDto";
+import type { LanguageListScopeSettingDto } from "../../rust-bindings/LanguageListScopeSettingDto";
 import type { ModelDto } from "../../rust-bindings/ModelDto";
 import type { ModelSelectionDto } from "../../rust-bindings/ModelSelectionDto";
 import type { SettingsDto } from "../../rust-bindings/SettingsDto";
@@ -16,7 +19,12 @@ import type { ThemeSettingDto } from "../../rust-bindings/ThemeSettingDto";
 import { Select, type SelectProps } from "../../shared/components/Select";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
-import { getLanguage, LANGUAGES } from "../../shared/tauri/language";
+import {
+  COMMON_LANGUAGES,
+  filterWithDetectable,
+  getLanguage,
+  LANGUAGES,
+} from "../../shared/tauri/language";
 import { listAvailableModels } from "../../shared/tauri/translation";
 import { useLanguageCatalog } from "../translation/hooks/useLanguageCatalog";
 
@@ -78,7 +86,7 @@ export function SettingsView({
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="default-source-language">
+              <label htmlFor="default-source-language-select">
                 デフォルトの翻訳前の言語
               </label>
               <SourceLanguageSelect
@@ -88,7 +96,7 @@ export function SettingsView({
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="defaultTargetLanguage">
+              <label htmlFor="default-target-language-select">
                 デフォルトの翻訳後の言語
               </label>
               <TargetLanguageSelect
@@ -98,12 +106,22 @@ export function SettingsView({
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="language-list-scope">
+              <label htmlFor="language-list-scope-select">
                 言語選択に表示する言語
               </label>
               <LanguageListScopeSelect
                 name="language-list-scope"
                 id="language-list-scope-select"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="detection-list-scope-select">
+                自動検出の対象とする言語
+              </label>
+              <LanguageDetectionScopeSelect
+                name="detection-list-scope"
+                id="detection-list-scope-select"
               />
             </div>
           </div>
@@ -266,46 +284,20 @@ function TargetLanguageSelect(props: SelectProps) {
 function LanguageListScopeSelect(props: SelectProps) {
   const { languageListScope, customLanguageListScope, updateSettings } =
     useSettingsStore();
-  const [customLanguages, setCustomLanguages] = useState<LanguageCodeDto[]>(
-    customLanguageListScope,
-  );
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
-      switch (event.currentTarget.value) {
-        case "all":
-          updateSettings((settings) => ({
-            ...settings,
-            languageListScope: "all",
-          }));
-          break;
-        case "common":
-          updateSettings((settings) => ({
-            ...settings,
-            languageListScope: "common",
-          }));
-          break;
-        case "custom": {
-          const newCustomLanguages =
-            customLanguages.length === 0 ? ["en"] : customLanguages;
-
-          setCustomLanguages(newCustomLanguages);
-          updateSettings((settings) => ({
-            ...settings,
-            languageListScope: "custom",
-            customLanguageListScope: newCustomLanguages,
-          }));
-          break;
-        }
-      }
+      updateSettings((settings) => ({
+        ...settings,
+        languageListScope: event.currentTarget
+          .value as LanguageListScopeSettingDto,
+      }));
     },
-    [customLanguages, updateSettings],
+    [updateSettings],
   );
 
   const setCustomLanguageList = useCallback(
     (languages: LanguageCodeDto[]) => {
-      setCustomLanguages(languages);
-
       updateSettings((settings) => ({
         ...settings,
         customLanguageListScope: languages,
@@ -327,6 +319,8 @@ function LanguageListScopeSelect(props: SelectProps) {
         <option value="custom">選択した言語のみ</option>
       </Select>
 
+      {languageListScope === "common" && <CommonLanguageNotice />}
+
       {languageListScope === "custom" && (
         <div className="flex flex-col gap-2">
           <label htmlFor="custom-language-select" className="text-sm">
@@ -334,6 +328,7 @@ function LanguageListScopeSelect(props: SelectProps) {
           </label>
 
           <LanguageList
+            catalog={LANGUAGES}
             languageList={customLanguageListScope}
             setLanguageList={setCustomLanguageList}
           />
@@ -343,10 +338,81 @@ function LanguageListScopeSelect(props: SelectProps) {
   );
 }
 
-export function LanguageList({
+function LanguageDetectionScopeSelect(props: SelectProps) {
+  const { autoDetection, updateSettings } = useSettingsStore();
+
+  const onChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      updateSettings((settings) => ({
+        ...settings,
+        autoDetection: {
+          ...autoDetection,
+          scope: event.currentTarget.value as LanguageDetectionScopeSettingDto,
+        },
+      }));
+    },
+    [autoDetection, updateSettings],
+  );
+
+  const setDetectionLanguageList = useCallback(
+    (languages: LanguageCodeDto[]) => {
+      updateSettings((settings) => ({
+        ...settings,
+        autoDetection: {
+          ...autoDetection,
+          customDetectionScope: languages as DetectableLanguageDto[],
+        },
+      }));
+    },
+    [updateSettings, autoDetection],
+  );
+
+  return (
+    <>
+      <Select
+        className="w-40"
+        onChange={onChange}
+        value={autoDetection.scope}
+        {...props}
+      >
+        <option value="all">全ての言語</option>
+        <option value="common">主要な言語</option>
+        <option value="custom">選択した言語のみ</option>
+      </Select>
+
+      {autoDetection.scope === "common" && <CommonLanguageNotice />}
+
+      {autoDetection.scope === "custom" && (
+        <div className="flex flex-col gap-2">
+          <label htmlFor="custom-language-select" className="text-sm">
+            表示する言語
+          </label>
+
+          <LanguageList
+            catalog={filterWithDetectable("all")}
+            languageList={autoDetection.customDetectionScope}
+            setLanguageList={setDetectionLanguageList}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
+function CommonLanguageNotice() {
+  return (
+    <div className="text-sm text-muted">
+      {COMMON_LANGUAGES.map((l) => l.name).join("、")}
+    </div>
+  );
+}
+
+function LanguageList({
+  catalog,
   languageList,
   setLanguageList,
 }: {
+  catalog: LanguageInfoDto[];
   languageList: LanguageCodeDto[];
   setLanguageList: (languages: LanguageCodeDto[]) => void;
 }) {
@@ -410,13 +476,16 @@ export function LanguageList({
           defaultValue="en"
           ref={selectRef}
         >
-          {LANGUAGES.filter(
-            (language) => !languageList.some((code) => code === language.code),
-          ).map((language) => (
-            <option key={language.code} value={language.code}>
-              {language.name}
-            </option>
-          ))}
+          {catalog
+            .filter(
+              (language) =>
+                !languageList.some((code) => code === language.code),
+            )
+            .map((language) => (
+              <option key={language.code} value={language.code}>
+                {language.name}
+              </option>
+            ))}
         </Select>
 
         <button

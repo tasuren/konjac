@@ -24,7 +24,7 @@ export function getLanguage(code: string): LanguageInfoDto | undefined {
 
 export function filterWithScope(
   scope: LanguageListScopeSettingDto,
-  customLanguages: LanguageCodeDto[],
+  customLanguages?: LanguageCodeDto[],
 ): LanguageInfoDto[] {
   switch (scope) {
     case "all":
@@ -32,7 +32,10 @@ export function filterWithScope(
     case "common":
       return COMMON_LANGUAGES;
     case "custom":
-      return LANGUAGES.filter((lang) => customLanguages.includes(lang.code));
+      return LANGUAGES.filter(
+        (lang) =>
+          customLanguages === undefined || customLanguages.includes(lang.code),
+      );
     default:
       console.warn(`Unknown scope: ${scope}`);
       return LANGUAGES;
@@ -41,7 +44,7 @@ export function filterWithScope(
 
 export function filterWithDetectable(
   scope: LanguageDetectionScopeSettingDto,
-  detectableLanguages: LanguageCodeDto[],
+  detectableLanguages?: LanguageCodeDto[],
 ): LanguageInfoDto[] {
   switch (scope) {
     case "all":
@@ -49,8 +52,10 @@ export function filterWithDetectable(
     case "common":
       return COMMON_LANGUAGES;
     case "custom":
-      return LANGUAGES.filter((lang) =>
-        detectableLanguages.includes(lang.code as DetectableLanguageDto),
+      return LANGUAGES.filter(
+        (lang) =>
+          detectableLanguages === undefined ||
+          detectableLanguages.includes(lang.code as DetectableLanguageDto),
       );
     default:
       console.warn(`Unknown scope: ${scope}`);
