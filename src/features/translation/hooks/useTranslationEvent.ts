@@ -25,6 +25,25 @@ export type UseTranslationSessionResult = {
   handleCompositionEnd: () => void;
 };
 
+function createTranslationRequestKey({
+  model,
+  sourceLanguage,
+  targetLanguage,
+  text,
+}: {
+  model: { provider: ProviderKindDto; id: string } | null;
+  sourceLanguage: SourceLanguageDto;
+  targetLanguage: TargetLanguageDto;
+  text: string;
+}) {
+  return JSON.stringify({
+    model,
+    sourceLanguage,
+    targetLanguage,
+    text,
+  });
+}
+
 export function useTranslationSession({
   sourceLanguage,
   targetLanguage,
@@ -84,7 +103,7 @@ export function useTranslationSession({
   );
 
   const isComposingRef = useRef(false);
-  const lastRequestedTextRef = useRef("");
+  const lastRequestedKeyRef = useRef("");
 
   // Prevent translation during IME composition.
   const handleCompositionStart = useCallback(() => {
@@ -100,16 +119,22 @@ export function useTranslationSession({
   const timeoutRef = useRef(0);
   useEffect(() => {
     const normalizedText = input.trim();
+    const requestKey = createTranslationRequestKey({
+      model,
+      sourceLanguage,
+      targetLanguage,
+      text: normalizedText,
+    });
 
     if (
       normalizedText.length === 0 ||
       isComposingRef.current ||
-      normalizedText === lastRequestedTextRef.current
+      requestKey === lastRequestedKeyRef.current
     ) {
       return;
     }
 
-    lastRequestedTextRef.current = normalizedText;
+    lastRequestedKeyRef.current = requestKey;
     timeoutRef.current = setTimeout(() => {
       void translate(input);
     }, debounceMs);
@@ -117,7 +142,7 @@ export function useTranslationSession({
     return () => {
       clearTimeout(timeoutRef.current);
     };
-  }, [input, debounceMs, translate]);
+  }, [input, debounceMs, translate, sourceLanguage, targetLanguage, model]);
 
   return {
     output,
