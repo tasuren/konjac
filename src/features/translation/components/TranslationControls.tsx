@@ -46,7 +46,6 @@ function SourceLanguageSelect() {
 
   return (
     <Select
-      className="w-40"
       value={
         sourceLanguage.type === "auto_detect"
           ? "auto-detection"
@@ -82,7 +81,7 @@ function TargetLanguageSelect() {
   );
 
   return (
-    <Select className="w-40" value={targetLanguage} onChange={onChange}>
+    <Select value={targetLanguage} onChange={onChange}>
       {languages.map((lang) => (
         <option key={lang.code} value={lang.code}>
           {lang.name}
