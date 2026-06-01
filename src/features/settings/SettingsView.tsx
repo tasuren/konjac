@@ -1,9 +1,15 @@
 import { cn } from "@sglara/cn";
+import { confirm } from "@tauri-apps/plugin-dialog";
+import { debounce } from "es-toolkit";
 import { Trash2, X } from "lucide-react";
+import { use } from "motion/react-m";
 import {
   type ChangeEvent,
+  type ComponentPropsWithoutRef,
+  type ComponentPropsWithRef,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -25,6 +31,7 @@ import {
   getLanguage,
   LANGUAGES,
 } from "../../shared/tauri/language";
+import { DEFAULT_TRANSLATION_PROMPT } from "../../shared/tauri/settings";
 import { listAvailableModels } from "../../shared/tauri/translation";
 import { useLanguageCatalog } from "../translation/hooks/useLanguageCatalog";
 
@@ -77,7 +84,7 @@ export function SettingsView({
             </div>
           </div>
 
-          <h1 className="text-2xl mt-8 mb-4">翻訳設定</h1>
+          <h1 className="text-2xl mt-8 mb-4">LLM</h1>
 
           <div className="space-y-6">
             <div className="flex flex-col gap-2">
@@ -85,6 +92,23 @@ export function SettingsView({
               <ModelSelect name="model" id="model-select" />
             </div>
 
+            <div className="flex flex-col gap-2">
+              <label htmlFor="system-prompt">システムプロンプト</label>
+              <SystemPromptTextArea name="system-prompt" id="system-prompt" />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="translation-prompt">翻訳時に使うプロンプト</label>
+              <TranslationPromptTextArea
+                name="translation-prompt"
+                id="translation-prompt"
+              />
+            </div>
+          </div>
+
+          <h1 className="text-2xl mt-8 mb-4">言語</h1>
+
+          <div className="space-y-6">
             <div className="flex flex-col gap-2">
               <label htmlFor="default-source-language-select">
                 デフォルトの翻訳前の言語
@@ -212,6 +236,132 @@ function ModelSelect(props: SelectProps) {
         </option>
       ))}
     </Select>
+  );
+}
+
+function SystemPromptTextArea(props: ComponentPropsWithRef<"textarea">) {
+  const { systemPrompt, updateSettings } = useSettingsStore();
+  const [composition, setComposition] = useState(false);
+
+  const debouncedOnChange = useMemo(
+    () =>
+      debounce((value: string) => {
+        if (composition) return;
+
+        updateSettings((settings) => ({
+          ...settings,
+          systemPrompt: value,
+        }));
+      }, 500),
+    [updateSettings, composition],
+  );
+
+  return (
+    <textarea
+      className="border border-border bg-surface-elevated p-3 min-h-48 rounded-xl"
+      onChange={(e) => debouncedOnChange(e.currentTarget.value)}
+      onCompositionStart={() => setComposition(true)}
+      onCompositionEnd={(e) => {
+        setComposition(false);
+        updateSettings((settings) => ({
+          ...settings,
+          translationPrompt: e.currentTarget.value,
+        }));
+      }}
+      {...props}
+    >
+      {systemPrompt}
+    </textarea>
+  );
+}
+
+function TranslationPromptTextArea(
+  props: ComponentPropsWithoutRef<"textarea">,
+) {
+  const { translationPrompt, updateSettings } = useSettingsStore();
+  const [composition, setComposition] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const debouncedChange = useMemo(
+    () =>
+      debounce((value: string) => {
+        if (composition) return;
+        console.log(value);
+
+        updateSettings((settings) => ({
+          ...settings,
+          translationPrompt: value,
+        }));
+      }, 500),
+    [updateSettings, composition],
+  );
+
+  const onReset = useCallback(async () => {
+    const textarea = textareaRef.current;
+    if (
+      textarea === null ||
+      !(await confirm("本当に翻訳時に使うプロンプトをリセットしますか？"))
+    )
+      return;
+
+    textarea.value = DEFAULT_TRANSLATION_PROMPT;
+    updateSettings((settings) => ({
+      ...settings,
+      translationPrompt: textarea.value,
+    }));
+  }, [updateSettings]);
+
+  return (
+    <>
+      <div className="text-sm space-y-2 my-1">
+        <p>プロンプトには以下を埋め込むことができます。</p>
+
+        <ul className="list-disc pl-6">
+          <li>
+            <code>{"{source_lang}"}</code> ...
+            選択または検出された翻訳前の言語名
+          </li>
+          <li>
+            <code>{"{source_code}"}</code> ...
+            選択または検出された翻訳前の言語コード
+          </li>
+          <li>
+            <code>{"{target_lang}"}</code> ... 選択された翻訳後の言語名
+          </li>
+          <li>
+            <code>{"{target_code}"}</code> ... 選択または翻訳後の言語コード
+          </li>
+          <li>
+            <code>{"{text}"}</code> ... 翻訳対象のテキスト
+          </li>
+        </ul>
+      </div>
+
+      <textarea
+        className="border border-border bg-surface-elevated p-3 min-h-48 rounded-xl"
+        onChange={(e) => debouncedChange(e.currentTarget.value)}
+        onCompositionStart={() => setComposition(true)}
+        onCompositionEnd={(e) => {
+          setComposition(false);
+          updateSettings((settings) => ({
+            ...settings,
+            translationPrompt: e.currentTarget.value,
+          }));
+        }}
+        ref={textareaRef}
+        {...props}
+      >
+        {translationPrompt}
+      </textarea>
+
+      <button
+        type="button"
+        className="w-fit px-2 py-0.5 text-sm rounded-lg bg-surface-elevated border border-border "
+        onClick={onReset}
+      >
+        最初の状態に戻す
+      </button>
+    </>
   );
 }
 

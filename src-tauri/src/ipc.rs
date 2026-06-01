@@ -103,3 +103,8 @@ pub async fn save_settings(
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn default_translation_prompt() -> String {
+    crate::settings::default_translation_prompt()
+}

@@ -8,3 +8,7 @@ export async function getSettings(): Promise<SettingsDto> {
 export async function setSettings(settings: SettingsDto): Promise<void> {
   await invoke("save_settings", { settings });
 }
+
+export const DEFAULT_TRANSLATION_PROMPT: string = await invoke(
+  "default_translation_prompt",
+);

@@ -47,6 +47,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(tauri_plugin_log::log::LevelFilter::Info)
@@ -62,7 +63,8 @@ pub fn run() {
             ipc::list_available_models,
             ipc::to_markdown,
             ipc::get_settings,
-            ipc::save_settings
+            ipc::save_settings,
+            ipc::default_translation_prompt,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

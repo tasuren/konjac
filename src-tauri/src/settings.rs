@@ -134,7 +134,7 @@ pub enum ThemeSetting {
     System,
 }
 
-fn default_translation_prompt() -> String {
+pub fn default_translation_prompt() -> String {
     include_str!("default_translation_prompt.md").to_owned()
 }
 
