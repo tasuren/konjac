@@ -129,7 +129,7 @@ impl Default for Settings {
 }
 
 /// Settings for opening translation from repeated copy shortcuts.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QuickCopyTranslateSettings {
     pub enabled: bool,
     pub double_press_interval_ms: u64,

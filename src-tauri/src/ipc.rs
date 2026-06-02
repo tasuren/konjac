@@ -6,6 +6,7 @@ use crate::{
         LanguageInfoDto, ModelDto, SettingsDto, TranslationRequestDto, TranslationRequestResultDto,
     },
     language::{COMMON_LANGUAGES, SELECTABLE_LANGUAGES},
+    quick_copy_translate::QuickCopyTranslateService,
     settings::{Settings, write_settings},
     translation::TranslationService,
 };
@@ -72,12 +73,27 @@ pub async fn get_settings(settings: State<'_, Mutex<Settings>>) -> Result<Settin
 pub async fn save_settings(
     app: AppHandle,
     app_settings_state: State<'_, Mutex<Settings>>,
+    translation: State<'_, TranslationService>,
+    quick_copy: State<'_, QuickCopyTranslateService>,
     settings: SettingsDto,
 ) -> Result<(), String> {
-    let mut app_settings = app_settings_state.lock().await;
-    *app_settings = Settings::from(settings);
+    let next_settings = Settings::from(settings);
 
-    write_settings(&app, &app_settings)
+    quick_copy
+        .apply_settings(app.clone(), &next_settings.quick_copy_translate)
+        .await
+        .map_err(|e| e.to_string())?;
+    translation
+        .apply_settings(&next_settings)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    {
+        let mut app_settings = app_settings_state.lock().await;
+        *app_settings = next_settings.clone();
+    }
+
+    write_settings(&app, &next_settings)
         .await
         .map_err(|e| e.to_string())?;
 

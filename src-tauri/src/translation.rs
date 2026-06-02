@@ -29,29 +29,9 @@ pub struct TranslationService {
 impl TranslationService {
     pub fn new(settings: &Settings) -> Self {
         let request_id_store = TranslationRequestIdStore::default();
-        let language_resolver = LanguageResolver::new(
-            settings.auto_detection.scope.clone().into(),
-            settings
-                .auto_detection
-                .custom_detection_scope
-                .iter()
-                .cloned()
-                .map(Into::into)
-                .collect(),
-            settings
-                .auto_detection
-                .fallback_to
-                .clone()
-                .0
-                .parse()
-                .unwrap_or(DetectableLanguage::English),
-        );
-        let providers =
-            LlmProviders::new(&settings.providers).expect("Failed to create LLM providers.");
-        let settings = TranslationSettings {
-            system_prompt: settings.system_prompt.clone(),
-            translation_prompt: settings.translation_prompt.clone(),
-        };
+        let language_resolver = build_language_resolver(settings);
+        let providers = build_llm_providers(settings).expect("Failed to create LLM providers.");
+        let settings = TranslationSettings::from_settings(settings);
         let task_store = TranslationTaskStore::new();
 
         Self {
@@ -61,6 +41,19 @@ impl TranslationService {
             settings: Mutex::new(settings),
             task_store: Mutex::new(task_store),
         }
+    }
+
+    /// Applies persisted settings to runtime translation dependencies.
+    pub async fn apply_settings(&self, settings: &Settings) -> anyhow::Result<()> {
+        let language_resolver = build_language_resolver(settings);
+        let providers = build_llm_providers(settings)?;
+        let translation_settings = TranslationSettings::from_settings(settings);
+
+        *self.language_resolver.lock().await = language_resolver;
+        *self.providers.lock().await = providers;
+        *self.settings.lock().await = translation_settings;
+
+        Ok(())
     }
 
     pub fn next_request_id(&self) -> u32 {
@@ -87,8 +80,7 @@ impl TranslationService {
             &target.0,
             &request.text,
             request.model_id,
-        )
-        .await;
+        );
 
         let stream = {
             let lock = self.providers.lock().await;
@@ -107,6 +99,44 @@ impl TranslationService {
     pub async fn list_models(&self) -> anyhow::Result<Vec<Model>> {
         self.providers.lock().await.list_models().await
     }
+}
+
+struct TranslationSettings {
+    system_prompt: Option<String>,
+    translation_prompt: String,
+}
+
+impl TranslationSettings {
+    fn from_settings(settings: &Settings) -> Self {
+        Self {
+            system_prompt: settings.system_prompt.clone(),
+            translation_prompt: settings.translation_prompt.clone(),
+        }
+    }
+}
+
+fn build_language_resolver(settings: &Settings) -> LanguageResolver {
+    LanguageResolver::new(
+        settings.auto_detection.scope.clone().into(),
+        settings
+            .auto_detection
+            .custom_detection_scope
+            .iter()
+            .cloned()
+            .map(Into::into)
+            .collect(),
+        settings
+            .auto_detection
+            .fallback_to
+            .clone()
+            .0
+            .parse()
+            .unwrap_or(DetectableLanguage::English),
+    )
+}
+
+fn build_llm_providers(settings: &Settings) -> anyhow::Result<LlmProviders> {
+    LlmProviders::new(&settings.providers)
 }
 
 #[derive(Default)]
@@ -142,11 +172,6 @@ impl From<TranslationRequestDto> for TranslationRequest {
     }
 }
 
-pub struct TranslationSettings {
-    system_prompt: Option<String>,
-    translation_prompt: String,
-}
-
 struct LatestTranslationTask {
     request_id: u32,
     handle: JoinHandle<()>,
@@ -178,7 +203,7 @@ impl TranslationTaskStore {
     }
 }
 
-async fn build_generation_request(
+fn build_generation_request(
     settings: &TranslationSettings,
     source: &LanguageCode,
     target: &LanguageCode,

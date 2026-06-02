@@ -35,6 +35,6 @@ tauri-plugin-dialog = "2"
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.4"
 objc2-app-kit = { version = "0.3.2", default-features = false, features = ["NSPasteboard"] }
-objc2-core-foundation = { version = "0.3.2", default-features = false, features = ["CFMachPort", "CFRunLoop"] }
+objc2-core-foundation = { version = "0.3.2", default-features = false, features = ["CFDate", "CFMachPort", "CFRunLoop"] }
 objc2-core-graphics = { version = "0.3.2", default-features = false, features = ["CGEvent", "CGEventTypes"] }
 objc2-foundation = { version = "0.3.2", default-features = false, features = ["NSRunLoop", "NSString", "std"] }

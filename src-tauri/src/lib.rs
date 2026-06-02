@@ -3,6 +3,7 @@ use tauri_plugin_log::log;
 use tokio::sync::Mutex;
 
 use crate::{
+    quick_copy_translate::QuickCopyTranslateService,
     settings::{ModelSelection, write_settings},
     translation::TranslationService,
 };
@@ -22,6 +23,7 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let mut settings =
         settings::ensure_settings_available(app).expect("Failed to ensure `settings.json`");
     let translation = TranslationService::new(&settings);
+    let quick_copy = QuickCopyTranslateService::new();
 
     if settings.model.is_none() {
         match &async_runtime::block_on(translation.list_models()) {
@@ -41,11 +43,14 @@ fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         };
     }
 
-    if let Err(e) = quick_copy_translate::start(app.app_handle(), &settings.quick_copy_translate) {
+    if let Err(e) = async_runtime::block_on(
+        quick_copy.apply_settings(app.app_handle().clone(), &settings.quick_copy_translate),
+    ) {
         log::warn!("Failed to start quick-copy translation: {e:?}");
     }
 
     app.manage(translation);
+    app.manage(quick_copy);
     app.manage(Mutex::new(settings));
 
     Ok(())

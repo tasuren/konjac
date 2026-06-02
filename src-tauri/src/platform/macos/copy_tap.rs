@@ -1,4 +1,9 @@
-use std::{ffi::c_void, ptr::NonNull};
+use std::{
+    ffi::c_void,
+    ptr::NonNull,
+    sync::mpsc as std_mpsc,
+    thread::{self, JoinHandle},
+};
 
 use objc2_core_foundation::{CFMachPort, CFRunLoop, kCFRunLoopCommonModes};
 use objc2_core_graphics::{
@@ -9,20 +14,54 @@ use tokio::sync::mpsc;
 
 const C_KEY_CODE: i64 = 8;
 
+/// Handle for stopping a running Cmd+C event tap.
+pub struct CmdCTapHandle {
+    stop_sender: Option<std_mpsc::Sender<()>>,
+    thread: Option<JoinHandle<()>>,
+}
+
+impl CmdCTapHandle {
+    /// Requests the event tap thread to stop and waits for it to finish.
+    pub fn stop(&mut self) {
+        if let Some(stop_sender) = self.stop_sender.take() {
+            _ = stop_sender.send(());
+        }
+
+        if let Some(thread) = self.thread.take() {
+            if let Err(e) = thread.join() {
+                tauri_plugin_log::log::warn!("Failed to join Cmd+C event tap thread: {e:?}");
+            }
+        }
+    }
+}
+
+impl Drop for CmdCTapHandle {
+    fn drop(&mut self) {
+        self.stop();
+    }
+}
+
 /// Starts a macOS listen-only event tap for Cmd+C key-down events.
-pub fn start_cmd_c_tap(sender: mpsc::UnboundedSender<()>) -> anyhow::Result<()> {
-    std::thread::Builder::new()
+pub fn start_cmd_c_tap(sender: mpsc::UnboundedSender<()>) -> anyhow::Result<CmdCTapHandle> {
+    let (stop_sender, stop_receiver) = std_mpsc::channel();
+    let thread = thread::Builder::new()
         .name("konjac-copy-key-tap".to_owned())
         .spawn(move || {
-            if let Err(e) = run_event_tap(sender) {
+            if let Err(e) = run_event_tap(sender, stop_receiver) {
                 tauri_plugin_log::log::warn!("Failed to run Cmd+C event tap: {e:?}");
             }
         })?;
 
-    Ok(())
+    Ok(CmdCTapHandle {
+        stop_sender: Some(stop_sender),
+        thread: Some(thread),
+    })
 }
 
-fn run_event_tap(sender: mpsc::UnboundedSender<()>) -> anyhow::Result<()> {
+fn run_event_tap(
+    sender: mpsc::UnboundedSender<()>,
+    stop_receiver: std_mpsc::Receiver<()>,
+) -> anyhow::Result<()> {
     let sender = Box::into_raw(Box::new(sender));
     let event_mask = 1u64 << CGEventType::KeyDown.0;
 
@@ -52,7 +91,17 @@ fn run_event_tap(sender: mpsc::UnboundedSender<()>) -> anyhow::Result<()> {
     };
 
     run_loop.add_source(Some(&source), unsafe { kCFRunLoopCommonModes });
-    CFRunLoop::run();
+
+    loop {
+        match stop_receiver.try_recv() {
+            Ok(()) | Err(std_mpsc::TryRecvError::Disconnected) => break,
+            Err(std_mpsc::TryRecvError::Empty) => {}
+        }
+
+        CFRunLoop::run_in_mode(unsafe { kCFRunLoopCommonModes }, 0.1, false);
+    }
+
+    drop_sender(sender);
 
     Ok(())
 }
