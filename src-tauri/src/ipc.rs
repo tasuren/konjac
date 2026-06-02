@@ -1,28 +1,14 @@
-use tauri::{AppHandle, Emitter, State};
-use tauri_plugin_log::log;
+use tauri::{AppHandle, State};
 use tokio::sync::Mutex;
 
 use crate::{
     ipc_dto::{
         LanguageInfoDto, ModelDto, SettingsDto, TranslationRequestDto, TranslationRequestResultDto,
-        TranslationStreamEventDto,
     },
     language::{COMMON_LANGUAGES, SELECTABLE_LANGUAGES},
     settings::{Settings, write_settings},
-    translation::{TranslationResponseEmitter, TranslationService, TranslationStreamEvent},
+    translation::TranslationService,
 };
-
-pub struct TranslationStream(AppHandle);
-
-impl TranslationResponseEmitter for TranslationStream {
-    fn emit(&self, payload: TranslationStreamEvent) {
-        let payload: TranslationStreamEventDto = payload.into();
-
-        if let Err(e) = self.0.emit("translation-stream-event", payload) {
-            log::warn!("Some translation event was not sent: {e:?}");
-        };
-    }
-}
 
 #[tauri::command]
 pub async fn request_translation(
@@ -31,7 +17,7 @@ pub async fn request_translation(
     request: TranslationRequestDto,
 ) -> Result<TranslationRequestResultDto, String> {
     let source = service
-        .request_translation(request.into(), Box::new(TranslationStream(app)))
+        .request_translation(app, request.into())
         .await
         .map_err(|e| e.to_string())?;
 

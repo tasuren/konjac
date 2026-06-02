@@ -1,7 +1,7 @@
 use std::sync::atomic;
 
 use futures_util::StreamExt;
-use tauri::async_runtime::JoinHandle;
+use tauri::{AppHandle, Emitter, async_runtime::JoinHandle};
 use tauri_plugin_log::log;
 use tokio::sync::Mutex;
 
@@ -69,11 +69,11 @@ impl TranslationService {
 
     pub async fn request_translation(
         &self,
+        app: AppHandle,
         request: TranslationRequest,
-        emitter: Box<dyn TranslationResponseEmitter>,
     ) -> anyhow::Result<ResolvedSourceLanguage> {
         let mut task_store = self.task_store.lock().await;
-        task_store.abort_latest_task(&*emitter);
+        task_store.abort_latest_task(&app);
 
         let ResolvedLanguagePair { source, target } = self.language_resolver.lock().await.resolve(
             request.source_language.into(),
@@ -97,7 +97,7 @@ impl TranslationService {
         };
 
         let handle = tauri::async_runtime::spawn(async move {
-            stream_translation_text(&*emitter, request.request_id, stream).await;
+            stream_translation_text(app, request.request_id, stream).await;
         });
         task_store.set_latest_task(request.request_id, handle);
 
@@ -165,12 +165,15 @@ impl TranslationTaskStore {
         self.latest_task = Some(LatestTranslationTask { request_id, handle });
     }
 
-    fn abort_latest_task(&mut self, emitter: &dyn TranslationResponseEmitter) {
+    fn abort_latest_task(&mut self, app: &AppHandle) {
         if let Some(task) = self.latest_task.take() {
             task.handle.abort();
-            emitter.emit(TranslationStreamEvent::Cancelled {
-                request_id: task.request_id,
-            });
+            emit_translation_stream_event(
+                app,
+                TranslationStreamEvent::Cancelled {
+                    request_id: task.request_id,
+                },
+            );
         }
     }
 }
@@ -227,34 +230,42 @@ impl From<TranslationStreamEvent> for TranslationStreamEventDto {
     }
 }
 
-pub trait TranslationResponseEmitter: Send + Sync {
-    fn emit(&self, payload: TranslationStreamEvent);
+const TRANSLATION_STREAM_EVENT: &str = "translation-stream-event";
+
+fn emit_translation_stream_event(app: &AppHandle, payload: TranslationStreamEvent) {
+    let payload: TranslationStreamEventDto = payload.into();
+
+    if let Err(e) = app.emit(TRANSLATION_STREAM_EVENT, payload) {
+        log::warn!("Some translation event was not sent: {e:?}");
+    };
 }
 
-async fn stream_translation_text(
-    emitter: &dyn TranslationResponseEmitter,
-    request_id: u32,
-    mut stream: GenerationStream,
-) {
+async fn stream_translation_text(app: AppHandle, request_id: u32, mut stream: GenerationStream) {
     let mut result = String::new();
 
     while let Some(event) = stream.next().await {
         match event {
             GenerationEvent::Delta(delta) => {
                 result.push_str(&delta);
-                emitter.emit(TranslationStreamEvent::Delta {
-                    request_id,
-                    full_text: result.clone(),
-                });
+                emit_translation_stream_event(
+                    &app,
+                    TranslationStreamEvent::Delta {
+                        request_id,
+                        full_text: result.clone(),
+                    },
+                );
             }
             GenerationEvent::Finished(full_text) => {
                 if let Some(full_text) = full_text {
                     result = full_text;
                 }
-                emitter.emit(TranslationStreamEvent::Finished {
-                    request_id,
-                    full_text: result,
-                });
+                emit_translation_stream_event(
+                    &app,
+                    TranslationStreamEvent::Finished {
+                        request_id,
+                        full_text: result,
+                    },
+                );
 
                 break;
             }
