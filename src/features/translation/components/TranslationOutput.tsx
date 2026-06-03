@@ -53,12 +53,15 @@ export function TranslationOutput({
           <motion.div
             key="error"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 0.7 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
+            className="p-4 text-sm text-muted overflow-y-auto"
           >
-            ⚠️ 翻訳に失敗しました:
-            <code>{error}</code>
+            翻訳に失敗しました:
+            <code className="wrap-break-word select-auto cursor-auto">
+              {error}
+            </code>
           </motion.div>
         ) : showOutput ? (
           <motion.div

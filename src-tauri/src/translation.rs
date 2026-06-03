@@ -231,28 +231,7 @@ pub enum TranslationStreamEvent {
     Delta { request_id: u32, full_text: String },
     Finished { request_id: u32, full_text: String },
     Cancelled { request_id: u32 },
-}
-
-impl From<TranslationStreamEvent> for TranslationStreamEventDto {
-    fn from(value: TranslationStreamEvent) -> Self {
-        match value {
-            TranslationStreamEvent::Delta {
-                request_id,
-                full_text,
-            } => Self::Delta {
-                request_id,
-                full_text,
-            },
-            TranslationStreamEvent::Finished {
-                request_id,
-                full_text,
-            } => Self::Finished {
-                request_id,
-                full_text,
-            },
-            TranslationStreamEvent::Cancelled { request_id } => Self::Cancelled { request_id },
-        }
-    }
+    Failed { request_id: u32, message: String },
 }
 
 const TRANSLATION_STREAM_EVENT: &str = "translation-stream-event";
@@ -296,6 +275,15 @@ async fn stream_translation_text(app: AppHandle, request_id: u32, mut stream: Ge
             }
             GenerationEvent::Error(message) => {
                 log::warn!("An error occurred during translation: {message}");
+                emit_translation_stream_event(
+                    &app,
+                    TranslationStreamEvent::Failed {
+                        request_id,
+                        message,
+                    },
+                );
+
+                break;
             }
         }
     }

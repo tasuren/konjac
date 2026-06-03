@@ -3,4 +3,4 @@
 /**
  * Translation stream event sent to the frontend.
  */
-export type TranslationStreamEventDto = { "type": "delta", requestId: number, fullText: string, } | { "type": "finished", requestId: number, fullText: string, } | { "type": "cancelled", requestId: number, };
+export type TranslationStreamEventDto = { "type": "delta", requestId: number, fullText: string, } | { "type": "finished", requestId: number, fullText: string, } | { "type": "cancelled", requestId: number, } | { "type": "failed", requestId: number, message: string, };

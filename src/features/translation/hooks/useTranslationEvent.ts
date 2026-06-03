@@ -63,6 +63,7 @@ export function useTranslationSession({
       }
 
       setStatus("requesting");
+      setError(null);
 
       const { dispose, resolvedSourceLanguage } = await requestTranslation(
         {
@@ -79,6 +80,7 @@ export function useTranslationSession({
           },
           onFinished(fullText) {
             setOutput(fullText);
+            setError(null);
             dispose();
             setStatus("idle");
           },

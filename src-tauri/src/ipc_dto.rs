@@ -12,6 +12,7 @@ use crate::{
         ModelSelection, OllamaSettings, ProviderKindSetting, ProviderSettings,
         QuickCopyTranslateSettings, Settings, ThemeSetting,
     },
+    translation::TranslationStreamEvent,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
@@ -103,6 +104,36 @@ pub enum TranslationStreamEventDto {
     Delta { request_id: u32, full_text: String },
     Finished { request_id: u32, full_text: String },
     Cancelled { request_id: u32 },
+    Failed { request_id: u32, message: String },
+}
+
+impl From<TranslationStreamEvent> for TranslationStreamEventDto {
+    fn from(value: TranslationStreamEvent) -> Self {
+        match value {
+            TranslationStreamEvent::Delta {
+                request_id,
+                full_text,
+            } => Self::Delta {
+                request_id,
+                full_text,
+            },
+            TranslationStreamEvent::Finished {
+                request_id,
+                full_text,
+            } => Self::Finished {
+                request_id,
+                full_text,
+            },
+            TranslationStreamEvent::Cancelled { request_id } => Self::Cancelled { request_id },
+            TranslationStreamEvent::Failed {
+                request_id,
+                message,
+            } => Self::Failed {
+                request_id,
+                message,
+            },
+        }
+    }
 }
 
 /// Clipboard input sent when quick-copy translation is triggered.

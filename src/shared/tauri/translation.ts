@@ -47,6 +47,10 @@ export async function requestTranslation(
         case "cancelled":
           dispose();
           break;
+        case "failed":
+          handlers.onFailed(event.payload.message);
+          dispose();
+          break;
       }
     },
   );
