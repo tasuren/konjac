@@ -1,11 +1,11 @@
 use std::{
     ffi::c_void,
     ptr::NonNull,
-    sync::mpsc as std_mpsc,
+    sync::mpsc::{self as std_mpsc, SyncSender},
     thread::{self, JoinHandle},
 };
 
-use objc2_core_foundation::{CFMachPort, CFRunLoop, kCFRunLoopCommonModes};
+use objc2_core_foundation::{CFMachPort, CFRetained, CFRunLoop, kCFRunLoopCommonModes};
 use objc2_core_graphics::{
     CGEvent, CGEventField, CGEventFlags, CGEventTapLocation, CGEventTapOptions,
     CGEventTapPlacement, CGEventTapProxy, CGEventType,
@@ -16,15 +16,15 @@ const C_KEY_CODE: i64 = 8;
 
 /// Handle for stopping a running Cmd+C event tap.
 pub struct CmdCTapHandle {
-    stop_sender: Option<std_mpsc::Sender<()>>,
+    run_loop: Option<EventTapRunLoop>,
     thread: Option<JoinHandle<()>>,
 }
 
 impl CmdCTapHandle {
     /// Requests the event tap thread to stop and waits for it to finish.
     pub fn stop(&mut self) {
-        if let Some(stop_sender) = self.stop_sender.take() {
-            _ = stop_sender.send(());
+        if let Some(run_loop) = self.run_loop.take() {
+            run_loop.stop();
         }
 
         if let Some(thread) = self.thread.take() {
@@ -41,26 +41,52 @@ impl Drop for CmdCTapHandle {
     }
 }
 
+struct EventTapRunLoop {
+    run_loop: CFRetained<CFRunLoop>,
+}
+
+// SAFETY: This wrapper only exposes cross-thread calls to CFRunLoopStop and CFRunLoopWakeUp.
+unsafe impl Send for EventTapRunLoop {}
+
+impl EventTapRunLoop {
+    fn stop(&self) {
+        self.run_loop.stop();
+        self.run_loop.wake_up();
+    }
+}
+
 /// Starts a macOS listen-only event tap for Cmd+C key-down events.
 pub fn start_cmd_c_tap(sender: mpsc::UnboundedSender<()>) -> anyhow::Result<CmdCTapHandle> {
-    let (stop_sender, stop_receiver) = std_mpsc::channel();
+    let (ready_sender, ready_receiver) = std_mpsc::sync_channel(1);
     let thread = thread::Builder::new()
         .name("konjac-copy-key-tap".to_owned())
         .spawn(move || {
-            if let Err(e) = run_event_tap(sender, stop_receiver) {
+            if let Err(e) = run_event_tap(sender, ready_sender) {
                 tauri_plugin_log::log::warn!("Failed to run Cmd+C event tap: {e:?}");
             }
         })?;
 
+    let run_loop = match ready_receiver.recv() {
+        Ok(Ok(run_loop)) => run_loop,
+        Ok(Err(e)) => {
+            _ = thread.join();
+            return Err(e);
+        }
+        Err(e) => {
+            _ = thread.join();
+            anyhow::bail!("Cmd+C event tap thread ended before startup completed: {e}");
+        }
+    };
+
     Ok(CmdCTapHandle {
-        stop_sender: Some(stop_sender),
+        run_loop: Some(run_loop),
         thread: Some(thread),
     })
 }
 
 fn run_event_tap(
     sender: mpsc::UnboundedSender<()>,
-    stop_receiver: std_mpsc::Receiver<()>,
+    ready_sender: SyncSender<anyhow::Result<EventTapRunLoop>>,
 ) -> anyhow::Result<()> {
     let sender = Box::into_raw(Box::new(sender));
     let event_mask = 1u64 << CGEventType::KeyDown.0;
@@ -77,33 +103,47 @@ fn run_event_tap(
         )
     }) else {
         drop_sender(sender);
-        anyhow::bail!("CGEventTapCreate returned null");
+        return send_startup_error(ready_sender, "CGEventTapCreate returned null");
     };
 
     let Some(source) = CFMachPort::new_run_loop_source(None, Some(&tap), 0) else {
         drop_sender(sender);
-        anyhow::bail!("CFMachPortCreateRunLoopSource returned null");
+        return send_startup_error(
+            ready_sender,
+            "CFMachPortCreateRunLoopSource returned null",
+        );
     };
 
     let Some(run_loop) = CFRunLoop::current() else {
         drop_sender(sender);
-        anyhow::bail!("CFRunLoopGetCurrent returned null");
+        return send_startup_error(ready_sender, "CFRunLoopGetCurrent returned null");
     };
 
     run_loop.add_source(Some(&source), unsafe { kCFRunLoopCommonModes });
 
-    loop {
-        match stop_receiver.try_recv() {
-            Ok(()) | Err(std_mpsc::TryRecvError::Disconnected) => break,
-            Err(std_mpsc::TryRecvError::Empty) => {}
-        }
-
-        CFRunLoop::run_in_mode(unsafe { kCFRunLoopCommonModes }, 0.1, false);
+    if ready_sender
+        .send(Ok(EventTapRunLoop {
+            run_loop: run_loop.clone(),
+        }))
+        .is_err()
+    {
+        drop_sender(sender);
+        return Ok(());
     }
 
+    CFRunLoop::run();
     drop_sender(sender);
 
     Ok(())
+}
+
+fn send_startup_error(
+    ready_sender: SyncSender<anyhow::Result<EventTapRunLoop>>,
+    message: &'static str,
+) -> anyhow::Result<()> {
+    let error = anyhow::anyhow!(message);
+    _ = ready_sender.send(Err(error));
+    anyhow::bail!(message);
 }
 
 fn drop_sender(sender: *mut mpsc::UnboundedSender<()>) {
