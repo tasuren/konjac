@@ -15,7 +15,6 @@ import {
   getLanguage,
   LANGUAGES,
 } from "../../../shared/tauri/language";
-import { useLanguageCatalog } from "../../translation/hooks/useLanguageCatalog";
 import { SettingsField } from "./SettingsField";
 
 export function SourceLanguageSelect({
@@ -26,9 +25,8 @@ export function SourceLanguageSelect({
   id: string;
 }) {
   const { defaultSourceLanguage, updateSettings } = useSettingsStore();
-  const { languages } = useLanguageCatalog();
 
-  const onSelectSrcLang = useCallback(
+  const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const selected = event.currentTarget.value;
 
@@ -58,11 +56,11 @@ export function SourceLanguageSelect({
           ? "auto-detect"
           : defaultSourceLanguage.code
       }
-      onChange={onSelectSrcLang}
+      onChange={onChange}
     >
       <option value="auto-detect">自動検出</option>
 
-      {languages.map((lang) => (
+      {LANGUAGES.map((lang) => (
         <option key={lang.code} value={lang.code}>
           {lang.name}
         </option>
