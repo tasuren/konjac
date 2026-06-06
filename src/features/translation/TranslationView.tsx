@@ -49,8 +49,12 @@ export function TranslationView({
 }
 
 function TranslationPane() {
-  const { sourceLanguage, setResolvedSourceLanguage, targetLanguage } =
-    useTranslationSelectionStore();
+  const {
+    sourceLanguage,
+    setResolvedSourceLanguage,
+    targetLanguage,
+    setTargetLanguage,
+  } = useTranslationSelectionStore();
   const { model } = useSettingsStore();
 
   const {
@@ -67,6 +71,7 @@ function TranslationPane() {
     model,
     debounceMs: 600,
     setResolvedSourceLanguage,
+    setTargetLanguage,
   });
 
   useEffect(() => {

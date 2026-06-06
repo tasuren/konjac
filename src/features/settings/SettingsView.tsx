@@ -4,6 +4,7 @@ import { IconButton } from "../../shared/components/IconButton";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { ThemeSelect } from "./components/BasicSettings";
 import {
+  FallbackTargetLanguageSelect,
   LanguageDetectionFallbackSelect,
   LanguageDetectionScopeSelect,
   LanguageListScopeSelect,
@@ -114,7 +115,7 @@ export function SettingsView({
           <SettingsSection title="言語">
             <SettingsField
               htmlFor="default-source-language-select"
-              label="デフォルトの翻訳前の言語"
+              label="デフォルトの翻訳元"
             >
               <SourceLanguageSelect
                 name="default-source-language"
@@ -124,11 +125,25 @@ export function SettingsView({
 
             <SettingsField
               htmlFor="default-target-language-select"
-              label="デフォルトの翻訳後の言語"
+              label="デフォルトの翻訳先"
             >
               <TargetLanguageSelect
                 name="default-target-language"
                 id="default-target-language-select"
+              />
+            </SettingsField>
+
+            <SettingsField
+              htmlFor="fallback-target-language-select"
+              label="フォールバックの翻訳先"
+            >
+              <p className="my-1 text-sm">
+                自動検出でその時の翻訳先と元が被った時に、翻訳先を別の言語にできます。
+              </p>
+
+              <FallbackTargetLanguageSelect
+                name="fallback-target-language"
+                id="fallback-target-language-select"
               />
             </SettingsField>
 

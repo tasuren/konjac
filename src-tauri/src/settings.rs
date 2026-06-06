@@ -97,6 +97,8 @@ pub struct Settings {
 
     pub default_source_language: SourceLanguageSetting,
     pub default_target_language: TargetLanguageSetting,
+    #[serde(default)]
+    pub fallback_target_language: TargetLanguageSetting,
     pub language_list_scope: LanguageListScopeSetting,
     pub custom_language_list_scope: Vec<LanguageCode>,
     pub auto_detection: AutoDetectionSettings,
@@ -116,6 +118,7 @@ impl Default for Settings {
             model: None,
             default_source_language: SourceLanguageSetting::default(),
             default_target_language: TargetLanguageSetting::default(),
+            fallback_target_language: TargetLanguageSetting::default(),
             language_list_scope: LanguageListScopeSetting::default(),
             custom_language_list_scope: COMMON_LANGUAGES
                 .iter()

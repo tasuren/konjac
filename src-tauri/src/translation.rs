@@ -9,7 +9,8 @@ use crate::{
     ipc_dto::{TranslationRequestDto, TranslationStreamEventDto},
     language::{
         DetectableLanguage, LanguageCode, LanguageResolver, ResolvedLanguagePair,
-        ResolvedSourceLanguage, SourceLanguage, TargetLanguage, language_name_or_code,
+        ResolvedSourceLanguage, ResolvedTargetLanguage, SourceLanguage, TargetLanguage,
+        language_name_or_code,
     },
     llm::{
         GenerationEvent, GenerationRequest, GenerationStream, LlmProviders, Model, ProviderKind,
@@ -64,7 +65,7 @@ impl TranslationService {
         &self,
         app: AppHandle,
         request: TranslationRequest,
-    ) -> anyhow::Result<ResolvedSourceLanguage> {
+    ) -> anyhow::Result<(ResolvedSourceLanguage, ResolvedTargetLanguage)> {
         let mut task_store = self.task_store.lock().await;
         task_store.abort_latest_task(&app);
 
@@ -93,7 +94,7 @@ impl TranslationService {
         });
         task_store.set_latest_task(request.request_id, handle);
 
-        Ok(source)
+        Ok((source, target))
     }
 
     pub async fn list_models(&self) -> anyhow::Result<Vec<Model>> {
@@ -132,6 +133,8 @@ fn build_language_resolver(settings: &Settings) -> LanguageResolver {
             .0
             .parse()
             .unwrap_or(DetectableLanguage::English),
+        settings.default_target_language.0.clone(),
+        settings.fallback_target_language.0.clone(),
     )
 }
 

@@ -106,6 +106,42 @@ export function TargetLanguageSelect({
   );
 }
 
+export function FallbackTargetLanguageSelect({
+  name,
+  id,
+}: {
+  name: string;
+  id: string;
+}) {
+  const { fallbackTargetLanguage, updateSettings } = useSettingsStore();
+
+  const onChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      updateSettings((settings) => ({
+        ...settings,
+        fallbackTargetLanguage: event.currentTarget.value,
+      }));
+    },
+    [updateSettings],
+  );
+
+  return (
+    <Select
+      name={name}
+      id={id}
+      className="w-40"
+      value={fallbackTargetLanguage}
+      onChange={onChange}
+    >
+      {LANGUAGES.map((lang) => (
+        <option key={lang.code} value={lang.code}>
+          {lang.name}
+        </option>
+      ))}
+    </Select>
+  );
+}
+
 export function LanguageListScopeSelect({
   name,
   id,

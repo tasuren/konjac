@@ -17,13 +17,14 @@ pub async fn request_translation(
     service: State<'_, TranslationService>,
     request: TranslationRequestDto,
 ) -> Result<TranslationRequestResultDto, String> {
-    let source = service
+    let (source, target) = service
         .request_translation(app, request.into())
         .await
         .map_err(|e| e.to_string())?;
 
     Ok(TranslationRequestResultDto {
         resolved_source_language: source.into(),
+        resolved_target_language: target.into(),
     })
 }
 

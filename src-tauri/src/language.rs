@@ -8,7 +8,7 @@ pub use resolver::*;
 use serde::{Deserialize, Serialize};
 
 /// Represents a language code (ISO 639-1).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LanguageCode(pub String);
 
 impl Default for LanguageCode {

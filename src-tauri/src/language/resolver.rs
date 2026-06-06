@@ -37,7 +37,9 @@ pub struct ResolvedLanguagePair {
 
 pub struct LanguageResolver {
     detector: LanguageDetector,
-    fallback_to: Language,
+    detect_fallback_to: Language,
+    default_target_language: LanguageCode,
+    fallback_target_language: LanguageCode,
 }
 
 fn common_detection_languages() -> Vec<lingua::Language> {
@@ -52,6 +54,8 @@ impl LanguageResolver {
         scope: LanguageDetectionScope,
         custom_detection_scope: Vec<DetectableLanguage>,
         fallback_to: DetectableLanguage,
+        default_target_language: LanguageCode,
+        fallback_target_language: LanguageCode,
     ) -> Self {
         let detector: LanguageDetector = match scope {
             LanguageDetectionScope::All => LanguageDetectorBuilder::from_all_languages(),
@@ -75,7 +79,9 @@ impl LanguageResolver {
 
         Self {
             detector,
-            fallback_to: fallback_to.into(),
+            detect_fallback_to: fallback_to.into(),
+            default_target_language,
+            fallback_target_language,
         }
     }
 
@@ -85,16 +91,47 @@ impl LanguageResolver {
         target: TargetLanguage,
         text: &str,
     ) -> ResolvedLanguagePair {
-        let source = match source {
-            SourceLanguage::AutoDetect => match self.detector.detect_language_of(text) {
-                Some(lang) => ResolvedSourceLanguage::Detected(lingua_to_code(&lang)),
-                None => ResolvedSourceLanguage::Assumed(lingua_to_code(&self.fallback_to)),
-            },
-            SourceLanguage::Manual(lang) => ResolvedSourceLanguage::Manual(lang),
-        };
-        let target = ResolvedTargetLanguage(target.0);
+        let source = self.resolve_source_language(source, text);
+        let target = self.resolve_target_language(&source, target);
 
         ResolvedLanguagePair { source, target }
+    }
+
+    fn resolve_source_language(
+        &self,
+        source: SourceLanguage,
+        text: &str,
+    ) -> ResolvedSourceLanguage {
+        match source {
+            SourceLanguage::AutoDetect => match self.detector.detect_language_of(text) {
+                Some(lang) => ResolvedSourceLanguage::Detected(lingua_to_code(&lang)),
+                None => ResolvedSourceLanguage::Assumed(lingua_to_code(&self.detect_fallback_to)),
+            },
+            SourceLanguage::Manual(lang) => ResolvedSourceLanguage::Manual(lang),
+        }
+    }
+
+    fn resolve_target_language(
+        &self,
+        source: &ResolvedSourceLanguage,
+        target: TargetLanguage,
+    ) -> ResolvedTargetLanguage {
+        let should_use_fallback = match source {
+            ResolvedSourceLanguage::Detected(source) => source == &target.0,
+            ResolvedSourceLanguage::Assumed(_) | ResolvedSourceLanguage::Manual(_) => false,
+        };
+
+        if should_use_fallback {
+            let mut target = self.fallback_target_language.clone();
+
+            if source.get_language_info() == &target {
+                target = self.default_target_language.clone();
+            }
+
+            ResolvedTargetLanguage(target)
+        } else {
+            ResolvedTargetLanguage(target.0)
+        }
     }
 }
 

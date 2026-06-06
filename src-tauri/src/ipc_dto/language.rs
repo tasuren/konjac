@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     language::{
-        DetectableLanguage, LanguageCode, ResolvedSourceLanguage, SourceLanguage, TargetLanguage,
+        DetectableLanguage, LanguageCode, ResolvedSourceLanguage, ResolvedTargetLanguage,
+        SourceLanguage, TargetLanguage,
     },
     settings::{
         AutoDetectionSettings, LanguageDetectionScopeSetting, LanguageListScopeSetting,
@@ -97,7 +98,7 @@ impl From<TargetLanguage> for TargetLanguageDto {
         Self(value.0.into())
     }
 }
-/// Source language resolved during translation.
+
 #[derive(Debug, Clone, Serialize, ts_rs::TS)]
 #[serde(
     tag = "type",
@@ -119,6 +120,16 @@ impl From<ResolvedSourceLanguage> for ResolvedSourceLanguageDto {
 
             ResolvedSourceLanguage::Manual(code) => Self::Manual { code: code.into() },
         }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[ts(export)]
+pub struct ResolvedTargetLanguageDto(pub LanguageCodeDto);
+
+impl From<ResolvedTargetLanguage> for ResolvedTargetLanguageDto {
+    fn from(value: ResolvedTargetLanguage) -> Self {
+        Self(value.0.into())
     }
 }
 

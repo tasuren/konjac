@@ -90,6 +90,7 @@ pub struct TranslationRequestDto {
 #[ts(export)]
 pub struct TranslationRequestResultDto {
     pub resolved_source_language: ResolvedSourceLanguageDto,
+    pub resolved_target_language: ResolvedTargetLanguageDto,
 }
 
 /// Translation stream event sent to the frontend.
@@ -195,6 +196,7 @@ pub struct SettingsDto {
 
     pub default_source_language: SourceLanguageSettingDto,
     pub default_target_language: TargetLanguageSettingDto,
+    pub fallback_target_language: TargetLanguageSettingDto,
     pub language_list_scope: LanguageListScopeSettingDto,
     pub custom_language_list_scope: Vec<LanguageCodeDto>,
     pub auto_detection: AutoDetectionSettingsDto,
@@ -212,6 +214,7 @@ impl From<Settings> for SettingsDto {
             model: value.model.map(Into::into),
             default_source_language: value.default_source_language.into(),
             default_target_language: value.default_target_language.into(),
+            fallback_target_language: value.fallback_target_language.into(),
             language_list_scope: value.language_list_scope.into(),
             custom_language_list_scope: value
                 .custom_language_list_scope
@@ -235,6 +238,7 @@ impl From<SettingsDto> for Settings {
             model: value.model.map(Into::into),
             default_source_language: value.default_source_language.into(),
             default_target_language: value.default_target_language.into(),
+            fallback_target_language: value.fallback_target_language.into(),
             language_list_scope: value.language_list_scope.into(),
             custom_language_list_scope: value
                 .custom_language_list_scope
