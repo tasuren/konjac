@@ -1,10 +1,10 @@
 mod catalog;
 mod detectable;
-mod detector;
+mod resolver;
 
 pub use catalog::*;
 pub use detectable::*;
-pub use detector::*;
+pub use resolver::*;
 use serde::{Deserialize, Serialize};
 
 /// Represents a language code (ISO 639-1).
