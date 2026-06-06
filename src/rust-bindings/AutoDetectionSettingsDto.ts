@@ -5,4 +5,8 @@ import type { LanguageDetectionScopeSettingDto } from "./LanguageDetectionScopeS
 /**
  * Automatic source-language detection settings.
  */
-export type AutoDetectionSettingsDto = { scope: LanguageDetectionScopeSettingDto, customDetectionScope: Array<DetectableLanguageDto>, fallbackTo: DetectableLanguageDto, };
+export type AutoDetectionSettingsDto = {
+  scope: LanguageDetectionScopeSettingDto;
+  customDetectionScope: Array<DetectableLanguageDto>;
+  fallbackTo: DetectableLanguageDto;
+};

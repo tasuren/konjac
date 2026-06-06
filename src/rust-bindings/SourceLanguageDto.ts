@@ -4,4 +4,6 @@ import type { LanguageCodeDto } from "./LanguageCodeDto";
 /**
  * Source language selection sent with a translation request.
  */
-export type SourceLanguageDto = { "type": "auto_detect" } | { "type": "manual", code: LanguageCodeDto, };
+export type SourceLanguageDto =
+  | { type: "auto_detect" }
+  | { type: "manual"; code: LanguageCodeDto };

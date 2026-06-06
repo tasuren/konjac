@@ -4,4 +4,6 @@ import type { LanguageCodeDto } from "./LanguageCodeDto";
 /**
  * Persisted default source language setting.
  */
-export type SourceLanguageSettingDto = { "type": "auto_detect" } | { "type": "manual", code: LanguageCodeDto, };
+export type SourceLanguageSettingDto =
+  | { type: "auto_detect" }
+  | { type: "manual"; code: LanguageCodeDto };

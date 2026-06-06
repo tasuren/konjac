@@ -108,10 +108,7 @@ fn run_event_tap(
 
     let Some(source) = CFMachPort::new_run_loop_source(None, Some(&tap), 0) else {
         drop_sender(sender);
-        return send_startup_error(
-            ready_sender,
-            "CFMachPortCreateRunLoopSource returned null",
-        );
+        return send_startup_error(ready_sender, "CFMachPortCreateRunLoopSource returned null");
     };
 
     let Some(run_loop) = CFRunLoop::current() else {

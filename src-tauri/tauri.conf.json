@@ -1,41 +1,41 @@
 {
-    "$schema": "https://schema.tauri.app/config/2",
-    "productName": "Konjac",
-    "version": "0.1.0-beta.1",
-    "identifier": "jp.tasuren.konjac.beta",
-    "build": {
-        "beforeDevCommand": "pnpm dev",
-        "devUrl": "http://localhost:1420",
-        "beforeBuildCommand": "pnpm build",
-        "frontendDist": "../dist"
-    },
-    "app": {
-        "windows": [
-            {
-                "title": "Konjac / コンニャク (Beta)",
-                "width": 900,
-                "height": 650,
-                "hiddenTitle": true,
-                "titleBarStyle": "Overlay",
-                "trafficLightPosition": { "x": 12, "y": 24 }
-            }
-        ],
-        "security": {
-            "csp": null
-        }
-    },
-    "bundle": {
-        "active": true,
-        "targets": "all",
-        "icon": [
-            "icons/32x32.png",
-            "icons/128x128.png",
-            "icons/128x128@2x.png",
-            "icons/icon.icns",
-            "icons/icon.ico"
-        ],
-        "macOS": {
-            "signingIdentity": "-"
-        }
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Konjac",
+  "version": "0.1.0-beta.1",
+  "identifier": "jp.tasuren.konjac.beta",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Konjac / コンニャク (Beta)",
+        "width": 900,
+        "height": 650,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay",
+        "trafficLightPosition": { "x": 12, "y": 24 }
+      }
+    ],
+    "security": {
+      "csp": null
     }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "signingIdentity": "-"
+    }
+  }
 }

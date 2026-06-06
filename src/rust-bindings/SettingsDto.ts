@@ -9,4 +9,17 @@ import type { SourceLanguageSettingDto } from "./SourceLanguageSettingDto";
 import type { TargetLanguageSettingDto } from "./TargetLanguageSettingDto";
 import type { ThemeSettingDto } from "./ThemeSettingDto";
 
-export type SettingsDto = { theme: ThemeSettingDto, quickCopyTranslate: QuickCopyTranslateSettingsDto, providers: ProviderSettingsDto, model: ModelSelectionDto | null, defaultSourceLanguage: SourceLanguageSettingDto, defaultTargetLanguage: TargetLanguageSettingDto, fallbackTargetLanguage: TargetLanguageSettingDto, languageListScope: LanguageListScopeSettingDto, customLanguageListScope: Array<LanguageCodeDto>, autoDetection: AutoDetectionSettingsDto, systemPrompt: string | null, translationPrompt: string, };
+export type SettingsDto = {
+  theme: ThemeSettingDto;
+  quickCopyTranslate: QuickCopyTranslateSettingsDto;
+  providers: ProviderSettingsDto;
+  model: ModelSelectionDto | null;
+  defaultSourceLanguage: SourceLanguageSettingDto;
+  defaultTargetLanguage: TargetLanguageSettingDto;
+  fallbackTargetLanguage: TargetLanguageSettingDto;
+  languageListScope: LanguageListScopeSettingDto;
+  customLanguageListScope: Array<LanguageCodeDto>;
+  autoDetection: AutoDetectionSettingsDto;
+  systemPrompt: string | null;
+  translationPrompt: string;
+};

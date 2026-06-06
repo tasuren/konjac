@@ -4,85 +4,85 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --color-bg: #f7f7f5;
-    --color-surface: #efefec;
-    --color-surface-elevated: #f5f5f2;
-    --color-border: #ddddd8;
-    --color-text: #1f1f1d;
-    --color-muted: #6e6e69;
-    --color-accent: #4a6fa5;
-    --color-titlebar: #f1f1ee;
-    --color-modal: #fcfcfa;
+  --color-bg: #f7f7f5;
+  --color-surface: #efefec;
+  --color-surface-elevated: #f5f5f2;
+  --color-border: #ddddd8;
+  --color-text: #1f1f1d;
+  --color-muted: #6e6e69;
+  --color-accent: #4a6fa5;
+  --color-titlebar: #f1f1ee;
+  --color-modal: #fcfcfa;
 
-    /* markdown/document */
-    --color-markdown-link: #4a6fa5;
-    --color-markdown-link-hover: #5d84c0;
-    --color-markdown-code-bg: #e8e8e4;
-    --color-markdown-inline-code-bg: #e3e3df;
-    --color-markdown-quote-bg: #ecece8;
-    --color-markdown-quote-border: #c8d6eb;
-    --color-markdown-table-header: #e8e8e4;
-    --color-markdown-selection: #c9d9f0;
+  /* markdown/document */
+  --color-markdown-link: #4a6fa5;
+  --color-markdown-link-hover: #5d84c0;
+  --color-markdown-code-bg: #e8e8e4;
+  --color-markdown-inline-code-bg: #e3e3df;
+  --color-markdown-quote-bg: #ecece8;
+  --color-markdown-quote-border: #c8d6eb;
+  --color-markdown-table-header: #e8e8e4;
+  --color-markdown-selection: #c9d9f0;
 }
 
 @layer theme {
-    .dark {
-        --color-bg: #1d1d1b;
-        --color-surface: #2a2a27;
-        --color-surface-elevated: #32322e;
-        --color-border: #3a3a36;
-        --color-text: #ecece7;
-        --color-muted: #a1a19b;
-        --color-accent: #6e93cc;
-        --color-titlebar: #242421;
-        --color-modal: #2f2f2b;
+  .dark {
+    --color-bg: #1d1d1b;
+    --color-surface: #2a2a27;
+    --color-surface-elevated: #32322e;
+    --color-border: #3a3a36;
+    --color-text: #ecece7;
+    --color-muted: #a1a19b;
+    --color-accent: #6e93cc;
+    --color-titlebar: #242421;
+    --color-modal: #2f2f2b;
 
-        /* markdown/document */
-        --color-markdown-link: #7ea4de;
-        --color-markdown-link-hover: #97b8ea;
-        --color-markdown-code-bg: #242420;
-        --color-markdown-inline-code-bg: #404040;
-        --color-markdown-quote-bg: #262623;
-        --color-markdown-quote-border: #4f6f9f;
-        --color-markdown-table-header: #2d2d29;
-        --color-markdown-selection: #314766;
-    }
+    /* markdown/document */
+    --color-markdown-link: #7ea4de;
+    --color-markdown-link-hover: #97b8ea;
+    --color-markdown-code-bg: #242420;
+    --color-markdown-inline-code-bg: #404040;
+    --color-markdown-quote-bg: #262623;
+    --color-markdown-quote-border: #4f6f9f;
+    --color-markdown-table-header: #2d2d29;
+    --color-markdown-selection: #314766;
+  }
 }
 
 html,
 body,
 #root {
-    @apply bg-bg;
-    @apply text-text;
+  @apply bg-bg;
+  @apply text-text;
 }
 
 body {
-    cursor: default;
-    user-select: none;
-    -webkit-user-select: none;
-    overflow: hidden;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
 }
 
 /* for markdown preview */
 :root {
-    --primary: var(--color-markdown-link);
-    --muted: var(--color-markdown-code-bg);
-    --border: var(--color-border);
+  --primary: var(--color-markdown-link);
+  --muted: var(--color-markdown-code-bg);
+  --border: var(--color-border);
 }
 
 [data-streamdown="link"] {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 [data-streamdown="code-block"] {
-    background: var(--color-markdown-code-bg);
-    border: 1px solid var(--color-border);
+  background: var(--color-markdown-code-bg);
+  border: 1px solid var(--color-border);
 }
 
 [data-streamdown="code-block-actions"] {
-    border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border);
 }
 
 [data-streamdown="inline-code"] {
-    background: var(--color-markdown-inline-code-bg);
+  background: var(--color-markdown-inline-code-bg);
 }

@@ -4,4 +4,7 @@ import type { ClipboardInputFormatDto } from "./ClipboardInputFormatDto";
 /**
  * Clipboard input sent when quick-copy translation is triggered.
  */
-export type QuickCopyTranslationInputDto = { text: string, format: ClipboardInputFormatDto, };
+export type QuickCopyTranslationInputDto = {
+  text: string;
+  format: ClipboardInputFormatDto;
+};
