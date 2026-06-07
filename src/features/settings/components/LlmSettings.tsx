@@ -17,6 +17,7 @@ import { TextArea } from "../../../shared/components/TextArea";
 import { useSettingsStore } from "../../../shared/stores/settingsStore";
 import { DEFAULT_TRANSLATION_PROMPT } from "../../../shared/tauri/settings";
 import { listAvailableModels } from "../../../shared/tauri/translation";
+import { SettingsDescription } from "./SettingsDescription";
 
 function genModelKey(model: ModelSelectionDto) {
   return `${model.provider}-${model.id}`;
@@ -150,10 +151,10 @@ export function TranslationPromptTextArea({
 
   return (
     <>
-      <div className="my-1 space-y-2 text-sm">
+      <SettingsDescription className="space-y-2">
         <p>プロンプトには以下を埋め込むことができます。</p>
 
-        <ul className="list-disc pl-6">
+        <ul className="list-disc pl-6 [&>*>code]:select-auto [&>*>code]:cursor-auto">
           <li>
             <code>{"{source_lang}"}</code> ...
             選択または検出された翻訳前の言語名
@@ -172,7 +173,7 @@ export function TranslationPromptTextArea({
             <code>{"{text}"}</code> ... 翻訳対象のテキスト
           </li>
         </ul>
-      </div>
+      </SettingsDescription>
 
       <TextArea
         name={name}

@@ -11,6 +11,7 @@
     "core:window:allow-toggle-maximize",
     "core:event:allow-listen",
     "core:event:allow-unlisten",
+    "opener:allow-open-url",
     "dialog:default"
   ]
 }

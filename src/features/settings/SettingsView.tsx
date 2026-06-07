@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { IconButton } from "../../shared/components/IconButton";
+import { OpenInBrowser } from "../../shared/components/OpenInBrowser";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { ThemeSelect } from "./components/BasicSettings";
 import {
@@ -18,6 +19,7 @@ import {
   SystemPromptTextArea,
   TranslationPromptTextArea,
 } from "./components/LlmSettings";
+import { SettingsDescription } from "./components/SettingsDescription";
 import { SettingsField } from "./components/SettingsField";
 import { SettingsSection } from "./components/SettingsSection";
 
@@ -90,7 +92,7 @@ export function SettingsView({
               htmlFor="ollama-base-url"
               label={
                 <>
-                  Ollamaの<code>base_url</code>
+                  Ollamaのリクエストを送る<code className="px-1">base_url</code>
                 </>
               }
             >
@@ -101,10 +103,21 @@ export function SettingsView({
               htmlFor="ollama-keep-alive"
               label={
                 <>
-                  Ollamaの<code>keep_alive</code>
+                  Ollamaのリクエストで使う
+                  <code className="px-1">keep_alive</code>
+                  の値（オプション）
                 </>
               }
             >
+              <SettingsDescription>
+                OllamaがLLMを読み込んだ後、どれだけメモリ上に展開し続けるかを指定できます。
+                詳しい情報は
+                <OpenInBrowser href="https://docs.ollama.com/faq#how-do-i-keep-a-model-loaded-in-memory-or-make-it-unload-immediately">
+                  こちら
+                </OpenInBrowser>
+                をご確認ください。 例: <code>3h</code>
+              </SettingsDescription>
+
               <OllamaKeepAlive
                 name="ollama-keep-alive"
                 id="ollama-keep-alive"
@@ -117,6 +130,10 @@ export function SettingsView({
               htmlFor="default-source-language-select"
               label="デフォルトの翻訳元"
             >
+              <SettingsDescription>
+                起動時に選択される翻訳元の言語を指定できます。
+              </SettingsDescription>
+
               <SourceLanguageSelect
                 name="default-source-language"
                 id="default-source-language-select"
@@ -127,6 +144,10 @@ export function SettingsView({
               htmlFor="default-target-language-select"
               label="デフォルトの翻訳先"
             >
+              <SettingsDescription>
+                起動時などに選択される翻訳先の言語を指定できます。
+              </SettingsDescription>
+
               <TargetLanguageSelect
                 name="default-target-language"
                 id="default-target-language-select"
@@ -137,9 +158,9 @@ export function SettingsView({
               htmlFor="fallback-target-language-select"
               label="フォールバックの翻訳先"
             >
-              <p className="my-1 text-sm">
+              <SettingsDescription>
                 自動検出でその時の翻訳先と元が被った時に、翻訳先を別の言語にできます。
-              </p>
+              </SettingsDescription>
 
               <FallbackTargetLanguageSelect
                 name="fallback-target-language"
@@ -161,6 +182,11 @@ export function SettingsView({
               htmlFor="detection-list-scope-select"
               label="自動検出の対象とする言語"
             >
+              <SettingsDescription>
+                言語検出で指定した言語のみを検出対象にできます。
+                処理が遅い場合に絞り込むことができます。
+              </SettingsDescription>
+
               <LanguageDetectionScopeSelect
                 name="detection-list-scope"
                 id="detection-list-scope-select"
@@ -171,6 +197,10 @@ export function SettingsView({
               htmlFor="detection-fallback-select"
               label="自動検出のフォールバック先"
             >
+              <SettingsDescription>
+                自動検出で検出に失敗した時に、翻訳元として使う言語を別の言語にできます。
+              </SettingsDescription>
+
               <LanguageDetectionFallbackSelect
                 name="detection-fallback"
                 id="detection-fallback-select"
