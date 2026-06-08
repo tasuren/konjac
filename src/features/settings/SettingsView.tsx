@@ -1,7 +1,5 @@
-import { X } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { IconButton } from "../../shared/components/IconButton";
 import { OpenInBrowser } from "../../shared/components/OpenInBrowser";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { AppLocaleSelect, ThemeSelect } from "./components/BasicSettings";
@@ -48,21 +46,7 @@ export function SettingsView({
 
   return (
     <div className="absolute top-0 left-0 z-10 flex h-screen w-screen flex-col bg-bg">
-      <TitleBar>
-        <div className="flex h-full items-center">
-          <div>{t("settings.title")}</div>
-
-          <div className="ml-auto flex items-center">
-            <IconButton
-              className="text-text hover:bg-transparent"
-              onClick={() => setSettings(false)}
-              aria-label={t("settings.closeAriaLabel")}
-            >
-              <X size={25} />
-            </IconButton>
-          </div>
-        </div>
-      </TitleBar>
+      <TitleBar settingsOpened={true} setSettings={setSettings} />
 
       <div className="w-full overflow-y-auto">
         <main className="mx-auto min-h-0 max-w-[70ch] grow space-y-8 p-6">

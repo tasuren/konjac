@@ -1,8 +1,5 @@
 import { cn } from "@sglara/cn";
-import { Settings } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
-import { IconButton } from "../../shared/components/IconButton";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useWindowDragging } from "../../shared/hooks/useWindowDragging";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
@@ -20,25 +17,10 @@ export function TranslationView({
 }) {
   const mainRef = useRef(null);
   const winDragClassName = useWindowDragging(mainRef);
-  const { t } = useTranslation();
 
   return (
     <div className="h-screen flex flex-col">
-      <TitleBar>
-        <div className="h-full flex items-center">
-          <div>{t("app.title")}</div>
-
-          <div className="ml-auto flex items-center">
-            <IconButton
-              className="text-text hover:bg-transparent active:opacity-70"
-              onClick={() => setSettings(true)}
-              aria-label={t("settings.title")}
-            >
-              <Settings size={23} className="text-text" />
-            </IconButton>
-          </div>
-        </div>
-      </TitleBar>
+      <TitleBar settingsOpened={false} setSettings={setSettings} />
 
       <main
         className={cn("grow min-h-0 p-6 flex flex-col gap-6", winDragClassName)}
