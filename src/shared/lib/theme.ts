@@ -7,6 +7,7 @@ const tauriWindow = getCurrentWindow();
 export const applyTheme = (theme: Theme) => {
   if (theme === "dark") document.documentElement.classList.add("dark");
   else document.documentElement.classList.remove("dark");
+  document.documentElement.style.colorScheme = theme;
 };
 
 export const resolveTheme = async (theme: ThemeSettingDto) =>
