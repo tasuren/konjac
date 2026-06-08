@@ -52,13 +52,13 @@ export function SettingsView({
         <div className="flex h-full items-center">
           <div>{t("settings.title")}</div>
 
-          <div className="ml-auto flex items-center px-2.5">
+          <div className="ml-auto flex items-center">
             <IconButton
               className="text-text hover:bg-transparent"
               onClick={() => setSettings(false)}
               aria-label={t("settings.closeAriaLabel")}
             >
-              <X size={23} />
+              <X size={25} />
             </IconButton>
           </div>
         </div>

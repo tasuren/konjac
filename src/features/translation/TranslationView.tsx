@@ -11,6 +11,7 @@ import { TranslationInput } from "./components/TranslationInput";
 import { TranslationOutput } from "./components/TranslationOutput";
 import { useTranslationSession } from "./hooks/useTranslationEvent";
 import { useTranslationSelectionStore } from "./stores/translationLanguageStore";
+import { IconButton } from "../../shared/components/IconButton";
 
 export function TranslationView({
   setSettings,
@@ -27,15 +28,14 @@ export function TranslationView({
         <div className="h-full flex items-center">
           <div>{t("app.title")}</div>
 
-          <div className="ml-auto px-2.5 flex items-center">
-            <button
-              type="button"
-              className="active:opacity-70"
+          <div className="ml-auto flex items-center">
+            <IconButton
+              className="text-text hover:bg-transparent active:opacity-70"
               onClick={() => setSettings(true)}
               aria-label={t("settings.title")}
             >
               <Settings size={23} className="text-text" />
-            </button>
+            </IconButton>
           </div>
         </div>
       </TitleBar>
