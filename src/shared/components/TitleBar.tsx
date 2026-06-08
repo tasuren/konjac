@@ -13,7 +13,7 @@ export function TitleBar({ children }: { children: ReactNode }) {
   return (
     <header
       className={cn(
-        "w-full h-11 bg-titlebar border border-border px-2.5",
+        "w-full h-11 bg-titlebar border border-border px-2.5 shrink-0",
         titleBarClassName,
         platform() === "macos" && "pl-20.5",
       )}
