@@ -1,11 +1,13 @@
 import { cjk } from "@streamdown/cjk";
-import { Loader } from "lucide-react";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { Copy, Loader, LoaderCircle } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Streamdown } from "streamdown";
 import type { ModelSelectionDto } from "../../../rust-bindings/ModelSelectionDto";
 import { CustomLinkModal } from "../../../shared/components/CustomLinkModal";
+import { IconButton } from "../../../shared/components/IconButton";
 import type { TranslationStatus } from "../hooks/useTranslationEvent";
 
 export type TranslationOutputProps = {
@@ -30,7 +32,21 @@ export function TranslationOutput({
     if (status === "requesting") setLastInput(input);
   }, [input, status]);
 
-  const baseClassName = "w-1/2 border border-border bg-surface rounded-xl";
+  // overflow detection for loading spin
+  const outputScrollRef = useRef<HTMLDivElement>(null);
+  const [overflowing, setOverflowing] = useState(false);
+
+  useEffect(() => {
+    if (output === "") return;
+    const element = outputScrollRef.current;
+    if (element === null) return;
+
+    setOverflowing(element.scrollHeight > element.clientHeight);
+  }, [output]);
+
+  const onCopy = useCallback(async () => {
+    writeText(output);
+  }, [output]);
 
   if (model === null)
     return (
@@ -45,59 +61,93 @@ export function TranslationOutput({
     (!requesting && translating) || (input.length > 0 && input === lastInput);
 
   return (
-    <div className={baseClassName}>
-      <AnimatePresence mode="wait">
-        {requesting ? (
-          <Requesting />
-        ) : error ? (
-          <motion.div
-            key="error"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="p-4 text-sm text-muted overflow-y-auto"
-          >
-            {t("translation.failed")}{" "}
-            <code className="wrap-break-word select-auto cursor-auto">
-              {error}
-            </code>
-          </motion.div>
-        ) : showOutput ? (
-          <motion.div
-            key="output"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="p-4 h-full overflow-y-auto select-auto cursor-auto"
-          >
-            <Streamdown
-              plugins={{ cjk }}
-              controls={{ code: { download: false } }}
-              remend={{ linkMode: "text-only" }}
-              linkSafety={{
-                enabled: true,
-                renderModal: (props) => <CustomLinkModal {...props} />,
-              }}
-              isAnimating={status === "translating"}
+    <div className="w-1/2 border border-border bg-surface rounded-xl flex flex-col justify-between">
+      <div className="flex-1 min-h-0">
+        <AnimatePresence mode="wait">
+          {requesting ? (
+            <Requesting />
+          ) : error ? (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.7 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="p-4 text-sm text-muted overflow-y-auto"
             >
-              {output}
-            </Streamdown>
-          </motion.div>
-        ) : (
-          <motion.p
-            key="placeholder"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.7 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="p-4"
-          >
-            {t("translation.placeholder")}
-          </motion.p>
-        )}
-      </AnimatePresence>
+              {t("translation.failed")}{" "}
+              <code className="wrap-break-word select-auto cursor-auto">
+                {error}
+              </code>
+            </motion.div>
+          ) : showOutput ? (
+            <motion.div
+              key="output"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="p-4 h-full overflow-y-auto select-auto cursor-auto"
+              ref={outputScrollRef}
+            >
+              <Streamdown
+                plugins={{ cjk }}
+                controls={{ code: { download: false } }}
+                remend={{ linkMode: "text-only" }}
+                linkSafety={{
+                  enabled: true,
+                  renderModal: (props) => <CustomLinkModal {...props} />,
+                }}
+                isAnimating={status === "translating"}
+              >
+                {output}
+              </Streamdown>
+            </motion.div>
+          ) : (
+            <motion.p
+              key="placeholder"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.7 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="p-4"
+            >
+              {t("translation.placeholder")}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="h-12 px-4 flex justify-end items-center">
+        <AnimatePresence>
+          {input && output && status === "idle" && (
+            <motion.div
+              key="copy-button"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <IconButton onClick={onCopy}>
+                <Copy />
+              </IconButton>
+            </motion.div>
+          )}
+          {status === "translating" && (
+            <motion.div
+              key="translating-spin"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {overflowing && (
+                <LoaderCircle className="text-muted animate-spin" />
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
