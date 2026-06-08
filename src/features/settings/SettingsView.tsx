@@ -49,7 +49,7 @@ export function SettingsView({
       <TitleBar settingsOpened={true} setSettings={setSettings} />
 
       <div className="w-full overflow-y-auto">
-        <main className="mx-auto min-h-0 max-w-[70ch] grow space-y-8 p-6">
+        <main className="mx-auto min-h-0 max-w-[70ch] grow space-y-8 px-4 py-8">
           <SettingsSection title={t("settings.general")}>
             <SettingsField htmlFor="theme-select" label={t("settings.theme")}>
               <ThemeSelect name="theme" id="theme-select" />
