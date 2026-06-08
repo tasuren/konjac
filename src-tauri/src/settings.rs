@@ -11,7 +11,10 @@ use tauri::Manager;
 use tauri_plugin_log::log;
 
 use crate::{
-    language::{COMMON_LANGUAGES, DetectableLanguage, LanguageCode, LanguageDetectionScope},
+    language::{
+        COMMON_LANGUAGES, DetectableLanguage, LanguageCode, LanguageDetectionScope,
+        find_language_by_code,
+    },
     llm::ProviderKind,
 };
 
@@ -28,7 +31,7 @@ pub fn ensure_settings_available(app: &tauri::App) -> anyhow::Result<Settings> {
                 .context("Failed to create the application configuration directory")?;
         }
 
-        let settings = Settings::default();
+        let settings = create_initial_settings();
         let file = File::create(path)
             .map(BufWriter::new)
             .context("Failed to create `settings.json`")?;
@@ -47,6 +50,37 @@ pub fn ensure_settings_available(app: &tauri::App) -> anyhow::Result<Settings> {
             recreate_settings_file(&app_config_path, &path)
                 .context("Failed to recreate settings file")
         }
+    }
+}
+
+fn create_initial_settings() -> Settings {
+    create_initial_settings_with_locale(tauri_plugin_os::locale().as_deref())
+}
+
+fn create_initial_settings_with_locale(locale: Option<&str>) -> Settings {
+    let mut settings = Settings::default();
+    settings.default_target_language =
+        TargetLanguageSetting(target_language_code_from_locale(locale));
+
+    settings
+}
+
+fn target_language_code_from_locale(locale: Option<&str>) -> LanguageCode {
+    let Some(locale) = locale else {
+        return LanguageCode::default();
+    };
+
+    let language = locale
+        .replace('_', "-")
+        .split('-')
+        .next()
+        .unwrap_or_default()
+        .to_lowercase();
+
+    if find_language_by_code(&language).is_some() {
+        LanguageCode(language)
+    } else {
+        LanguageCode::default()
     }
 }
 
@@ -285,5 +319,48 @@ impl From<ProviderKindSetting> for ProviderKind {
         match value {
             ProviderKindSetting::Ollama => Self::Ollama,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn target_code(locale: Option<&str>) -> String {
+        target_language_code_from_locale(locale).0
+    }
+
+    #[test]
+    fn target_language_code_uses_supported_system_locale_language() {
+        assert_eq!(target_code(Some("ja-JP")), "ja");
+        assert_eq!(target_code(Some("en-US")), "en");
+        assert_eq!(target_code(Some("pt-BR")), "pt");
+        assert_eq!(target_code(Some("nb-NO")), "nb");
+    }
+
+    #[test]
+    fn target_language_code_maps_chinese_locales_to_catalog_code() {
+        assert_eq!(target_code(Some("zh-CN")), "zh");
+        assert_eq!(target_code(Some("zh-Hant-TW")), "zh");
+    }
+
+    #[test]
+    fn target_language_code_accepts_underscore_separated_locale() {
+        assert_eq!(target_code(Some("ja_JP")), "ja");
+    }
+
+    #[test]
+    fn target_language_code_falls_back_for_missing_or_unsupported_locale() {
+        assert_eq!(target_code(None), "en");
+        assert_eq!(target_code(Some("")), "en");
+        assert_eq!(target_code(Some("xx-YY")), "en");
+    }
+
+    #[test]
+    fn initial_settings_only_changes_default_target_language() {
+        let settings = create_initial_settings_with_locale(Some("ja-JP"));
+
+        assert_eq!(settings.default_target_language.0.0, "ja");
+        assert_eq!(settings.fallback_target_language.0.0, "en");
     }
 }
