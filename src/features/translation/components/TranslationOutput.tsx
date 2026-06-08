@@ -50,7 +50,7 @@ export function TranslationOutput({
 
   if (model === null)
     return (
-      <div>
+      <div className="w-1/2">
         <p>{t("translation.noModel")}</p>
       </div>
     );
