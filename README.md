@@ -1,6 +1,6 @@
 # Konjac: Local-first AI translator
 
-**It is currently in beta, and the UI is only available in Japanese.**
+**It is currently in beta.**
 
 ## License
 
