@@ -31,19 +31,19 @@ export function TitleBar({
       className={cn(
         "w-full bg-titlebar border border-border shrink-0 flex items-center gap-2",
         titleBarClassName,
-        platform() === "macos" && "pl-20.5 h-11",
+        platform() === "macos" && "pl-20.5 h-11 pr-2",
         platform() !== "macos" && "pl-2 h-10",
       )}
       ref={titleBarRef}
     >
-      <div>
-        {platform() === "windows" && (
+      {platform() === "windows" && (
+        <div>
           <SettingsButton
             settingsOpened={settingsOpened}
             setSettings={setSettings}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       <div>{settingsOpened ? t("settings.title") : t("app.title")}</div>
 
