@@ -1,6 +1,6 @@
 export const zhCN = {
   app: {
-    title: "Konjac / 蒟蒻 (Beta)",
+    title: "Konjac / 蒟蒻",
   },
   common: {
     add: "添加",

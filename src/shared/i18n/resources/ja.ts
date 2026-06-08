@@ -1,6 +1,6 @@
 export const ja = {
   app: {
-    title: "Konjac / コンニャク (Beta)",
+    title: "Konjac / コンニャク",
   },
   common: {
     add: "追加",

@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Konjac / コンニャク (Beta)",
+        "title": "Konjac",
         "width": 900,
         "height": 650,
         "hiddenTitle": true,
