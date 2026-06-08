@@ -70,6 +70,13 @@ export const en = {
   },
   llm: {
     noModels: "No models were found",
+    noModelSelected: "Please select a model",
+    refreshModels: "Reload models",
+    loadingModels: "Loading models",
+    providerConnectionFailed:
+      "Could not connect to {{provider}}. Check the base_url setting below.",
+    selectedModelUnavailable:
+      "The selected model is not in the current model list. Reload the model list.",
     resetPromptConfirm: "Reset the translation prompt to its initial value?",
     promptVariablesIntro:
       "The following variables can be inserted into the prompt.",
@@ -87,6 +94,9 @@ export const en = {
     noModel:
       "No AI model is configured for translation. Configure a model to start translating.",
     failed: "Translation failed.",
+    unavailable: "Translation cannot start.",
+    providerUnavailable:
+      "Translation cannot start because {{provider}} is unavailable. Check the base_url setting.",
     placeholder: "Translation results will appear here.",
     requesting: "Requesting",
   },

@@ -70,6 +70,13 @@ export const ja = {
   },
   llm: {
     noModels: "モデルが一つも見つかりませんでした",
+    noModelSelected: "モデルを選択してください",
+    refreshModels: "モデル一覧を再読み込み",
+    loadingModels: "モデル一覧を読み込み中です",
+    providerConnectionFailed:
+      "{{provider}}に接続できません。下にある base_url の設定を確認してください。",
+    selectedModelUnavailable:
+      "選択中のモデルが現在のモデル一覧に見つかりません。モデル一覧を再読み込みしてください。",
     resetPromptConfirm: "本当に翻訳時に使うプロンプトをリセットしますか？",
     promptVariablesIntro: "プロンプトには以下を埋め込むことができます。",
     variables: {
@@ -86,6 +93,9 @@ export const ja = {
     noModel:
       "現在、翻訳を処理するAIモデルが設定されていません。設定後、翻訳が可能となります。",
     failed: "翻訳に失敗しました。",
+    unavailable: "翻訳を開始できません。",
+    providerUnavailable:
+      "{{provider}}に接続できないため、翻訳を開始できません。設定の base_url を確認してください。",
     placeholder: "翻訳結果はこちらに表示されます。",
     requesting: "リクエスト中です",
   },

@@ -68,6 +68,12 @@ export const zhCN = {
   },
   llm: {
     noModels: "未找到任何模型",
+    noModelSelected: "请选择一个模型",
+    refreshModels: "重新加载模型列表",
+    loadingModels: "正在加载模型列表",
+    providerConnectionFailed: "无法连接到 {{provider}}。请检查 base_url 设置。",
+    selectedModelUnavailable:
+      "当前模型列表中找不到所选模型。请重新加载模型列表。",
     resetPromptConfirm: "确定要将翻译提示词重置为初始状态吗？",
     promptVariablesIntro: "提示词中可以插入以下变量。",
     variables: {
@@ -83,6 +89,9 @@ export const zhCN = {
     inputPlaceholder: "输入要翻译的文本",
     noModel: "当前未设置用于翻译的 AI 模型。设置后即可翻译。",
     failed: "翻译失败。",
+    unavailable: "无法开始翻译。",
+    providerUnavailable:
+      "{{provider}} 不可用，无法开始翻译。请检查 base_url 设置。",
     placeholder: "翻译结果会显示在这里。",
     requesting: "请求中",
   },

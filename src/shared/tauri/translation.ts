@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { type Event, listen } from "@tauri-apps/api/event";
 import type { ModelDto } from "../../rust-bindings/ModelDto";
+import type { ProviderKindDto } from "../../rust-bindings/ProviderKindDto";
+import type { ProviderSettingsDto } from "../../rust-bindings/ProviderSettingsDto";
 import type { ResolvedSourceLanguageDto } from "../../rust-bindings/ResolvedSourceLanguageDto";
 import type { ResolvedTargetLanguageDto } from "../../rust-bindings/ResolvedTargetLanguageDto";
 import type { TranslationRequestDto } from "../../rust-bindings/TranslationRequestDto";
@@ -81,6 +83,13 @@ export async function requestTranslation(
 
 export async function listAvailableModels(): Promise<ModelDto[]> {
   return await invoke("list_available_models");
+}
+
+export async function listProviderModels(
+  provider: ProviderKindDto,
+  settings: ProviderSettingsDto,
+): Promise<ModelDto[]> {
+  return await invoke("list_provider_models", { provider, settings });
 }
 
 export async function toMarkdown(html: string): Promise<string> {

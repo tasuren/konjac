@@ -15,7 +15,8 @@ export type TranslationOutputProps = {
   input: string;
   output: string;
   status: TranslationStatus;
-  error: string | null;
+  availabilityError: string | null;
+  translationError: string | null;
 };
 
 export function TranslationOutput({
@@ -23,7 +24,8 @@ export function TranslationOutput({
   input,
   output,
   status,
-  error,
+  availabilityError,
+  translationError,
 }: TranslationOutputProps) {
   const [lastInput, setLastInput] = useState("");
   const { t } = useTranslation();
@@ -57,6 +59,11 @@ export function TranslationOutput({
 
   const requesting = status === "requesting";
   const translating = status === "translating";
+  const visibleError = availabilityError ?? translationError;
+  const errorTitle =
+    availabilityError !== null
+      ? t("translation.unavailable")
+      : t("translation.failed");
   const showOutput =
     (!requesting && translating) || (input.length > 0 && input === lastInput);
 
@@ -66,7 +73,7 @@ export function TranslationOutput({
         <AnimatePresence mode="wait">
           {requesting ? (
             <Requesting />
-          ) : error ? (
+          ) : visibleError ? (
             <motion.div
               key="error"
               initial={{ opacity: 0 }}
@@ -75,10 +82,10 @@ export function TranslationOutput({
               transition={{ duration: 0.15 }}
               className="p-4 text-sm text-muted overflow-y-auto"
             >
-              {t("translation.failed")}
+              {errorTitle}
               <br />
               <code className="wrap-break-word select-auto cursor-auto">
-                {error}
+                {visibleError}
               </code>
             </motion.div>
           ) : showOutput ? (

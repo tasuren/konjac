@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { ProviderKindDto } from "../../../rust-bindings/ProviderKindDto";
 import type { ResolvedSourceLanguageDto } from "../../../rust-bindings/ResolvedSourceLanguageDto";
 import type { ResolvedTargetLanguageDto } from "../../../rust-bindings/ResolvedTargetLanguageDto";
 import type { SourceLanguageDto } from "../../../rust-bindings/SourceLanguageDto";
 import type { TargetLanguageDto } from "../../../rust-bindings/TargetLanguageDto";
+import {
+  modelKey,
+  useProviderModelCatalog,
+} from "../../../shared/stores/modelCatalogStore";
 import { requestTranslation } from "../../../shared/tauri/translation";
 
 export type TranslationStatus = "idle" | "requesting" | "translating";
@@ -22,7 +27,8 @@ export type UseTranslationSessionResult = {
   input: string;
   setInput: (value: string) => void;
   status: TranslationStatus;
-  error: string | null;
+  availabilityError: string | null;
+  translationError: string | null;
   handleCompositionStart: () => void;
   handleCompositionEnd: () => void;
 };
@@ -57,7 +63,28 @@ export function useTranslationSession({
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [status, setStatus] = useState<TranslationStatus>("idle");
-  const [error, setError] = useState<string | null>(null);
+  const [translationError, setTranslationError] = useState<string | null>(null);
+
+  const { t } = useTranslation();
+  const provider = model?.provider ?? "ollama";
+  const catalog = useProviderModelCatalog(provider);
+
+  const selectedModelAvailable =
+    model === null ||
+    catalog.status !== "ready" ||
+    catalog.models.some(
+      (availableModel) => modelKey(availableModel) === modelKey(model),
+    );
+  const providerUnavailableError =
+    model !== null && catalog.status === "error"
+      ? t("translation.providerUnavailable", { provider: model.provider })
+      : null;
+  const selectedModelUnavailableError =
+    model !== null && !selectedModelAvailable
+      ? t("llm.selectedModelUnavailable")
+      : null;
+  const availabilityError =
+    providerUnavailableError ?? selectedModelUnavailableError;
 
   const translate = useCallback(
     async (text: string) => {
@@ -65,39 +92,48 @@ export function useTranslationSession({
         return;
       }
 
+      if (availabilityError !== null) {
+        setStatus("idle");
+        return;
+      }
+
       setStatus("requesting");
-      setError(null);
+      setTranslationError(null);
 
-      const { dispose, resolvedSourceLanguage, resolvedTargetLanguage } =
-        await requestTranslation(
-          {
-            provider: model.provider,
-            modelId: model.id,
-            sourceLanguage,
-            targetLanguage,
-            text: text,
-          },
-          {
-            onDelta(fullText) {
-              setStatus("translating");
-              setOutput(fullText);
+      try {
+        const { dispose, resolvedSourceLanguage, resolvedTargetLanguage } =
+          await requestTranslation(
+            {
+              provider: model.provider,
+              modelId: model.id,
+              sourceLanguage,
+              targetLanguage,
+              text: text,
             },
-            onFinished(fullText) {
-              setOutput(fullText);
-              setError(null);
-              dispose();
-              setStatus("idle");
+            {
+              onDelta(fullText) {
+                setStatus("translating");
+                setOutput(fullText);
+              },
+              onFinished(fullText) {
+                setOutput(fullText);
+                setTranslationError(null);
+                dispose();
+                setStatus("idle");
+              },
+              onFailed(message) {
+                dispose();
+                setTranslationError(message);
+                setStatus("idle");
+              },
             },
-            onFailed(message) {
-              dispose();
-              setError(message);
-              setStatus("idle");
-            },
-          },
-        );
+          );
 
-      setResolvedSourceLanguage(resolvedSourceLanguage);
-      setTargetLanguage(resolvedTargetLanguage);
+        setResolvedSourceLanguage(resolvedSourceLanguage);
+        setTargetLanguage(resolvedTargetLanguage);
+      } catch {
+        setStatus("idle");
+      }
     },
     [
       sourceLanguage,
@@ -105,6 +141,7 @@ export function useTranslationSession({
       model,
       model?.provider,
       model?.id,
+      availabilityError,
       setResolvedSourceLanguage,
       setTargetLanguage,
     ],
@@ -136,6 +173,7 @@ export function useTranslationSession({
 
     if (
       normalizedText.length === 0 ||
+      availabilityError !== null ||
       isComposingRef.current ||
       requestKey === lastRequestedKeyRef.current
     ) {
@@ -150,14 +188,23 @@ export function useTranslationSession({
     return () => {
       clearTimeout(timeoutRef.current);
     };
-  }, [input, debounceMs, translate, sourceLanguage, targetLanguage, model]);
+  }, [
+    input,
+    debounceMs,
+    translate,
+    sourceLanguage,
+    targetLanguage,
+    model,
+    availabilityError,
+  ]);
 
   return {
     output,
     input,
     setInput,
     status: status,
-    error,
+    availabilityError,
+    translationError,
     handleCompositionStart,
     handleCompositionEnd,
   };

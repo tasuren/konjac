@@ -2,6 +2,7 @@ import { cn } from "@sglara/cn";
 import { Settings } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { IconButton } from "../../shared/components/IconButton";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useWindowDragging } from "../../shared/hooks/useWindowDragging";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
@@ -11,7 +12,6 @@ import { TranslationInput } from "./components/TranslationInput";
 import { TranslationOutput } from "./components/TranslationOutput";
 import { useTranslationSession } from "./hooks/useTranslationEvent";
 import { useTranslationSelectionStore } from "./stores/translationLanguageStore";
-import { IconButton } from "../../shared/components/IconButton";
 
 export function TranslationView({
   setSettings,
@@ -65,7 +65,8 @@ function TranslationPane() {
     input,
     setInput,
     status,
-    error,
+    availabilityError,
+    translationError,
     handleCompositionStart,
     handleCompositionEnd,
   } = useTranslationSession({
@@ -118,7 +119,8 @@ function TranslationPane() {
         input={input}
         output={output}
         status={status}
-        error={error}
+        availabilityError={availabilityError}
+        translationError={translationError}
       />
     </div>
   );

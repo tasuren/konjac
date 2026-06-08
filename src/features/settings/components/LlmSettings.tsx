@@ -1,48 +1,50 @@
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { debounce } from "es-toolkit";
+import { RefreshCw } from "lucide-react";
 import {
   type ChangeEvent,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import type { ModelDto } from "../../../rust-bindings/ModelDto";
 import type { ModelSelectionDto } from "../../../rust-bindings/ModelSelectionDto";
 import { Button } from "../../../shared/components/Button";
+import { IconButton } from "../../../shared/components/IconButton";
 import { Input } from "../../../shared/components/Input";
 import { Select } from "../../../shared/components/Select";
 import { TextArea } from "../../../shared/components/TextArea";
+import {
+  modelKey,
+  useProviderModelCatalog,
+} from "../../../shared/stores/modelCatalogStore";
 import { useSettingsStore } from "../../../shared/stores/settingsStore";
 import { DEFAULT_TRANSLATION_PROMPT } from "../../../shared/tauri/settings";
-import { listAvailableModels } from "../../../shared/tauri/translation";
 import { SettingsDescription } from "./SettingsDescription";
 
 function genModelKey(model: ModelSelectionDto) {
-  return `${model.provider}-${model.id}`;
+  return modelKey(model);
 }
 
 export function ModelSelect({ name, id }: { name: string; id: string }) {
-  const [models, setModels] = useState<Map<string, ModelDto>>(new Map());
   const { model, updateSettings } = useSettingsStore();
+  const provider = model?.provider ?? "ollama";
+  const { models, status, error, refresh } = useProviderModelCatalog(provider);
   const { t } = useTranslation();
 
-  useEffect(() => {
-    const fetchModels = async () => {
-      const availableModels = await listAvailableModels();
-      setModels(
-        new Map(availableModels.map((model) => [genModelKey(model), model])),
-      );
-    };
-
-    void fetchModels();
-  }, []);
+  const modelMap = useMemo(
+    () => new Map(models.map((model) => [genModelKey(model), model])),
+    [models],
+  );
+  const selectedKey = model === null ? "" : genModelKey(model);
+  const selectedModelUnavailable =
+    model !== null && status === "ready" && !modelMap.has(selectedKey);
+  const loading = status === "loading";
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
-      const selected = models.get(event.currentTarget.value);
+      const selected = modelMap.get(event.currentTarget.value);
       if (selected === undefined) return;
 
       updateSettings((settings) => ({
@@ -50,24 +52,74 @@ export function ModelSelect({ name, id }: { name: string; id: string }) {
         model: selected,
       }));
     },
-    [models, updateSettings],
+    [modelMap, updateSettings],
   );
 
-  if (models.size === 0 || model === null)
-    return (
-      <Select name={name} id={id}>
-        <option disabled={true}>{t("llm.noModels")}</option>
-      </Select>
-    );
-
   return (
-    <Select value={genModelKey(model)} onChange={onChange} name={name} id={id}>
-      {Array.from(models).map(([key, model]) => (
-        <option key={key} value={key}>
-          {model.displayName ?? model.id}
-        </option>
-      ))}
-    </Select>
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <Select
+          value={selectedKey}
+          onChange={onChange}
+          name={name}
+          id={id}
+          disabled={loading && models.length === 0}
+        >
+          {models.length === 0 ? (
+            <option value="" disabled={true}>
+              {t("llm.noModels")}
+            </option>
+          ) : null}
+
+          {model === null ? (
+            <option value="" disabled={true}>
+              {t("llm.noModelSelected")}
+            </option>
+          ) : null}
+
+          {selectedModelUnavailable && model !== null ? (
+            <option value={selectedKey}>{model.id}</option>
+          ) : null}
+
+          {models.map((model) => {
+            const key = genModelKey(model);
+
+            return (
+              <option key={key} value={key}>
+                {model.displayName ?? model.id}
+              </option>
+            );
+          })}
+        </Select>
+
+        <IconButton
+          onClick={() => void refresh()}
+          disabled={loading}
+          title={t("llm.refreshModels")}
+          aria-label={t("llm.refreshModels")}
+        >
+          <RefreshCw size={17} />
+        </IconButton>
+      </div>
+
+      {status === "error" && (
+        <p className="text-sm text-muted">
+          {t("llm.providerConnectionFailed", { provider })}
+          <br />
+          {error && (
+            <code className="wrap-break-word select-auto cursor-auto">
+              {error}
+            </code>
+          )}
+        </p>
+      )}
+
+      {selectedModelUnavailable && (
+        <p className="text-sm text-muted">
+          {t("llm.selectedModelUnavailable")}
+        </p>
+      )}
+    </div>
   );
 }
 

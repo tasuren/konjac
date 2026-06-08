@@ -67,6 +67,23 @@ impl LlmProviders {
     }
 }
 
+/// Lists models for the selected provider using the supplied provider settings.
+pub async fn list_provider_models(
+    provider: ProviderKind,
+    settings: &ProviderSettings,
+) -> anyhow::Result<Vec<Model>> {
+    match provider {
+        ProviderKind::Ollama => {
+            let provider = OllamaProvider::new(
+                &settings.ollama.base_url,
+                settings.ollama.keep_alive.clone(),
+            )?;
+
+            provider.list_models().await
+        }
+    }
+}
+
 pub struct GenerationRequest {
     pub model_id: String,
     pub system_prompt: Option<String>,

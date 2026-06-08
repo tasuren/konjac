@@ -75,6 +75,7 @@ pub fn run() {
             ipc::list_languages,
             ipc::list_common_languages,
             ipc::list_available_models,
+            ipc::list_provider_models,
             ipc::to_markdown,
             ipc::get_settings,
             ipc::save_settings,

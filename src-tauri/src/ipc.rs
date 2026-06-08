@@ -3,9 +3,11 @@ use tokio::sync::Mutex;
 
 use crate::{
     ipc_dto::{
-        LanguageInfoDto, ModelDto, SettingsDto, TranslationRequestDto, TranslationRequestResultDto,
+        LanguageInfoDto, ModelDto, ProviderKindDto, ProviderSettingsDto, SettingsDto,
+        TranslationRequestDto, TranslationRequestResultDto,
     },
     language::{COMMON_LANGUAGES, SELECTABLE_LANGUAGES},
+    llm,
     quick_copy_translate::QuickCopyTranslateService,
     settings::{Settings, write_settings},
     translation::TranslationService,
@@ -55,6 +57,20 @@ pub async fn list_available_models(
 ) -> Result<Vec<ModelDto>, String> {
     service
         .list_models()
+        .await
+        .map(|models| models.into_iter().map(Into::into).collect())
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn list_provider_models(
+    provider: ProviderKindDto,
+    settings: ProviderSettingsDto,
+) -> Result<Vec<ModelDto>, String> {
+    let provider = provider.into();
+    let settings = settings.into();
+
+    llm::list_provider_models(provider, &settings)
         .await
         .map(|models| models.into_iter().map(Into::into).collect())
         .map_err(|e| e.to_string())
