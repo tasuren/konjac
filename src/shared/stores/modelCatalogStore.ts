@@ -104,7 +104,7 @@ export const useModelCatalogStore = create<ModelCatalogStore>((set) => ({
 // Returns provider model catalog state and keeps it refreshed from settings.
 export function useProviderModelCatalog(provider: ProviderKindDto) {
   const providerSettings = useSettingsStore((state) => state.providers);
-  
+
   const entry = useModelCatalogStore(
     (state) => state.entries[provider] ?? DEFAULT_ENTRY,
   );
@@ -116,7 +116,7 @@ export function useProviderModelCatalog(provider: ProviderKindDto) {
     () => refreshProvider(provider, providerSettings),
     [provider, providerSettings, refreshProvider],
   );
-  
+
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       void refreshProvider(provider, providerSettings);
