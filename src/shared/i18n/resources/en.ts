@@ -86,7 +86,7 @@ export const en = {
     inputPlaceholder: "Enter text to translate",
     noModel:
       "No AI model is configured for translation. Configure a model to start translating.",
-    failed: "Translation failed:",
+    failed: "Translation failed.",
     placeholder: "Translation results will appear here.",
     requesting: "Requesting",
   },

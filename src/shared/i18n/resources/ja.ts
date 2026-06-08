@@ -85,7 +85,7 @@ export const ja = {
     inputPlaceholder: "翻訳したいテキストを入力",
     noModel:
       "現在、翻訳を処理するAIモデルが設定されていません。設定後、翻訳が可能となります。",
-    failed: "翻訳に失敗しました:",
+    failed: "翻訳に失敗しました。",
     placeholder: "翻訳結果はこちらに表示されます。",
     requesting: "リクエスト中です",
   },

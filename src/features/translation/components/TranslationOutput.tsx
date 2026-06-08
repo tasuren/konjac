@@ -75,7 +75,8 @@ export function TranslationOutput({
               transition={{ duration: 0.15 }}
               className="p-4 text-sm text-muted overflow-y-auto"
             >
-              {t("translation.failed")}{" "}
+              {t("translation.failed")}
+              <br />
               <code className="wrap-break-word select-auto cursor-auto">
                 {error}
               </code>
