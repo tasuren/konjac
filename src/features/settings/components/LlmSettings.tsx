@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import type { ModelDto } from "../../../rust-bindings/ModelDto";
 import type { ModelSelectionDto } from "../../../rust-bindings/ModelSelectionDto";
 import { Button } from "../../../shared/components/Button";
@@ -26,6 +27,7 @@ function genModelKey(model: ModelSelectionDto) {
 export function ModelSelect({ name, id }: { name: string; id: string }) {
   const [models, setModels] = useState<Map<string, ModelDto>>(new Map());
   const { model, updateSettings } = useSettingsStore();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -54,7 +56,7 @@ export function ModelSelect({ name, id }: { name: string; id: string }) {
   if (models.size === 0 || model === null)
     return (
       <Select name={name} id={id}>
-        <option disabled={true}>モデルが一つも見つかりませんでした</option>
+        <option disabled={true}>{t("llm.noModels")}</option>
       </Select>
     );
 
@@ -120,6 +122,7 @@ export function TranslationPromptTextArea({
   const { translationPrompt, updateSettings } = useSettingsStore();
   const [composition, setComposition] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { t } = useTranslation();
 
   const debouncedChange = useMemo(
     () =>
@@ -136,10 +139,7 @@ export function TranslationPromptTextArea({
 
   const onReset = useCallback(async () => {
     const textarea = textareaRef.current;
-    if (
-      textarea === null ||
-      !(await confirm("本当に翻訳時に使うプロンプトをリセットしますか？"))
-    )
+    if (textarea === null || !(await confirm(t("llm.resetPromptConfirm"))))
       return;
 
     textarea.value = DEFAULT_TRANSLATION_PROMPT;
@@ -147,30 +147,28 @@ export function TranslationPromptTextArea({
       ...settings,
       translationPrompt: textarea.value,
     }));
-  }, [updateSettings]);
+  }, [t, updateSettings]);
 
   return (
     <>
       <SettingsDescription className="space-y-2">
-        <p>プロンプトには以下を埋め込むことができます。</p>
+        <p>{t("llm.promptVariablesIntro")}</p>
 
         <ul className="list-disc pl-6 [&>*>code]:select-auto [&>*>code]:cursor-auto">
           <li>
-            <code>{"{source_lang}"}</code> ...
-            選択または検出された翻訳前の言語名
+            <code>{"{source_lang}"}</code> ... {t("llm.variables.sourceLang")}
           </li>
           <li>
-            <code>{"{source_code}"}</code> ...
-            選択または検出された翻訳前の言語コード
+            <code>{"{source_code}"}</code> ... {t("llm.variables.sourceCode")}
           </li>
           <li>
-            <code>{"{target_lang}"}</code> ... 選択された翻訳後の言語名
+            <code>{"{target_lang}"}</code> ... {t("llm.variables.targetLang")}
           </li>
           <li>
-            <code>{"{target_code}"}</code> ... 選択または翻訳後の言語コード
+            <code>{"{target_code}"}</code> ... {t("llm.variables.targetCode")}
           </li>
           <li>
-            <code>{"{text}"}</code> ... 翻訳対象のテキスト
+            <code>{"{text}"}</code> ... {t("llm.variables.text")}
           </li>
         </ul>
       </SettingsDescription>
@@ -192,7 +190,7 @@ export function TranslationPromptTextArea({
       />
 
       <Button className="px-2 py-0.5 text-sm" onClick={onReset}>
-        最初の状態に戻す
+        {t("llm.resetPrompt")}
       </Button>
     </>
   );

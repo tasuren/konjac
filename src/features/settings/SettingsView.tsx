@@ -1,9 +1,10 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { IconButton } from "../../shared/components/IconButton";
 import { OpenInBrowser } from "../../shared/components/OpenInBrowser";
 import { TitleBar } from "../../shared/components/TitleBar";
-import { ThemeSelect } from "./components/BasicSettings";
+import { AppLocaleSelect, ThemeSelect } from "./components/BasicSettings";
 import {
   FallbackTargetLanguageSelect,
   LanguageDetectionFallbackSelect,
@@ -28,6 +29,8 @@ export function SettingsView({
 }: {
   setSettings: (settings: boolean) => void;
 }) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -47,13 +50,13 @@ export function SettingsView({
     <div className="absolute top-0 left-0 z-10 flex h-screen w-screen flex-col bg-bg">
       <TitleBar>
         <div className="flex h-full items-center">
-          <div>翻訳設定</div>
+          <div>{t("settings.title")}</div>
 
           <div className="ml-auto flex items-center px-2.5">
             <IconButton
               className="text-text hover:bg-transparent"
               onClick={() => setSettings(false)}
-              aria-label="設定を閉じる"
+              aria-label={t("settings.closeAriaLabel")}
             >
               <X size={23} />
             </IconButton>
@@ -63,24 +66,34 @@ export function SettingsView({
 
       <div className="w-full overflow-y-auto">
         <main className="mx-auto min-h-0 max-w-[70ch] grow space-y-8 p-6">
-          <SettingsSection title="全般">
-            <SettingsField htmlFor="theme-select" label="テーマ">
+          <SettingsSection title={t("settings.general")}>
+            <SettingsField htmlFor="theme-select" label={t("settings.theme")}>
               <ThemeSelect name="theme" id="theme-select" />
+            </SettingsField>
+
+            <SettingsField
+              htmlFor="app-locale-select"
+              label={t("settings.displayLanguage")}
+            >
+              <AppLocaleSelect name="app-locale" id="app-locale-select" />
             </SettingsField>
           </SettingsSection>
 
           <SettingsSection title="LLM">
-            <SettingsField htmlFor="model-select" label="翻訳で使用するモデル">
+            <SettingsField htmlFor="model-select" label={t("settings.model")}>
               <ModelSelect name="model" id="model-select" />
             </SettingsField>
 
-            <SettingsField htmlFor="system-prompt" label="システムプロンプト">
+            <SettingsField
+              htmlFor="system-prompt"
+              label={t("settings.systemPrompt")}
+            >
               <SystemPromptTextArea name="system-prompt" id="system-prompt" />
             </SettingsField>
 
             <SettingsField
               htmlFor="translation-prompt"
-              label="翻訳時に使うプロンプト"
+              label={t("settings.translationPrompt")}
             >
               <TranslationPromptTextArea
                 name="translation-prompt"
@@ -92,7 +105,8 @@ export function SettingsView({
               htmlFor="ollama-base-url"
               label={
                 <>
-                  Ollamaのリクエストを送る<code className="px-1">base_url</code>
+                  {t("settings.ollamaBaseUrlPrefix")}
+                  <code className="px-1">base_url</code>
                 </>
               }
             >
@@ -103,19 +117,18 @@ export function SettingsView({
               htmlFor="ollama-keep-alive"
               label={
                 <>
-                  Ollamaのリクエストで使う
+                  {t("settings.ollamaKeepAlivePrefix")}
                   <code className="px-1">keep_alive</code>
-                  の値（オプション）
+                  {t("settings.ollamaKeepAliveSuffix")}
                 </>
               }
             >
               <SettingsDescription>
-                OllamaがLLMを読み込んだ後、どれだけメモリ上に展開し続けるかを指定できます。
-                詳しい情報は
+                {t("settings.ollamaKeepAliveDescriptionPrefix")}
                 <OpenInBrowser href="https://docs.ollama.com/faq#how-do-i-keep-a-model-loaded-in-memory-or-make-it-unload-immediately">
-                  こちら
+                  {t("settings.ollamaKeepAliveDescriptionLink")}
                 </OpenInBrowser>
-                をご確認ください。 例: <code>3h</code>
+                {t("settings.ollamaKeepAliveDescriptionSuffix")} <code>3h</code>
               </SettingsDescription>
 
               <OllamaKeepAlive
@@ -125,13 +138,13 @@ export function SettingsView({
             </SettingsField>
           </SettingsSection>
 
-          <SettingsSection title="言語">
+          <SettingsSection title={t("settings.language")}>
             <SettingsField
               htmlFor="default-source-language-select"
-              label="デフォルトの翻訳元"
+              label={t("settings.defaultSourceLanguage")}
             >
               <SettingsDescription>
-                起動時に選択される翻訳元の言語を指定できます。
+                {t("settings.defaultSourceLanguageDescription")}
               </SettingsDescription>
 
               <SourceLanguageSelect
@@ -142,10 +155,10 @@ export function SettingsView({
 
             <SettingsField
               htmlFor="default-target-language-select"
-              label="デフォルトの翻訳先"
+              label={t("settings.defaultTargetLanguage")}
             >
               <SettingsDescription>
-                起動時などに選択される翻訳先の言語を指定できます。
+                {t("settings.defaultTargetLanguageDescription")}
               </SettingsDescription>
 
               <TargetLanguageSelect
@@ -156,10 +169,10 @@ export function SettingsView({
 
             <SettingsField
               htmlFor="fallback-target-language-select"
-              label="フォールバックの翻訳先"
+              label={t("settings.fallbackTargetLanguage")}
             >
               <SettingsDescription>
-                自動検出でその時の翻訳先と元が被った時に、翻訳先を別の言語にできます。
+                {t("settings.fallbackTargetLanguageDescription")}
               </SettingsDescription>
 
               <FallbackTargetLanguageSelect
@@ -170,7 +183,7 @@ export function SettingsView({
 
             <SettingsField
               htmlFor="language-list-scope-select"
-              label="言語選択に表示する言語"
+              label={t("settings.languageListScope")}
             >
               <LanguageListScopeSelect
                 name="language-list-scope"
@@ -180,11 +193,10 @@ export function SettingsView({
 
             <SettingsField
               htmlFor="detection-list-scope-select"
-              label="自動検出の対象とする言語"
+              label={t("settings.detectionLanguageScope")}
             >
               <SettingsDescription>
-                言語検出で指定した言語のみを検出対象にできます。
-                処理が遅い場合に絞り込むことができます。
+                {t("settings.detectionLanguageScopeDescription")}
               </SettingsDescription>
 
               <LanguageDetectionScopeSelect
@@ -195,10 +207,10 @@ export function SettingsView({
 
             <SettingsField
               htmlFor="detection-fallback-select"
-              label="自動検出のフォールバック先"
+              label={t("settings.detectionFallback")}
             >
               <SettingsDescription>
-                自動検出で検出に失敗した時に、翻訳元として使う言語を別の言語にできます。
+                {t("settings.detectionFallbackDescription")}
               </SettingsDescription>
 
               <LanguageDetectionFallbackSelect

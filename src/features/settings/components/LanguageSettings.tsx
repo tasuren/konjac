@@ -1,5 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { type ChangeEvent, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import type { DetectableLanguageDto } from "../../../rust-bindings/DetectableLanguageDto";
 import type { LanguageCodeDto } from "../../../rust-bindings/LanguageCodeDto";
 import type { LanguageDetectionScopeSettingDto } from "../../../rust-bindings/LanguageDetectionScopeSettingDto";
@@ -8,6 +9,7 @@ import type { LanguageListScopeSettingDto } from "../../../rust-bindings/Languag
 import { Button } from "../../../shared/components/Button";
 import { IconButton } from "../../../shared/components/IconButton";
 import { Select } from "../../../shared/components/Select";
+import { useLanguageDisplay } from "../../../shared/i18n/languageDisplay";
 import { useSettingsStore } from "../../../shared/stores/settingsStore";
 import {
   COMMON_LANGUAGES,
@@ -25,6 +27,8 @@ export function SourceLanguageSelect({
   id: string;
 }) {
   const { defaultSourceLanguage, updateSettings } = useSettingsStore();
+  const { t } = useTranslation();
+  const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -58,11 +62,11 @@ export function SourceLanguageSelect({
       }
       onChange={onChange}
     >
-      <option value="auto-detect">自動検出</option>
+      <option value="auto-detect">{t("language.autoDetect")}</option>
 
-      {LANGUAGES.map((lang) => (
+      {languageDisplay.sort(LANGUAGES).map((lang) => (
         <option key={lang.code} value={lang.code}>
-          {lang.name}
+          {languageDisplay.name(lang)}
         </option>
       ))}
     </Select>
@@ -77,6 +81,7 @@ export function TargetLanguageSelect({
   id: string;
 }) {
   const { defaultTargetLanguage, updateSettings } = useSettingsStore();
+  const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -97,9 +102,9 @@ export function TargetLanguageSelect({
       value={defaultTargetLanguage}
       onChange={onChange}
     >
-      {LANGUAGES.map((lang) => (
+      {languageDisplay.sort(LANGUAGES).map((lang) => (
         <option key={lang.code} value={lang.code}>
-          {lang.name}
+          {languageDisplay.name(lang)}
         </option>
       ))}
     </Select>
@@ -114,6 +119,7 @@ export function FallbackTargetLanguageSelect({
   id: string;
 }) {
   const { fallbackTargetLanguage, updateSettings } = useSettingsStore();
+  const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -133,9 +139,9 @@ export function FallbackTargetLanguageSelect({
       value={fallbackTargetLanguage}
       onChange={onChange}
     >
-      {LANGUAGES.map((lang) => (
+      {languageDisplay.sort(LANGUAGES).map((lang) => (
         <option key={lang.code} value={lang.code}>
-          {lang.name}
+          {languageDisplay.name(lang)}
         </option>
       ))}
     </Select>
@@ -151,6 +157,7 @@ export function LanguageListScopeSelect({
 }) {
   const { languageListScope, customLanguageListScope, updateSettings } =
     useSettingsStore();
+  const { t } = useTranslation();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -182,9 +189,9 @@ export function LanguageListScopeSelect({
         onChange={onChange}
         value={languageListScope}
       >
-        <option value="all">全ての言語</option>
-        <option value="common">主要な言語</option>
-        <option value="custom">選択した言語のみ</option>
+        <option value="all">{t("language.scopes.all")}</option>
+        <option value="common">{t("language.scopes.common")}</option>
+        <option value="custom">{t("language.scopes.custom")}</option>
       </Select>
 
       {languageListScope === "common" && <CommonLanguageNotice />}
@@ -192,7 +199,7 @@ export function LanguageListScopeSelect({
       {languageListScope === "custom" && (
         <SettingsField
           htmlFor="custom-language-list-scope-select"
-          label="表示する言語"
+          label={t("settings.customLanguageList")}
           labelClassName="text-sm"
         >
           <LanguageList
@@ -215,6 +222,7 @@ export function LanguageDetectionScopeSelect({
   id: string;
 }) {
   const { autoDetection, updateSettings } = useSettingsStore();
+  const { t } = useTranslation();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -251,9 +259,9 @@ export function LanguageDetectionScopeSelect({
         onChange={onChange}
         value={autoDetection.scope}
       >
-        <option value="all">全ての言語</option>
-        <option value="common">主要な言語</option>
-        <option value="custom">選択した言語のみ</option>
+        <option value="all">{t("language.scopes.all")}</option>
+        <option value="common">{t("language.scopes.common")}</option>
+        <option value="custom">{t("language.scopes.custom")}</option>
       </Select>
 
       {autoDetection.scope === "common" && <CommonLanguageNotice />}
@@ -261,7 +269,7 @@ export function LanguageDetectionScopeSelect({
       {autoDetection.scope === "custom" && (
         <SettingsField
           htmlFor="custom-detection-list-scope-select"
-          label="表示する言語"
+          label={t("settings.customLanguageList")}
           labelClassName="text-sm"
         >
           <LanguageList
@@ -277,9 +285,11 @@ export function LanguageDetectionScopeSelect({
 }
 
 function CommonLanguageNotice() {
+  const languageDisplay = useLanguageDisplay();
+
   return (
     <div className="text-sm text-muted">
-      {COMMON_LANGUAGES.map((language) => language.name).join("、")}
+      {languageDisplay.list(languageDisplay.sort(COMMON_LANGUAGES))}
     </div>
   );
 }
@@ -296,6 +306,8 @@ function LanguageList({
   setLanguageList: (languages: LanguageCodeDto[]) => void;
 }) {
   const selectRef = useRef<HTMLSelectElement>(null);
+  const { t } = useTranslation();
+  const languageDisplay = useLanguageDisplay();
 
   const onRemoveLanguage = useCallback(
     (code: string) => {
@@ -326,13 +338,13 @@ function LanguageList({
           return (
             language && (
               <li key={language.code} className="flex justify-between">
-                {language.name}
+                {languageDisplay.name(language)}
 
                 {!lastOne && (
                   <IconButton
                     disabled={lastOne}
-                    title="削除"
-                    aria-label="削除"
+                    title={t("common.remove")}
+                    aria-label={t("common.remove")}
                     onClick={() => onRemoveLanguage(language.code)}
                   >
                     <Trash2 className="size-5" />
@@ -351,19 +363,20 @@ function LanguageList({
           defaultValue="en"
           ref={selectRef}
         >
-          {catalog
+          {languageDisplay
+            .sort(catalog)
             .filter(
               (language) =>
                 !languageList.some((code) => code === language.code),
             )
             .map((language) => (
               <option key={language.code} value={language.code}>
-                {language.name}
+                {languageDisplay.name(language)}
               </option>
             ))}
         </Select>
 
-        <Button onClick={onAddLanguage}>追加</Button>
+        <Button onClick={onAddLanguage}>{t("common.add")}</Button>
       </div>
     </div>
   );
@@ -377,6 +390,7 @@ export function LanguageDetectionFallbackSelect({
   id: string;
 }) {
   const { autoDetection, updateSettings } = useSettingsStore();
+  const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -398,9 +412,9 @@ export function LanguageDetectionFallbackSelect({
       value={autoDetection.fallbackTo}
       onChange={onChange}
     >
-      {filterWithDetectable("all").map((language) => (
+      {languageDisplay.sort(filterWithDetectable("all")).map((language) => (
         <option key={language.code} value={language.code}>
-          {language.name}
+          {languageDisplay.name(language)}
         </option>
       ))}
     </Select>

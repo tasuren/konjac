@@ -3,6 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import type { LinkSafetyModalProps } from "streamdown";
 
 export function CustomLinkModal({
@@ -10,6 +11,8 @@ export function CustomLinkModal({
   isOpen,
   onClose,
 }: LinkSafetyModalProps) {
+  const { t } = useTranslation();
+
   const onConfirm = useCallback(() => {
     openUrl(url);
     onClose();
@@ -32,7 +35,7 @@ export function CustomLinkModal({
             type="button"
             className="absolute inset-0"
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label={t("linkModal.closeAriaLabel")}
           />
 
           <div
@@ -41,8 +44,8 @@ export function CustomLinkModal({
             className="relative z-10 select-none bg-modal p-4 rounded-xl flex flex-col gap-2 min-w-1/3 max-w-5/6"
             onMouseUp={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold">External Link</h2>
-            <p>You're about to visit:</p>
+            <h2 className="text-2xl font-bold">{t("linkModal.title")}</h2>
+            <p>{t("linkModal.message")}</p>
             <code className="overflow-auto">{url}</code>
 
             <div className="mt-4 px-2 flex gap-4">
@@ -51,14 +54,14 @@ export function CustomLinkModal({
                 className="cursor-pointer px-2 py-1 rounded-lg"
                 onClick={onClose}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
                 className="px-2 py-1 rounded-lg bg-surface-elevated border border-border cursor-pointer"
                 onClick={onConfirm}
               >
-                Continue
+                {t("common.continue")}
               </button>
             </div>
           </div>

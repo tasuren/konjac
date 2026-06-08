@@ -89,7 +89,7 @@ pub struct Settings {
     pub version: u32,
 
     pub theme: ThemeSetting,
-    #[serde(default)]
+    pub app_locale: AppLocaleSetting,
     pub quick_copy_translate: QuickCopyTranslateSettings,
 
     pub providers: ProviderSettings,
@@ -97,7 +97,6 @@ pub struct Settings {
 
     pub default_source_language: SourceLanguageSetting,
     pub default_target_language: TargetLanguageSetting,
-    #[serde(default)]
     pub fallback_target_language: TargetLanguageSetting,
     pub language_list_scope: LanguageListScopeSetting,
     pub custom_language_list_scope: Vec<LanguageCode>,
@@ -113,6 +112,7 @@ impl Default for Settings {
         Self {
             version: SETTINGS_VERSION,
             theme: ThemeSetting::default(),
+            app_locale: AppLocaleSetting::default(),
             quick_copy_translate: QuickCopyTranslateSettings::default(),
             providers: ProviderSettings::default(),
             model: None,
@@ -156,6 +156,18 @@ pub enum ThemeSetting {
     Dark,
     #[default]
     System,
+}
+
+#[derive(Default, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AppLocaleSetting {
+    /// Resolve the UI language from the system/browser language list.
+    #[default]
+    System,
+    Ja,
+    En,
+    #[serde(rename = "zh-CN")]
+    ZhCn,
 }
 
 pub fn default_translation_prompt() -> String {

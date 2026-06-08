@@ -15,7 +15,7 @@ export type SettingsStore = SettingsDto & {
   updateSettings: (updater: (settings: SettingsDto) => SettingsDto) => void;
 };
 
-const initialSettings = await getSettings();
+export const initialSettings = await getSettings();
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
   ...initialSettings,

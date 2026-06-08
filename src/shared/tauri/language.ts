@@ -14,9 +14,7 @@ export async function listCommonLanguages(): Promise<LanguageInfoDto[]> {
 }
 
 export const LANGUAGES = await listLanguages();
-LANGUAGES.sort((a, b) => a.name.localeCompare(b.name));
 export const COMMON_LANGUAGES = await listCommonLanguages();
-COMMON_LANGUAGES.sort((a, b) => a.name.localeCompare(b.name));
 
 export function getLanguage(code: string): LanguageInfoDto | undefined {
   return LANGUAGES.find((lang) => lang.code === code);

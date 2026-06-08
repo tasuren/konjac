@@ -1,0 +1,89 @@
+export const zhCN = {
+  app: {
+    title: "Konjac / 蒟蒻 (Beta)",
+  },
+  common: {
+    add: "添加",
+    cancel: "取消",
+    close: "关闭",
+    continue: "继续",
+    remove: "删除",
+  },
+  linkModal: {
+    closeAriaLabel: "关闭对话框",
+    title: "外部链接",
+    message: "即将访问:",
+  },
+  settings: {
+    title: "翻译设置",
+    closeAriaLabel: "关闭设置",
+    general: "通用",
+    language: "语言",
+    displayLanguage: "显示语言",
+    theme: "主题",
+    themeOptions: {
+      dark: "深色",
+      light: "浅色",
+      system: "跟随系统",
+    },
+    localeOptions: {
+      system: "跟随系统",
+      ja: "日本語",
+      en: "English",
+      zhCN: "简体中文",
+    },
+    model: "翻译使用的模型",
+    systemPrompt: "系统提示词",
+    translationPrompt: "翻译提示词",
+    ollamaBaseUrlPrefix: "发送 Ollama 请求的",
+    ollamaKeepAlivePrefix: "Ollama 请求使用的",
+    ollamaKeepAliveSuffix: "值（可选）",
+    ollamaKeepAliveDescriptionPrefix:
+      "可以指定 Ollama 加载 LLM 后在内存中保留的时间。详细信息请查看",
+    ollamaKeepAliveDescriptionLink: "这里",
+    ollamaKeepAliveDescriptionSuffix: "。示例:",
+    defaultSourceLanguage: "默认源语言",
+    defaultSourceLanguageDescription: "可以指定启动时选择的源语言。",
+    defaultTargetLanguage: "默认目标语言",
+    defaultTargetLanguageDescription: "可以指定启动等场景下选择的目标语言。",
+    fallbackTargetLanguage: "备用目标语言",
+    fallbackTargetLanguageDescription:
+      "当自动检测出的源语言与当前目标语言相同时，可以切换到其他目标语言。",
+    languageListScope: "语言选择中显示的语言",
+    detectionLanguageScope: "自动检测的目标语言",
+    detectionLanguageScopeDescription:
+      "可以只检测指定语言。检测较慢时可以缩小范围。",
+    detectionFallback: "自动检测失败时的备用语言",
+    detectionFallbackDescription:
+      "自动检测失败时，可以指定作为源语言使用的语言。",
+    customLanguageList: "显示的语言",
+  },
+  language: {
+    autoDetect: "自动检测",
+    scopes: {
+      all: "所有语言",
+      common: "常用语言",
+      custom: "仅所选语言",
+    },
+  },
+  llm: {
+    noModels: "未找到任何模型",
+    resetPromptConfirm: "确定要将翻译提示词重置为初始状态吗？",
+    promptVariablesIntro: "提示词中可以插入以下变量。",
+    variables: {
+      sourceLang: "已选择或检测到的源语言名称",
+      sourceCode: "已选择或检测到的源语言代码",
+      targetLang: "已选择的目标语言名称",
+      targetCode: "已选择的目标语言代码",
+      text: "要翻译的文本",
+    },
+    resetPrompt: "恢复初始状态",
+  },
+  translation: {
+    inputPlaceholder: "输入要翻译的文本",
+    noModel: "当前未设置用于翻译的 AI 模型。设置后即可翻译。",
+    failed: "翻译失败:",
+    placeholder: "翻译结果会显示在这里。",
+    requesting: "请求中",
+  },
+} as const;

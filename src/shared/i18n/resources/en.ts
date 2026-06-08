@@ -1,0 +1,93 @@
+export const en = {
+  app: {
+    title: "Konjac (Beta)",
+  },
+  common: {
+    add: "Add",
+    cancel: "Cancel",
+    close: "Close",
+    continue: "Continue",
+    remove: "Remove",
+  },
+  linkModal: {
+    closeAriaLabel: "Close modal",
+    title: "External Link",
+    message: "You're about to visit:",
+  },
+  settings: {
+    title: "Translation Settings",
+    closeAriaLabel: "Close settings",
+    general: "General",
+    language: "Language",
+    displayLanguage: "Display language",
+    theme: "Theme",
+    themeOptions: {
+      dark: "Dark",
+      light: "Light",
+      system: "Follow system",
+    },
+    localeOptions: {
+      system: "Follow system",
+      ja: "日本語",
+      en: "English",
+      zhCN: "简体中文",
+    },
+    model: "Model used for translation",
+    systemPrompt: "System prompt",
+    translationPrompt: "Translation prompt",
+    ollamaBaseUrlPrefix: "Ollama request",
+    ollamaKeepAlivePrefix: "Ollama request",
+    ollamaKeepAliveSuffix: "value (optional)",
+    ollamaKeepAliveDescriptionPrefix:
+      "Specify how long Ollama keeps a loaded model in memory. See ",
+    ollamaKeepAliveDescriptionLink: "here",
+    ollamaKeepAliveDescriptionSuffix: " for details. Example:",
+    defaultSourceLanguage: "Default source language",
+    defaultSourceLanguageDescription:
+      "Set the source language selected when the app starts.",
+    defaultTargetLanguage: "Default target language",
+    defaultTargetLanguageDescription:
+      "Set the target language selected when the app starts.",
+    fallbackTargetLanguage: "Fallback target language",
+    fallbackTargetLanguageDescription:
+      "Use a different target language when auto-detection resolves to the current target language.",
+    languageListScope: "Languages shown in language selection",
+    detectionLanguageScope: "Languages used for auto-detection",
+    detectionLanguageScopeDescription:
+      "Restrict language detection to selected languages. This can help when detection is slow.",
+    detectionFallback: "Auto-detection fallback",
+    detectionFallbackDescription:
+      "Choose the source language used when auto-detection fails.",
+    customLanguageList: "Languages to show",
+  },
+  language: {
+    autoDetect: "Auto-detect",
+    scopes: {
+      all: "All languages",
+      common: "Common languages",
+      custom: "Selected languages only",
+    },
+  },
+  llm: {
+    noModels: "No models were found",
+    resetPromptConfirm: "Reset the translation prompt to its initial value?",
+    promptVariablesIntro:
+      "The following variables can be inserted into the prompt.",
+    variables: {
+      sourceLang: "Selected or detected source language name",
+      sourceCode: "Selected or detected source language code",
+      targetLang: "Selected target language name",
+      targetCode: "Selected target language code",
+      text: "Text to translate",
+    },
+    resetPrompt: "Reset to initial value",
+  },
+  translation: {
+    inputPlaceholder: "Enter text to translate",
+    noModel:
+      "No AI model is configured for translation. Configure a model to start translating.",
+    failed: "Translation failed:",
+    placeholder: "Translation results will appear here.",
+    requesting: "Requesting",
+  },
+} as const;

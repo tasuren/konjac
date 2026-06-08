@@ -1,6 +1,8 @@
 import { ArrowRightLeft } from "lucide-react";
 import { type ChangeEvent, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Select } from "../../../shared/components/Select";
+import { useLanguageDisplay } from "../../../shared/i18n/languageDisplay";
 import { getLanguage } from "../../../shared/tauri/language";
 import { useLanguageCatalog } from "../hooks/useLanguageCatalog";
 import { useTranslationSelectionStore } from "../stores/translationLanguageStore";
@@ -29,6 +31,12 @@ function SourceLanguageSelect() {
   const { sourceLanguage, resolvedSourceLanguage, setSourceLanguage } =
     useTranslationSelectionStore();
   const { languages } = useLanguageCatalog();
+  const { t } = useTranslation();
+  const languageDisplay = useLanguageDisplay();
+  const resolvedLanguage =
+    resolvedSourceLanguage === null
+      ? undefined
+      : getLanguage(resolvedSourceLanguage.code);
 
   const onSelectSrcLang = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -54,14 +62,14 @@ function SourceLanguageSelect() {
       onChange={onSelectSrcLang}
     >
       <option value="auto-detection">
-        自動検出
+        {t("language.autoDetect")}
         {resolvedSourceLanguage &&
-          ` (${getLanguage(resolvedSourceLanguage.code)?.name ?? resolvedSourceLanguage.code})`}
+          ` (${resolvedLanguage !== undefined ? languageDisplay.name(resolvedLanguage) : resolvedSourceLanguage.code})`}
       </option>
 
-      {languages.map((lang) => (
+      {languageDisplay.sort(languages).map((lang) => (
         <option key={lang.code} value={lang.code}>
-          {lang.name}
+          {languageDisplay.name(lang)}
         </option>
       ))}
     </Select>
@@ -71,6 +79,7 @@ function SourceLanguageSelect() {
 function TargetLanguageSelect() {
   const { targetLanguage, setTargetLanguage } = useTranslationSelectionStore();
   const { languages } = useLanguageCatalog();
+  const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -82,9 +91,9 @@ function TargetLanguageSelect() {
 
   return (
     <Select value={targetLanguage} onChange={onChange}>
-      {languages.map((lang) => (
+      {languageDisplay.sort(languages).map((lang) => (
         <option key={lang.code} value={lang.code}>
-          {lang.name}
+          {languageDisplay.name(lang)}
         </option>
       ))}
     </Select>

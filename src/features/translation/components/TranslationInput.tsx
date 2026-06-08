@@ -1,4 +1,5 @@
 import { type ClipboardEvent, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { toMarkdown } from "../../../shared/tauri/translation";
 
 export type TranslationInputProps = {
@@ -14,6 +15,8 @@ export function TranslationInput({
   handleCompositionStart,
   handleCompositionEnd,
 }: TranslationInputProps) {
+  const { t } = useTranslation();
+
   const onPaste = useCallback(
     async (event: ClipboardEvent<HTMLTextAreaElement>) => {
       if (event.clipboardData === null) return;
@@ -45,7 +48,7 @@ export function TranslationInput({
 
   return (
     <textarea
-      placeholder="翻訳したいテキストを入力"
+      placeholder={t("translation.inputPlaceholder")}
       className="p-4 w-1/2 border border-border rounded-xl h-full overflow-y-auto select-auto"
       value={input}
       onPaste={onPaste}

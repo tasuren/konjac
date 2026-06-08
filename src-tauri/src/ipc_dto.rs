@@ -9,7 +9,7 @@ pub use language::*;
 use crate::{
     llm::{Model, ProviderKind},
     settings::{
-        ModelSelection, OllamaSettings, ProviderKindSetting, ProviderSettings,
+        AppLocaleSetting, ModelSelection, OllamaSettings, ProviderKindSetting, ProviderSettings,
         QuickCopyTranslateSettings, Settings, ThemeSetting,
     },
     translation::TranslationStreamEvent,
@@ -184,11 +184,46 @@ impl From<ThemeSettingDto> for ThemeSetting {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+#[ts(export)]
+pub enum AppLocaleSettingDto {
+    System,
+    Ja,
+    En,
+    #[serde(rename = "zh-CN")]
+    #[ts(rename = "zh-CN")]
+    ZhCn,
+}
+
+impl From<AppLocaleSetting> for AppLocaleSettingDto {
+    fn from(value: AppLocaleSetting) -> Self {
+        match value {
+            AppLocaleSetting::System => Self::System,
+            AppLocaleSetting::Ja => Self::Ja,
+            AppLocaleSetting::En => Self::En,
+            AppLocaleSetting::ZhCn => Self::ZhCn,
+        }
+    }
+}
+
+impl From<AppLocaleSettingDto> for AppLocaleSetting {
+    fn from(value: AppLocaleSettingDto) -> Self {
+        match value {
+            AppLocaleSettingDto::System => Self::System,
+            AppLocaleSettingDto::Ja => Self::Ja,
+            AppLocaleSettingDto::En => Self::En,
+            AppLocaleSettingDto::ZhCn => Self::ZhCn,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct SettingsDto {
     pub theme: ThemeSettingDto,
+    pub app_locale: AppLocaleSettingDto,
     pub quick_copy_translate: QuickCopyTranslateSettingsDto,
 
     pub providers: ProviderSettingsDto,
@@ -209,6 +244,7 @@ impl From<Settings> for SettingsDto {
     fn from(value: Settings) -> Self {
         Self {
             theme: value.theme.into(),
+            app_locale: value.app_locale.into(),
             quick_copy_translate: value.quick_copy_translate.into(),
             providers: value.providers.into(),
             model: value.model.map(Into::into),
@@ -233,6 +269,7 @@ impl From<SettingsDto> for Settings {
         Self {
             version: Settings::default().version,
             theme: value.theme.into(),
+            app_locale: value.app_locale.into(),
             quick_copy_translate: value.quick_copy_translate.into(),
             providers: value.providers.into(),
             model: value.model.map(Into::into),

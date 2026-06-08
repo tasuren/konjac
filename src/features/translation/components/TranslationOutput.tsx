@@ -2,6 +2,7 @@ import { cjk } from "@streamdown/cjk";
 import { Loader } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Streamdown } from "streamdown";
 import type { ModelSelectionDto } from "../../../rust-bindings/ModelSelectionDto";
 import { CustomLinkModal } from "../../../shared/components/CustomLinkModal";
@@ -23,6 +24,7 @@ export function TranslationOutput({
   error,
 }: TranslationOutputProps) {
   const [lastInput, setLastInput] = useState("");
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (status === "requesting") setLastInput(input);
@@ -33,9 +35,7 @@ export function TranslationOutput({
   if (model === null)
     return (
       <div>
-        <p>
-          現在、翻訳を処理するAIモデルが設定されていません。設定後、翻訳が可能となります。
-        </p>
+        <p>{t("translation.noModel")}</p>
       </div>
     );
 
@@ -58,7 +58,7 @@ export function TranslationOutput({
             transition={{ duration: 0.15 }}
             className="p-4 text-sm text-muted overflow-y-auto"
           >
-            翻訳に失敗しました:
+            {t("translation.failed")}{" "}
             <code className="wrap-break-word select-auto cursor-auto">
               {error}
             </code>
@@ -94,7 +94,7 @@ export function TranslationOutput({
             transition={{ duration: 0.15 }}
             className="p-4"
           >
-            翻訳結果はこちらに表示されます。
+            {t("translation.placeholder")}
           </motion.p>
         )}
       </AnimatePresence>
@@ -104,6 +104,7 @@ export function TranslationOutput({
 
 function Requesting({ pulseStartsAt = 1000 }: { pulseStartsAt?: number }) {
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const timeout = setTimeout(() => setLoading(true), pulseStartsAt);
@@ -121,7 +122,7 @@ function Requesting({ pulseStartsAt = 1000 }: { pulseStartsAt?: number }) {
       transition={{ duration: 0.15 }}
       className="p-4 flex items-center gap-2"
     >
-      リクエスト中です
+      {t("translation.requesting")}
       <Loader size={14} className="inline animate-[spin_2s_linear_infinite]" />
     </motion.div>
   );
