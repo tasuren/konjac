@@ -21,6 +21,7 @@ export function TranslationControls({
 }) {
   const { t } = useTranslation();
   const model = useSettingsStore((state) => state.model);
+
   const { models } = useProviderModelCatalog("ollama");
   const modelDisplay = useMemo(() => {
     if (model === null) return null;
@@ -93,6 +94,7 @@ function SourceLanguageSelect() {
 
   return (
     <Select
+      className="max-w-40"
       value={
         sourceLanguage.type === "auto_detect"
           ? "auto-detection"
@@ -129,7 +131,7 @@ function TargetLanguageSelect() {
   );
 
   return (
-    <Select value={targetLanguage} onChange={onChange}>
+    <Select className="max-w-40" value={targetLanguage} onChange={onChange}>
       {languageDisplay.sort(languages).map((lang) => (
         <option key={lang.code} value={lang.code}>
           {languageDisplay.name(lang)}
