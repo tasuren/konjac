@@ -52,7 +52,7 @@ export function TranslationInput({
     <div className="w-1/2 h-full relative">
       <textarea
         placeholder={t("translation.inputPlaceholder")}
-        className="p-4 pr-13 border border-border rounded-xl w-full h-full overflow-y-auto select-auto"
+        className="p-4 pr-13 border border-border rounded-xl w-full h-full overflow-y-auto select-auto resize-none"
         value={input}
         onPaste={onPaste}
         onChange={(event) => setInput(event.target.value)}
