@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Konjac",
-  "version": "0.1.0-beta.2",
-  "identifier": "jp.tasuren.konjac.beta",
+  "version": "0.1.0",
+  "identifier": "jp.tasuren.konjac",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
