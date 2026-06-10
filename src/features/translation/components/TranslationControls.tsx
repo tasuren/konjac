@@ -31,7 +31,7 @@ export function TranslationControls({
 
   return (
     <div className="flex items-center gap-6 relative pointer-events-none [&>*>*]:pointer-events-auto">
-      <div className="w-1/2 flex justify-end px-2">
+      <div className="flex-1 basis-0 min-w-0 flex justify-end px-2">
         <SourceLanguageSelect />
       </div>
 
@@ -47,7 +47,7 @@ export function TranslationControls({
         </IconButton>
       </div>
 
-      <div className="w-1/2 flex justify-between px-2">
+      <div className="flex-1 basis-0 min-w-0 flex justify-between px-2">
         <TargetLanguageSelect />
       </div>
 

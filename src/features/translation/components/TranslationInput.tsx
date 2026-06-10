@@ -52,7 +52,7 @@ export function TranslationInput({
   return (
     <div
       className={cn(
-        "w-1/2 h-full border border-border rounded-xl bg-surface flex flex-col",
+        "flex-1 basis-0 min-w-0 h-full border border-border rounded-xl bg-surface flex flex-col",
         "focus-within:outline-2 focus-within:outline-accent",
       )}
     >

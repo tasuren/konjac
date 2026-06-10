@@ -47,7 +47,7 @@ export function TranslationOutput({
 
   if (model === null)
     return (
-      <div className="w-1/2">
+      <div className="flex-1 basis-0 min-w-0">
         <p>{t("translation.noModel")}</p>
       </div>
     );
@@ -66,7 +66,9 @@ export function TranslationOutput({
     <div
       className={cn(
         "border border-border bg-surface rounded-xl flex flex-col justify-between",
-        maximized ? "absolute top-14 left-3 right-3 bottom-3" : "w-1/2",
+        maximized
+          ? "absolute top-14 left-3 right-3 bottom-3"
+          : "flex-1 basis-0 min-w-0",
       )}
     >
       <div className="flex-1 min-h-0">
