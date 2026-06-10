@@ -81,12 +81,41 @@ body {
 [data-streamdown="code-block"] {
   background: var(--color-markdown-code-bg);
   border: 1px solid var(--color-border);
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+[data-streamdown="code-block-header"] {
+  height: 2rem;
+  padding: 0 0.75rem;
+}
+
+[data-streamdown="code-block-header"] > span {
+  margin-top: 10px;
+  margin-left: 0;
+}
+
+[data-streamdown="code-block-header"] + div:has([data-streamdown="code-block-actions"]) {
+  height: 2rem;
+  margin-top: -2rem;
+  top: 5px;
+}
+
+[data-streamdown="code-block-body"] {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0.75rem;
 }
 
 [data-streamdown="code-block-actions"] {
-  border: 1px solid var(--color-border);
+  background: transparent;
+  border: 0;
 }
 
 [data-streamdown="inline-code"] {
   background: var(--color-markdown-inline-code-bg);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

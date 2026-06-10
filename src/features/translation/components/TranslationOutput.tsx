@@ -106,6 +106,7 @@ export function TranslationOutput({
                   renderModal: (props) => <CustomLinkModal {...props} />,
                 }}
                 isAnimating={status === "translating"}
+                lineNumbers={false}
               >
                 {output}
               </Streamdown>
