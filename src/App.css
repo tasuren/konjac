@@ -63,6 +63,10 @@ body {
   overflow: hidden;
 }
 
+.os-windows *:focus-visible, .os-linux *:focus-visible {
+  outline: 2px solid var(--color-accent);
+}
+
 /* for markdown preview */
 :root {
   --primary: var(--color-markdown-link);
