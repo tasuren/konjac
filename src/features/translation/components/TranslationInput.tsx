@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import { cn } from "@sglara/cn";
+import { Trash2 } from "lucide-react";
 import { type ClipboardEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../../shared/components/IconButton";
@@ -49,10 +50,15 @@ export function TranslationInput({
   );
 
   return (
-    <div className="w-1/2 h-full relative">
+    <div
+      className={cn(
+        "w-1/2 h-full border border-border rounded-xl bg-surface flex flex-col",
+        "focus-within:outline-2 focus-within:outline-accent",
+      )}
+    >
       <textarea
         placeholder={t("translation.inputPlaceholder")}
-        className="p-4 pr-13 border border-border rounded-xl w-full h-full overflow-y-auto select-auto resize-none"
+        className="flex-1 min-h-0 w-full p-4 overflow-y-auto select-auto resize-none bg-transparent focus-visible:outline-none!"
         value={input}
         onPaste={onPaste}
         onChange={(event) => setInput(event.target.value)}
@@ -63,14 +69,14 @@ export function TranslationInput({
         }}
       ></textarea>
 
-      <div className="absolute right-0 top-0 p-3">
+      <div className="h-12 shrink-0 px-4 flex justify-end items-center gap-4">
         {input.length > 0 && (
           <IconButton
             title={t("translation.inputClear")}
             aria-label={t("translation.inputClear")}
             onClick={() => setInput("")}
           >
-            <X size={20} />
+            <Trash2 />
           </IconButton>
         )}
       </div>
