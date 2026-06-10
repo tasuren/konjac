@@ -15,7 +15,7 @@ export const en = {
     message: "You're about to visit:",
   },
   settings: {
-    title: "Open settings",
+    title: "Settings",
     closeAriaLabel: "Close settings",
     general: "General",
     language: "Language",

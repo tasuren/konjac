@@ -15,7 +15,7 @@ export const zhCN = {
     message: "即将访问:",
   },
   settings: {
-    title: "打开设置",
+    title: "设置",
     closeAriaLabel: "关闭设置",
     general: "通用",
     language: "语言",

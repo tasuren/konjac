@@ -15,7 +15,7 @@ export const ja = {
     message: "以下のURLを開こうとしています:",
   },
   settings: {
-    title: "設定を開く",
+    title: "設定",
     closeAriaLabel: "設定を閉じる",
     general: "全般",
     language: "言語",

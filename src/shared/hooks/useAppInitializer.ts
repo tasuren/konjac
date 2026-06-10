@@ -28,6 +28,7 @@ export function useAppInitializer() {
     return unlisten;
   }, [theme]);
 
+  // Set up locale change listener
   useEffect(() => {
     const locale = resolveAppLocale(appLocale);
 
