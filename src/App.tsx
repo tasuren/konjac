@@ -9,7 +9,7 @@ function App() {
   useAppInitializer();
 
   const [settings, setSettings] = useState(false);
-  const [focus, setFocus] = useState<string | undefined>(undefined);
+  const [focus, setFocus] = useState<"model-select" | undefined>(undefined);
 
   const focusModelSelect = useCallback(() => {
     setSettings(true);
