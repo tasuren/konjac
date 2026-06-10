@@ -100,6 +100,8 @@ export const ja = {
     placeholder: "翻訳結果はこちらに表示されます。",
     requesting: "リクエスト中です",
     copy: "クリップボードにコピー",
+    maximize: "翻訳結果を最大化",
+    minimize: "翻訳結果を最小化",
     swapLanguages: "言語を入れ替え",
   },
 } as const;

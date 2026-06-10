@@ -1,6 +1,7 @@
+import { cn } from "@sglara/cn";
 import { cjk } from "@streamdown/cjk";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { Copy, Loader, LoaderCircle } from "lucide-react";
+import { Copy, Loader, LoaderCircle, Maximize2, Minimize2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,6 +39,12 @@ export function TranslationOutput({
     writeText(output);
   }, [output]);
 
+  const [maximized, setMaximized] = useState(false);
+  const maximizeToggleTitle = maximized
+    ? t("translation.minimize")
+    : t("translation.maximize");
+  const toggleMaximize = () => setMaximized(!maximized);
+
   if (model === null)
     return (
       <div className="w-1/2">
@@ -56,7 +63,12 @@ export function TranslationOutput({
     (!requesting && translating) || (input.length > 0 && input === lastInput);
 
   return (
-    <div className="w-1/2 border border-border bg-surface rounded-xl flex flex-col justify-between">
+    <div
+      className={cn(
+        "border border-border bg-surface rounded-xl flex flex-col justify-between",
+        maximized ? "absolute top-14 left-3 right-3 bottom-3" : "w-1/2",
+      )}
+    >
       <div className="flex-1 min-h-0">
         <AnimatePresence mode="wait">
           {requesting ? (
@@ -113,10 +125,11 @@ export function TranslationOutput({
         </AnimatePresence>
       </div>
 
-      <div className="h-12 px-4 flex justify-end items-center">
+      <div className="h-12 px-4 flex justify-end items-center gap-4">
         <AnimatePresence>
           {input && output && status === "idle" && (
             <motion.div
+              className="flex gap-4"
               key="copy-button"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -143,6 +156,14 @@ export function TranslationOutput({
             </motion.div>
           )}
         </AnimatePresence>
+
+        <IconButton
+          title={maximizeToggleTitle}
+          aria-label={maximizeToggleTitle}
+          onClick={toggleMaximize}
+        >
+          {maximized ? <Minimize2 /> : <Maximize2 />}
+        </IconButton>
       </div>
     </div>
   );

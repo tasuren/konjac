@@ -101,6 +101,8 @@ export const en = {
     placeholder: "Translation results will appear here.",
     requesting: "Requesting",
     copy: "Copy to clipboard",
+    maximize: "Maximize translation result",
+    minimize: "Minimize translation result",
     swapLanguages: "Swap languages",
   },
 } as const;
