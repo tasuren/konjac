@@ -10,12 +10,12 @@
   --color-border: #ddddd8;
   --color-text: #1f1f1d;
   --color-muted: #6e6e69;
-  --color-accent: #4a6fa5;
+  --color-accent: #79a0d9;
   --color-titlebar: #f1f1ee;
   --color-modal: #fcfcfa;
 
   /* markdown/document */
-  --color-markdown-link: #4a6fa5;
+  --color-markdown-link: #79a0d9;
   --color-markdown-link-hover: #5d84c0;
   --color-markdown-code-bg: #e8e8e4;
   --color-markdown-inline-code-bg: #e3e3df;
@@ -63,8 +63,7 @@ body {
   overflow: hidden;
 }
 
-.os-windows *:focus-visible,
-.os-linux *:focus-visible {
+*:focus-visible {
   outline: 2px solid var(--color-accent);
 }
 
