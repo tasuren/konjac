@@ -138,7 +138,7 @@ export function TranslationOutput({
         </AnimatePresence>
       </div>
 
-      <div className="h-12 px-4 flex justify-between items-center gap-4">
+      <div className="h-13 px-3 flex justify-between items-center">
         <div className="min-w-0">
           <AnimatePresence>
             {showRenderModeControl && (

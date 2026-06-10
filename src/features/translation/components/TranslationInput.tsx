@@ -69,7 +69,7 @@ export function TranslationInput({
         }}
       ></textarea>
 
-      <div className="h-12 shrink-0 px-4 flex justify-end items-center gap-4">
+      <div className="h-13 shrink-0 px-3 flex justify-end items-center gap-4">
         {input.length > 0 && (
           <IconButton
             title={t("translation.inputClear")}

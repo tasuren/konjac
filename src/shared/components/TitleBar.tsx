@@ -45,7 +45,7 @@ export function TitleBar({
         </div>
       )}
 
-      <div>{settingsOpened ? t("settings.title") : t("app.title")}</div>
+      <div className={platform() === "macos" ? "pt-px" : ""}>{settingsOpened ? t("settings.title") : t("app.title")}</div>
 
       <div>{children}</div>
 
@@ -78,7 +78,7 @@ function SettingsButton({
     : t("settings.title");
 
   return (
-    <div className="ml-auto flex items-center">
+    <div className="ml-auto flex items-center pt-0.5">
       <IconButton
         className="text-text hover:bg-transparent"
         onClick={() => setSettings(!settingsOpened)}
