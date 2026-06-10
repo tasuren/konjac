@@ -5,7 +5,7 @@ import { listenQuickCopyTranslationInput } from "../../shared/tauri/quickCopyTra
 import { TranslationControls } from "./components/TranslationControls";
 import { TranslationInput } from "./components/TranslationInput";
 import { TranslationOutput } from "./components/TranslationOutput";
-import { useTranslationSession } from "./hooks/useTranslationEvent";
+import { useTranslationSession } from "./hooks/useTranslationSession";
 import { useTranslationSelectionStore } from "./stores/translationLanguageStore";
 
 export function TranslationView({

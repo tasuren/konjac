@@ -8,7 +8,7 @@ import { Streamdown } from "streamdown";
 import type { ModelSelectionDto } from "../../../rust-bindings/ModelSelectionDto";
 import { CustomLinkModal } from "../../../shared/components/CustomLinkModal";
 import { IconButton } from "../../../shared/components/IconButton";
-import type { TranslationStatus } from "../hooks/useTranslationEvent";
+import type { TranslationStatus } from "../hooks/useTranslationSession";
 
 export type TranslationOutputProps = {
   model: ModelSelectionDto | null;
