@@ -99,6 +99,7 @@ export const en = {
       "Translation cannot start because {{provider}} is unavailable. Check the base_url setting.",
     placeholder: "Translation results will appear here.",
     requesting: "Requesting",
-    copy: "Copy to clipboard"
+    copy: "Copy to clipboard",
+    swapLanguages: "Swap languages",
   },
 } as const;

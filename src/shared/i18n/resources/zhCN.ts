@@ -95,5 +95,6 @@ export const zhCN = {
     placeholder: "翻译结果会显示在这里。",
     requesting: "请求中",
     copy: "复制到剪贴板",
+    swapLanguages: "交换语言",
   },
 } as const;

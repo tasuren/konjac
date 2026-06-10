@@ -31,6 +31,7 @@ export type UseTranslationSessionResult = {
   translationError: string | null;
   handleCompositionStart: () => void;
   handleCompositionEnd: () => void;
+  swapInputOutput: () => void;
 };
 
 function createTranslationRequestKey({
@@ -160,6 +161,11 @@ export function useTranslationSession({
     void translate(input);
   }, [input, translate]);
 
+  const swapInputOutput = useCallback(() => {
+    setInput(output);
+    setOutput(input);
+  }, [input, output]);
+
   // Translation runner with debounce
   const timeoutRef = useRef(0);
   useEffect(() => {
@@ -207,5 +213,6 @@ export function useTranslationSession({
     translationError,
     handleCompositionStart,
     handleCompositionEnd,
+    swapInputOutput,
   };
 }

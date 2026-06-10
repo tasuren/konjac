@@ -98,6 +98,7 @@ export const ja = {
       "{{provider}}に接続できないため、翻訳を開始できません。設定の base_url を確認してください。",
     placeholder: "翻訳結果はこちらに表示されます。",
     requesting: "リクエスト中です",
-    copy: "クリップボードにコピー"
+    copy: "クリップボードにコピー",
+    swapLanguages: "言語を入れ替え",
   },
 } as const;

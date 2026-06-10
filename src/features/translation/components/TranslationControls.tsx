@@ -1,13 +1,22 @@
 import { ArrowRightLeft } from "lucide-react";
 import { type ChangeEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { IconButton } from "../../../shared/components/IconButton";
 import { Select } from "../../../shared/components/Select";
 import { useLanguageDisplay } from "../../../shared/i18n/languageDisplay";
 import { getLanguage } from "../../../shared/tauri/language";
 import { useLanguageCatalog } from "../hooks/useLanguageCatalog";
 import { useTranslationSelectionStore } from "../stores/translationLanguageStore";
 
-export function TranslationControls() {
+export function TranslationControls({
+  swapDisabled,
+  onSwap,
+}: {
+  swapDisabled: boolean;
+  onSwap: () => void;
+}) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center gap-6 relative pointer-events-none [&>*>*]:pointer-events-auto">
       <div className="w-1/2 flex justify-end px-2">
@@ -19,9 +28,15 @@ export function TranslationControls() {
       </div>
 
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
-        <button type="button" className="active:opacity-60">
-          <ArrowRightLeft size={26} className="opacity-60" />
-        </button>
+        <IconButton
+          className="active:opacity-60"
+          disabled={swapDisabled}
+          onClick={onSwap}
+          title={t("translation.swapLanguages")}
+          aria-label={t("translation.swapLanguages")}
+        >
+          <ArrowRightLeft size={26} />
+        </IconButton>
       </div>
     </div>
   );

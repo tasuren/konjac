@@ -1,5 +1,5 @@
 import { cn } from "@sglara/cn";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useWindowDragging } from "../../shared/hooks/useWindowDragging";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
@@ -26,7 +26,6 @@ export function TranslationView({
         className={cn("grow min-h-0 p-6 flex flex-col gap-6", winDragClassName)}
         ref={mainRef}
       >
-        <TranslationControls />
         <TranslationPane />
       </main>
     </div>
@@ -36,6 +35,8 @@ export function TranslationView({
 function TranslationPane() {
   const {
     sourceLanguage,
+    resolvedSourceLanguage,
+    setSourceLanguage,
     setResolvedSourceLanguage,
     targetLanguage,
     setTargetLanguage,
@@ -51,6 +52,7 @@ function TranslationPane() {
     translationError,
     handleCompositionStart,
     handleCompositionEnd,
+    swapInputOutput,
   } = useTranslationSession({
     sourceLanguage,
     targetLanguage,
@@ -59,6 +61,37 @@ function TranslationPane() {
     setResolvedSourceLanguage,
     setTargetLanguage,
   });
+
+  const handleSwap = useCallback(() => {
+    const sourceCode =
+      sourceLanguage.type === "auto_detect"
+        ? resolvedSourceLanguage?.code
+        : sourceLanguage.code;
+
+    if (sourceCode === undefined || output.length === 0 || status !== "idle") {
+      return;
+    }
+
+    setSourceLanguage({ type: "manual", code: targetLanguage });
+    setTargetLanguage(sourceCode);
+    setResolvedSourceLanguage(null);
+    swapInputOutput();
+  }, [
+    sourceLanguage,
+    resolvedSourceLanguage,
+    targetLanguage,
+    output.length,
+    status,
+    setSourceLanguage,
+    setTargetLanguage,
+    setResolvedSourceLanguage,
+    swapInputOutput,
+  ]);
+
+  const swapDisabled =
+    output.length === 0 ||
+    status !== "idle" ||
+    (sourceLanguage.type === "auto_detect" && resolvedSourceLanguage === null);
 
   useEffect(() => {
     if (input.length === 0) {
@@ -88,22 +121,26 @@ function TranslationPane() {
   }, [setInput]);
 
   return (
-    <div className="grow flex min-h-0 gap-6">
-      <TranslationInput
-        input={input}
-        setInput={setInput}
-        handleCompositionStart={handleCompositionStart}
-        handleCompositionEnd={handleCompositionEnd}
-      />
+    <>
+      <TranslationControls swapDisabled={swapDisabled} onSwap={handleSwap} />
 
-      <TranslationOutput
-        model={model}
-        input={input}
-        output={output}
-        status={status}
-        availabilityError={availabilityError}
-        translationError={translationError}
-      />
-    </div>
+      <div className="grow flex min-h-0 gap-6">
+        <TranslationInput
+          input={input}
+          setInput={setInput}
+          handleCompositionStart={handleCompositionStart}
+          handleCompositionEnd={handleCompositionEnd}
+        />
+
+        <TranslationOutput
+          model={model}
+          input={input}
+          output={output}
+          status={status}
+          availabilityError={availabilityError}
+          translationError={translationError}
+        />
+      </div>
+    </>
   );
 }
