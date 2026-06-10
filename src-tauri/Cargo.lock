@@ -2502,6 +2502,7 @@ dependencies = [
  "tauri-plugin-os",
  "tokio",
  "ts-rs",
+ "windows",
 ]
 
 [[package]]

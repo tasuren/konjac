@@ -12,10 +12,10 @@ use crate::{
 };
 
 #[cfg(target_os = "macos")]
-use crate::platform::macos::{
-    copy_tap,
-    pasteboard::{self, CapturedClipboardFormat},
-};
+use crate::platform::macos::{copy_tap, pasteboard};
+
+#[cfg(target_os = "windows")]
+use crate::platform::windows::quick_copy;
 
 const QUICK_COPY_TRANSLATION_INPUT_EVENT: &str = "quick-copy-translation-input";
 
@@ -86,10 +86,13 @@ impl Drop for QuickCopyTranslateRuntime {
 #[cfg(target_os = "macos")]
 type PlatformQuickCopyHandle = copy_tap::CmdCTapHandle;
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(target_os = "windows")]
+type PlatformQuickCopyHandle = quick_copy::QuickCopyMonitorHandle;
+
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 struct PlatformQuickCopyHandle;
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 impl PlatformQuickCopyHandle {
     fn stop(&mut self) {}
 }
@@ -114,7 +117,20 @@ fn start_platform_service(
                     continue;
                 }
 
-                handle_quick_copy(&app, settings.pasteboard_wait_ms).await;
+                let captured = match async_runtime::spawn_blocking(move || {
+                    pasteboard::capture_after_change(settings.pasteboard_wait_ms)
+                })
+                .await
+                {
+                    Ok(Some(captured)) => captured,
+                    Ok(None) => return,
+                    Err(e) => {
+                        log::warn!("Failed to join pasteboard capture task: {e:?}");
+                        return;
+                    }
+                };
+            
+                handle_captured_quick_copy(&app, captured.into());
             }
         }
     });
@@ -126,7 +142,32 @@ fn start_platform_service(
     })
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(target_os = "windows")]
+fn start_platform_service(
+    app: AppHandle,
+    settings: QuickCopyTranslateSettings,
+) -> anyhow::Result<QuickCopyTranslateRuntime> {
+    let (sender, mut receiver) = mpsc::unbounded_channel();
+    let platform_handle = quick_copy::start_quick_copy_monitor(
+        sender,
+        settings.double_press_interval_ms,
+        settings.pasteboard_wait_ms,
+    )?;
+
+    let task_handle = async_runtime::spawn(async move {
+        while let Some(captured) = receiver.recv().await {
+            handle_captured_quick_copy(&app, captured.into());
+        }
+    });
+
+    Ok(QuickCopyTranslateRuntime {
+        settings,
+        platform_handle,
+        task_handle,
+    })
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 fn start_platform_service(
     app: AppHandle,
     settings: QuickCopyTranslateSettings,
@@ -163,29 +204,35 @@ fn plan_runtime_update(
     }
 }
 
-async fn handle_quick_copy(app: &AppHandle, pasteboard_wait_ms: u64) {
-    #[cfg(target_os = "macos")]
-    {
-        let captured = match async_runtime::spawn_blocking(move || {
-            pasteboard::capture_after_change(pasteboard_wait_ms)
-        })
-        .await
-        {
-            Ok(Some(captured)) => captured,
-            Ok(None) => return,
-            Err(e) => {
-                log::warn!("Failed to join pasteboard capture task: {e:?}");
-                return;
-            }
-        };
+fn handle_captured_quick_copy(app: &AppHandle, captured: CapturedQuickCopyInput) {
+    let payload = captured.into_translation_input();
+    if payload.text.trim().is_empty() {
+        return;
+    }
 
-        let payload = match captured.format {
-            CapturedClipboardFormat::Html => {
-                let text = match crate::markdown::html_to_markdown(&captured.text) {
+    open_main_window(app);
+    emit_quick_copy_input(app, &payload);
+}
+
+struct CapturedQuickCopyInput {
+    text: String,
+    format: CapturedQuickCopyFormat,
+}
+
+enum CapturedQuickCopyFormat {
+    PlainText,
+    Html,
+}
+
+impl CapturedQuickCopyInput {
+    fn into_translation_input(self) -> QuickCopyTranslationInputDto {
+        match self.format {
+            CapturedQuickCopyFormat::Html => {
+                let text = match crate::markdown::html_to_markdown(&self.text) {
                     Ok(text) => text,
                     Err(e) => {
                         log::warn!("Failed to convert quick-copy HTML to Markdown: {e:?}");
-                        captured.text
+                        self.text
                     }
                 };
 
@@ -194,18 +241,41 @@ async fn handle_quick_copy(app: &AppHandle, pasteboard_wait_ms: u64) {
                     format: ClipboardInputFormatDto::Html,
                 }
             }
-            CapturedClipboardFormat::PlainText => QuickCopyTranslationInputDto {
-                text: captured.text,
+            CapturedQuickCopyFormat::PlainText => QuickCopyTranslationInputDto {
+                text: self.text,
                 format: ClipboardInputFormatDto::PlainText,
             },
-        };
-
-        if payload.text.trim().is_empty() {
-            return;
         }
+    }
+}
 
-        open_main_window(app);
-        emit_quick_copy_input(app, &payload);
+#[cfg(target_os = "macos")]
+impl From<pasteboard::CapturedClipboard> for CapturedQuickCopyInput {
+    fn from(value: pasteboard::CapturedClipboard) -> Self {
+        Self {
+            text: value.text,
+            format: match value.format {
+                pasteboard::CapturedClipboardFormat::PlainText => {
+                    CapturedQuickCopyFormat::PlainText
+                }
+                pasteboard::CapturedClipboardFormat::Html => CapturedQuickCopyFormat::Html,
+            },
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl From<quick_copy::CapturedClipboard> for CapturedQuickCopyInput {
+    fn from(value: quick_copy::CapturedClipboard) -> Self {
+        Self {
+            text: value.text,
+            format: match value.format {
+                quick_copy::CapturedClipboardFormat::PlainText => {
+                    CapturedQuickCopyFormat::PlainText
+                }
+                quick_copy::CapturedClipboardFormat::Html => CapturedQuickCopyFormat::Html,
+            },
+        }
     }
 }
 
@@ -235,20 +305,20 @@ fn emit_quick_copy_input(app: &AppHandle, payload: &impl Serialize) {
 }
 
 /// Detects two shortcut presses within the configured interval.
-struct DoublePressDetector {
+pub(crate) struct DoublePressDetector {
     interval: Duration,
     last_press: Option<Instant>,
 }
 
 impl DoublePressDetector {
-    fn new(interval: Duration) -> Self {
+    pub(crate) fn new(interval: Duration) -> Self {
         Self {
             interval,
             last_press: None,
         }
     }
 
-    fn push(&mut self, now: Instant) -> bool {
+    pub(crate) fn push(&mut self, now: Instant) -> bool {
         let matched = self
             .last_press
             .map(|last_press| now.duration_since(last_press) <= self.interval)
