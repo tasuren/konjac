@@ -1,6 +1,13 @@
 # Konjac: Local-first AI translator
 
-**It is currently in beta.**
+Konjac is a desktop translation app designed for seamless text translation.
+With Ollama support, translations can be performed entirely locally using your own language models.
+
+Press the copy shortcut twice to instantly translate the copied text.
+
+The application was built with Tauri and React. **Currently under development.**
+
+<img width="600" alt="screenshot of Konjac" src="https://github.com/user-attachments/assets/717bce09-e383-43ed-8577-220ef0a09c52" />
 
 ## License
 
