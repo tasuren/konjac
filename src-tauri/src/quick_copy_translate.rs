@@ -129,7 +129,7 @@ fn start_platform_service(
                         return;
                     }
                 };
-            
+
                 handle_captured_quick_copy(&app, captured.into());
             }
         }
