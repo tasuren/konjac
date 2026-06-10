@@ -2,7 +2,7 @@ import { cjk } from "@streamdown/cjk";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { Copy, Loader, LoaderCircle } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Streamdown } from "streamdown";
 import type { ModelSelectionDto } from "../../../rust-bindings/ModelSelectionDto";
@@ -33,18 +33,6 @@ export function TranslationOutput({
   useEffect(() => {
     if (status === "requesting") setLastInput(input);
   }, [input, status]);
-
-  // overflow detection for loading spin
-  const outputScrollRef = useRef<HTMLDivElement>(null);
-  const [overflowing, setOverflowing] = useState(false);
-
-  useEffect(() => {
-    if (output === "") return;
-    const element = outputScrollRef.current;
-    if (element === null) return;
-
-    setOverflowing(element.scrollHeight > element.clientHeight);
-  }, [output]);
 
   const onCopy = useCallback(async () => {
     writeText(output);
@@ -96,7 +84,6 @@ export function TranslationOutput({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               className="p-4 h-full overflow-y-auto select-text cursor-auto"
-              ref={outputScrollRef}
             >
               <Streamdown
                 plugins={{ cjk }}
@@ -149,13 +136,10 @@ export function TranslationOutput({
             <motion.div
               key="translating-spin"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              animate={{ opacity: 1, transition: { duration: 0.15 } }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
             >
-              {overflowing && (
-                <LoaderCircle className="text-muted animate-spin" />
-              )}
+              <LoaderCircle className="text-muted/60 animate-spin" />
             </motion.div>
           )}
         </AnimatePresence>
