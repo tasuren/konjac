@@ -10,8 +10,10 @@ import { useTranslationSelectionStore } from "./stores/translationLanguageStore"
 
 export function TranslationView({
   setSettings,
+  focusModelSelect,
 }: {
   setSettings: (settings: boolean) => void;
+  focusModelSelect: () => void;
 }) {
   const mainRef = useRef(null);
 
@@ -20,13 +22,17 @@ export function TranslationView({
       <TitleBar settingsOpened={false} setSettings={setSettings} />
 
       <main className="grow min-h-0 p-6 flex flex-col gap-6" ref={mainRef}>
-        <TranslationPane />
+        <TranslationPane focusModelSelect={focusModelSelect} />
       </main>
     </div>
   );
 }
 
-function TranslationPane() {
+function TranslationPane({
+  focusModelSelect,
+}: {
+  focusModelSelect: () => void;
+}) {
   const {
     sourceLanguage,
     resolvedSourceLanguage,
@@ -116,7 +122,11 @@ function TranslationPane() {
 
   return (
     <>
-      <TranslationControls swapDisabled={swapDisabled} onSwap={handleSwap} />
+      <TranslationControls
+        swapDisabled={swapDisabled}
+        onSwap={handleSwap}
+        focusModelSelect={focusModelSelect}
+      />
 
       <div className="grow flex min-h-0 gap-6">
         <TranslationInput

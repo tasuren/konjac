@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TranslationView } from "./features/translation/TranslationView";
 import "./App.css";
@@ -7,11 +7,25 @@ import { useAppInitializer } from "./shared/hooks/useAppInitializer";
 
 function App() {
   useAppInitializer();
+
   const [settings, setSettings] = useState(false);
+  const [focus, setFocus] = useState<string | undefined>(undefined);
+
+  const focusModelSelect = useCallback(() => {
+    setSettings(true);
+    setFocus("model-select");
+  }, []);
+
+  useEffect(() => {
+    if (!settings) setFocus(undefined);
+  }, [settings]);
 
   return (
     <>
-      <TranslationView setSettings={setSettings} />
+      <TranslationView
+        setSettings={setSettings}
+        focusModelSelect={focusModelSelect}
+      />
 
       <AnimatePresence>
         {settings && (
@@ -21,7 +35,7 @@ function App() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
           >
-            <SettingsView setSettings={setSettings} />
+            <SettingsView setSettings={setSettings} focus={focus} />
           </motion.div>
         )}
       </AnimatePresence>

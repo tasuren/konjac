@@ -1,9 +1,11 @@
-import { ArrowRightLeft } from "lucide-react";
-import { type ChangeEvent, useCallback } from "react";
+import { ArrowRightLeft, ArrowUpRight } from "lucide-react";
+import { type ChangeEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../../shared/components/IconButton";
 import { Select } from "../../../shared/components/Select";
 import { useLanguageDisplay } from "../../../shared/i18n/languageDisplay";
+import { useProviderModelCatalog } from "../../../shared/stores/modelCatalogStore";
+import { useSettingsStore } from "../../../shared/stores/settingsStore";
 import { getLanguage } from "../../../shared/tauri/language";
 import { useLanguageCatalog } from "../hooks/useLanguageCatalog";
 import { useTranslationSelectionStore } from "../stores/translationLanguageStore";
@@ -11,20 +13,25 @@ import { useTranslationSelectionStore } from "../stores/translationLanguageStore
 export function TranslationControls({
   swapDisabled,
   onSwap,
+  focusModelSelect,
 }: {
   swapDisabled: boolean;
   onSwap: () => void;
+  focusModelSelect: () => void;
 }) {
   const { t } = useTranslation();
+  const model = useSettingsStore((state) => state.model);
+  const { models } = useProviderModelCatalog("ollama");
+  const modelDisplay = useMemo(() => {
+    if (model === null) return null;
+    const info = models.find((m) => m.id === model.id);
+    return info?.displayName ?? model.id;
+  }, [models, model]);
 
   return (
     <div className="flex items-center gap-6 relative pointer-events-none [&>*>*]:pointer-events-auto">
       <div className="w-1/2 flex justify-end px-2">
         <SourceLanguageSelect />
-      </div>
-
-      <div className="w-1/2 flex justify-between px-2">
-        <TargetLanguageSelect />
       </div>
 
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
@@ -37,6 +44,23 @@ export function TranslationControls({
         >
           <ArrowRightLeft size={26} />
         </IconButton>
+      </div>
+
+      <div className="w-1/2 flex justify-between px-2">
+        <TargetLanguageSelect />
+      </div>
+
+      <div className="absolute right-0 mr-2 text-muted">
+        <button
+          type="button"
+          className="flex items-center gap-0.5 hover:underline"
+          onClick={focusModelSelect}
+        >
+          <span>
+            {modelDisplay === null ? t("llm.noModelSelected") : modelDisplay}
+          </span>
+          <ArrowUpRight className="inline" size={16} />
+        </button>
       </div>
     </div>
   );

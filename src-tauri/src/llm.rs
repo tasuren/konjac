@@ -23,7 +23,7 @@ pub enum ProviderKind {
 pub struct Model {
     pub provider: ProviderKind,
     pub id: String,
-    pub display_name: Option<String>,
+    pub display_name: String,
 }
 
 pub enum GenerationEvent {
@@ -184,7 +184,7 @@ impl LlmProvider for OllamaProvider {
         Ok(list
             .into_iter()
             .map(|model| Model {
-                display_name: Some(model.display_name().to_owned()),
+                display_name: model.display_name().to_owned(),
                 id: model.id,
                 provider: ProviderKind::Ollama,
             })

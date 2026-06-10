@@ -24,8 +24,10 @@ import { SettingsSection } from "./components/SettingsSection";
 
 export function SettingsView({
   setSettings,
+  focus,
 }: {
   setSettings: (settings: boolean) => void;
+  focus?: "model-select";
 }) {
   const { t } = useTranslation();
 
@@ -43,6 +45,12 @@ export function SettingsView({
       removeEventListener("keydown", handleEscape);
     };
   }, [setSettings]);
+
+  useEffect(() => {
+    if (focus === undefined) return;
+    const modelSelect = document.getElementById("model-select");
+    if (modelSelect) modelSelect.focus();
+  }, [focus]);
 
   return (
     <div className="absolute top-0 left-0 z-10 flex h-screen w-screen flex-col bg-bg">

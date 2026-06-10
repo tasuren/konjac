@@ -60,7 +60,7 @@ impl From<ProviderKindDto> for ProviderKindSetting {
 pub struct ModelDto {
     pub provider: ProviderKindDto,
     pub id: String,
-    pub display_name: Option<String>,
+    pub display_name: String,
 }
 
 impl From<Model> for ModelDto {
