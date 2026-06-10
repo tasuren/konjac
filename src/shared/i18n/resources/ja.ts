@@ -15,7 +15,7 @@ export const ja = {
     message: "以下のURLを開こうとしています:",
   },
   settings: {
-    title: "翻訳設定",
+    title: "設定を開く",
     closeAriaLabel: "設定を閉じる",
     general: "全般",
     language: "言語",
@@ -98,5 +98,6 @@ export const ja = {
       "{{provider}}に接続できないため、翻訳を開始できません。設定の base_url を確認してください。",
     placeholder: "翻訳結果はこちらに表示されます。",
     requesting: "リクエスト中です",
+    copy: "クリップボードにコピー"
   },
 } as const;

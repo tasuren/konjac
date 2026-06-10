@@ -73,15 +73,17 @@ function SettingsButton({
   setSettings: (settings: boolean) => void;
 }) {
   const { t } = useTranslation();
+  const buttonTitle = settingsOpened
+    ? t("settings.closeAriaLabel")
+    : t("settings.title");
 
   return (
     <div className="ml-auto flex items-center">
       <IconButton
         className="text-text hover:bg-transparent"
         onClick={() => setSettings(!settingsOpened)}
-        aria-label={
-          settingsOpened ? t("settings.closeAriaLabel") : t("settings.title")
-        }
+        title={buttonTitle}
+        aria-label={buttonTitle}
       >
         {settingsOpened ? (
           platform() === "macos" ? (

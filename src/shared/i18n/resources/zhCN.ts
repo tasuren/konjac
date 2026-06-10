@@ -15,7 +15,7 @@ export const zhCN = {
     message: "即将访问:",
   },
   settings: {
-    title: "翻译设置",
+    title: "打开设置",
     closeAriaLabel: "关闭设置",
     general: "通用",
     language: "语言",
@@ -94,5 +94,6 @@ export const zhCN = {
       "{{provider}} 不可用，无法开始翻译。请检查 base_url 设置。",
     placeholder: "翻译结果会显示在这里。",
     requesting: "请求中",
+    copy: "复制到剪贴板",
   },
 } as const;

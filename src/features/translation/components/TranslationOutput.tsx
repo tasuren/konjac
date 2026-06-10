@@ -136,7 +136,11 @@ export function TranslationOutput({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <IconButton onClick={onCopy}>
+              <IconButton
+                title={t("translation.copy")}
+                aria-label={t("translation.copy")}
+                onClick={onCopy}
+              >
                 <Copy />
               </IconButton>
             </motion.div>

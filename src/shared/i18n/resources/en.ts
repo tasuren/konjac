@@ -15,7 +15,7 @@ export const en = {
     message: "You're about to visit:",
   },
   settings: {
-    title: "Translation Settings",
+    title: "Open settings",
     closeAriaLabel: "Close settings",
     general: "General",
     language: "Language",
@@ -99,5 +99,6 @@ export const en = {
       "Translation cannot start because {{provider}} is unavailable. Check the base_url setting.",
     placeholder: "Translation results will appear here.",
     requesting: "Requesting",
+    copy: "Copy to clipboard"
   },
 } as const;
