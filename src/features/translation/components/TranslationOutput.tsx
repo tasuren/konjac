@@ -11,6 +11,8 @@ import { CustomLinkModal } from "../../../shared/components/CustomLinkModal";
 import { IconButton } from "../../../shared/components/IconButton";
 import type { TranslationStatus } from "../hooks/useTranslationSession";
 
+type OutputRenderMode = "plain" | "markdown";
+
 export type TranslationOutputProps = {
   model: ModelSelectionDto | null;
   input: string;
@@ -29,6 +31,8 @@ export function TranslationOutput({
   translationError,
 }: TranslationOutputProps) {
   const [lastInput, setLastInput] = useState("");
+  const [outputRenderMode, setOutputRenderMode] =
+    useState<OutputRenderMode>("markdown");
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -61,6 +65,8 @@ export function TranslationOutput({
       : t("translation.failed");
   const showOutput =
     (!requesting && translating) || (input.length > 0 && input === lastInput);
+  const showRenderModeControl =
+    showOutput && output.length > 0 && !visibleError;
 
   return (
     <div
@@ -99,19 +105,23 @@ export function TranslationOutput({
               transition={{ duration: 0.15 }}
               className="p-4 h-full overflow-y-auto select-text cursor-auto"
             >
-              <Streamdown
-                plugins={{ cjk }}
-                controls={{ code: { download: false } }}
-                remend={{ linkMode: "text-only" }}
-                linkSafety={{
-                  enabled: true,
-                  renderModal: (props) => <CustomLinkModal {...props} />,
-                }}
-                isAnimating={status === "translating"}
-                lineNumbers={false}
-              >
-                {output}
-              </Streamdown>
+              {outputRenderMode === "markdown" ? (
+                <Streamdown
+                  plugins={{ cjk }}
+                  controls={{ code: { download: false } }}
+                  remend={{ linkMode: "text-only" }}
+                  linkSafety={{
+                    enabled: true,
+                    renderModal: (props) => <CustomLinkModal {...props} />,
+                  }}
+                  isAnimating={status === "translating"}
+                  lineNumbers={false}
+                >
+                  {output}
+                </Streamdown>
+              ) : (
+                <p className="whitespace-pre-wrap wrap-break-word">{output}</p>
+              )}
             </motion.div>
           ) : (
             <motion.p
@@ -128,47 +138,123 @@ export function TranslationOutput({
         </AnimatePresence>
       </div>
 
-      <div className="h-12 px-4 flex justify-end items-center gap-4">
-        <AnimatePresence>
-          {input && output && status === "idle" && (
-            <motion.div
-              className="flex gap-4"
-              key="copy-button"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <IconButton
-                title={t("translation.copy")}
-                aria-label={t("translation.copy")}
-                onClick={onCopy}
+      <div className="h-12 px-4 flex justify-between items-center gap-4">
+        <div className="min-w-0">
+          <AnimatePresence>
+            {showRenderModeControl && (
+              <motion.div
+                key="render-mode-control"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
               >
-                <Copy />
-              </IconButton>
-            </motion.div>
-          )}
-          {status === "translating" && (
-            <motion.div
-              key="translating-spin"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.15 } }}
-              exit={{ opacity: 0, transition: { duration: 0 } }}
-            >
-              <LoaderCircle className="text-muted/60 animate-spin" />
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <OutputRenderModeControl
+                  value={outputRenderMode}
+                  onChange={setOutputRenderMode}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-        <IconButton
-          title={maximizeToggleTitle}
-          aria-label={maximizeToggleTitle}
-          onClick={toggleMaximize}
-        >
-          {maximized ? <Minimize2 /> : <Maximize2 />}
-        </IconButton>
+        <div className="flex shrink-0 items-center gap-4">
+          <AnimatePresence>
+            {input && output && status === "idle" && (
+              <motion.div
+                className="flex gap-4"
+                key="copy-button"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <IconButton
+                  title={t("translation.copy")}
+                  aria-label={t("translation.copy")}
+                  onClick={onCopy}
+                >
+                  <Copy />
+                </IconButton>
+              </motion.div>
+            )}
+            {status === "translating" && (
+              <motion.div
+                key="translating-spin"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { duration: 0.15 } }}
+                exit={{ opacity: 0, transition: { duration: 0 } }}
+              >
+                <LoaderCircle className="text-muted/60 animate-spin" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <IconButton
+            title={maximizeToggleTitle}
+            aria-label={maximizeToggleTitle}
+            onClick={toggleMaximize}
+          >
+            {maximized ? <Minimize2 /> : <Maximize2 />}
+          </IconButton>
+        </div>
       </div>
     </div>
+  );
+}
+
+function OutputRenderModeControl({
+  value,
+  onChange,
+}: {
+  value: OutputRenderMode;
+  onChange: (value: OutputRenderMode) => void;
+}) {
+  const { t } = useTranslation();
+
+  const modes: Array<{
+    value: OutputRenderMode;
+    label: string;
+    title: string;
+  }> = [
+    {
+      value: "plain",
+      label: t("translation.outputPlain"),
+      title: t("translation.showPlainOutput"),
+    },
+    {
+      value: "markdown",
+      label: t("translation.outputMarkdown"),
+      title: t("translation.showMarkdownOutput"),
+    },
+  ];
+
+  return (
+    <fieldset className="flex rounded-md border border-border bg-surface-elevated p-0.5 text-xs">
+      <legend className="sr-only">{t("translation.outputRenderMode")}</legend>
+
+      {modes.map((mode) => {
+        const selected = value === mode.value;
+
+        return (
+          <button
+            key={mode.value}
+            type="button"
+            title={mode.title}
+            aria-label={mode.title}
+            aria-pressed={selected}
+            className={cn(
+              "rounded px-2 py-1 transition-colors",
+              "hover:text-text active:opacity-70",
+              selected ? "bg-surface text-text shadow-sm" : "text-muted",
+            )}
+            onClick={() => onChange(mode.value)}
+          >
+            {mode.label}
+          </button>
+        );
+      })}
+    </fieldset>
   );
 }
 

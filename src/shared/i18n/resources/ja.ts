@@ -103,5 +103,10 @@ export const ja = {
     maximize: "翻訳結果を最大化",
     minimize: "翻訳結果を最小化",
     swapLanguages: "言語を入れ替え",
+    outputRenderMode: "表示モード",
+    outputPlain: "Plain",
+    outputMarkdown: "Markdown",
+    showPlainOutput: "プレーンテキストで表示",
+    showMarkdownOutput: "Markdownとして表示",
   },
 } as const;

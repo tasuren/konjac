@@ -104,5 +104,10 @@ export const en = {
     maximize: "Maximize translation result",
     minimize: "Minimize translation result",
     swapLanguages: "Swap languages",
+    outputRenderMode: "Output render mode",
+    outputPlain: "Plain",
+    outputMarkdown: "Markdown",
+    showPlainOutput: "Show as plain text",
+    showMarkdownOutput: "Show as Markdown",
   },
 } as const;

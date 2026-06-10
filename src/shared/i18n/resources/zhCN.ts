@@ -99,5 +99,10 @@ export const zhCN = {
     maximize: "最大化翻译结果",
     minimize: "最小化翻译结果",
     swapLanguages: "交换语言",
+    outputRenderMode: "显示模式",
+    outputPlain: "Plain",
+    outputMarkdown: "Markdown",
+    showPlainOutput: "以纯文本显示",
+    showMarkdownOutput: "以 Markdown 显示",
   },
 } as const;
