@@ -1,7 +1,5 @@
-import { cn } from "@sglara/cn";
 import { useCallback, useEffect, useRef } from "react";
 import { TitleBar } from "../../shared/components/TitleBar";
-import { useWindowDragging } from "../../shared/hooks/useWindowDragging";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
 import { listenQuickCopyTranslationInput } from "../../shared/tauri/quickCopyTranslate";
 import { TranslationControls } from "./components/TranslationControls";
@@ -16,16 +14,12 @@ export function TranslationView({
   setSettings: (settings: boolean) => void;
 }) {
   const mainRef = useRef(null);
-  const winDragClassName = useWindowDragging(mainRef);
 
   return (
     <div className="h-screen flex flex-col">
       <TitleBar settingsOpened={false} setSettings={setSettings} />
 
-      <main
-        className={cn("grow min-h-0 p-6 flex flex-col gap-6", winDragClassName)}
-        ref={mainRef}
-      >
+      <main className="grow min-h-0 p-6 flex flex-col gap-6" ref={mainRef}>
         <TranslationPane />
       </main>
     </div>
