@@ -95,7 +95,7 @@ export function TranslationOutput({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="p-4 h-full overflow-y-auto select-auto cursor-auto"
+              className="p-4 h-full overflow-y-auto select-text cursor-auto"
               ref={outputScrollRef}
             >
               <Streamdown
