@@ -14,6 +14,12 @@ export const en = {
     title: "External Link",
     message: "You're about to visit:",
   },
+  windowCaptionControls: {
+    minimize: "Minimize window",
+    maximize: "Maximize window",
+    restore: "Restore window",
+    close: "Close window",
+  },
   settings: {
     title: "Settings",
     closeAriaLabel: "Close settings",

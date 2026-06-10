@@ -14,6 +14,12 @@ export const ja = {
     title: "外部リンク",
     message: "以下のURLを開こうとしています:",
   },
+  windowCaptionControls: {
+    minimize: "ウィンドウを最小化",
+    maximize: "ウィンドウを最大化",
+    restore: "ウィンドウを元に戻す",
+    close: "ウィンドウを閉じる",
+  },
   settings: {
     title: "設定",
     closeAriaLabel: "設定を閉じる",

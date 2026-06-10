@@ -2,26 +2,29 @@
 
 import { cn } from "@sglara/cn";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { useWindowMaximized } from "../hooks/useWindowMaximized";
 
 /**
  * The controls of window for Windows.
  */
 export function WindowsCaptionControls() {
+  const { t } = useTranslation();
   const window = useMemo(() => getCurrentWindow(), []);
   const buttonClass = "w-[46px] text-[10px] flex justify-center items-center";
 
-  const [maximized, setMaximized] = useState(false);
+  const { maximized, refreshMaximized } = useWindowMaximized();
 
-  const onMaximizeOrRestore = useCallback(() => {
+  const onMaximizeOrRestore = useCallback(async () => {
     if (maximized) {
-      window.unmaximize();
-      setMaximized(false);
+      await window.unmaximize();
     } else {
-      window.maximize();
-      setMaximized(true);
+      await window.maximize();
     }
-  }, [window, maximized]);
+
+    await refreshMaximized();
+  }, [window, maximized, refreshMaximized]);
 
   return (
     <div
@@ -32,7 +35,7 @@ export function WindowsCaptionControls() {
       <button
         type="button"
         className={cn(buttonClass, "hover:bg-black/5 dark:hover:bg-white/10")}
-        aria-label="Minimize window"
+        aria-label={t("windowCaptionControls.minimize")}
         onClick={() => window.minimize()}
       >
         <span>&#xE921;</span>
@@ -40,7 +43,11 @@ export function WindowsCaptionControls() {
       <button
         type="button"
         className={cn(buttonClass, "hover:bg-black/5 dark:hover:bg-white/10")}
-        aria-label={maximized ? "Maximize window" : "Restore window"}
+        aria-label={
+          maximized
+            ? t("windowCaptionControls.restore")
+            : t("windowCaptionControls.maximize")
+        }
         onClick={onMaximizeOrRestore}
       >
         {maximized ? <span>&#xE923;</span> : <span>&#xE922;</span>}
@@ -48,7 +55,7 @@ export function WindowsCaptionControls() {
       <button
         type="button"
         className={cn(buttonClass, "hover:bg-[#e81123] hover:text-white")}
-        aria-label="Close window"
+        aria-label={t("windowCaptionControls.close")}
         onClick={() => window.close()}
       >
         <span>&#xE8BB;</span>

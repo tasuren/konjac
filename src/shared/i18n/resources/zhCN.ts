@@ -14,6 +14,12 @@ export const zhCN = {
     title: "外部链接",
     message: "即将访问:",
   },
+  windowCaptionControls: {
+    minimize: "最小化窗口",
+    maximize: "最大化窗口",
+    restore: "还原窗口",
+    close: "关闭窗口",
+  },
   settings: {
     title: "设置",
     closeAriaLabel: "关闭设置",
