@@ -31,7 +31,7 @@ export function WindowsCaptionControls() {
     >
       <button
         type="button"
-        className={cn(buttonClass, "hover:bg-black/30 dark:hover:bg-white/10")}
+        className={cn(buttonClass, "hover:bg-black/5 dark:hover:bg-white/10")}
         aria-label="Minimize window"
         onClick={() => window.minimize()}
       >
@@ -39,7 +39,7 @@ export function WindowsCaptionControls() {
       </button>
       <button
         type="button"
-        className={cn(buttonClass, "hover:bg-black/30 dark:hover:bg-white/10")}
+        className={cn(buttonClass, "hover:bg-black/5 dark:hover:bg-white/10")}
         aria-label={maximized ? "Maximize window" : "Restore window"}
         onClick={onMaximizeOrRestore}
       >
@@ -47,7 +47,7 @@ export function WindowsCaptionControls() {
       </button>
       <button
         type="button"
-        className={cn(buttonClass, "hover:bg-[#e81123]")}
+        className={cn(buttonClass, "hover:bg-[#e81123] hover:text-white")}
         aria-label="Close window"
         onClick={() => window.close()}
       >
