@@ -1,5 +1,7 @@
+import { X } from "lucide-react";
 import { type ClipboardEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { IconButton } from "../../../shared/components/IconButton";
 import { toMarkdown } from "../../../shared/tauri/translation";
 
 export type TranslationInputProps = {
@@ -47,17 +49,31 @@ export function TranslationInput({
   );
 
   return (
-    <textarea
-      placeholder={t("translation.inputPlaceholder")}
-      className="p-4 w-1/2 border border-border rounded-xl h-full overflow-y-auto select-auto"
-      value={input}
-      onPaste={onPaste}
-      onChange={(event) => setInput(event.target.value)}
-      onCompositionStart={handleCompositionStart}
-      onCompositionEnd={(event) => {
-        handleCompositionEnd();
-        setInput(event.currentTarget.value);
-      }}
-    ></textarea>
+    <div className="w-1/2 h-full relative">
+      <textarea
+        placeholder={t("translation.inputPlaceholder")}
+        className="p-4 pr-13 border border-border rounded-xl w-full h-full overflow-y-auto select-auto"
+        value={input}
+        onPaste={onPaste}
+        onChange={(event) => setInput(event.target.value)}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={(event) => {
+          handleCompositionEnd();
+          setInput(event.currentTarget.value);
+        }}
+      ></textarea>
+
+      <div className="absolute right-0 top-0 p-3">
+        {input.length > 0 && (
+          <IconButton
+            title={t("translation.inputClear")}
+            aria-label={t("translation.inputClear")}
+            onClick={() => setInput("")}
+          >
+            <X size={20} />
+          </IconButton>
+        )}
+      </div>
+    </div>
   );
 }

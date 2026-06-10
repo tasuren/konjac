@@ -91,6 +91,7 @@ export const en = {
   },
   translation: {
     inputPlaceholder: "Enter text to translate",
+    inputClear: "Clear input",
     noModel:
       "No AI model is configured for translation. Configure a model to start translating.",
     failed: "Translation failed.",

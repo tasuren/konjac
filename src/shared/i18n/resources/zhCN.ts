@@ -87,6 +87,7 @@ export const zhCN = {
   },
   translation: {
     inputPlaceholder: "输入要翻译的文本",
+    inputClear: "清除输入",
     noModel: "当前未设置用于翻译的 AI 模型。设置后即可翻译。",
     failed: "翻译失败。",
     unavailable: "无法开始翻译。",
