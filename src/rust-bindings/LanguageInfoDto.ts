@@ -3,8 +3,4 @@
 /**
  * Language metadata shared with the frontend for display and translation choices.
  */
-export type LanguageInfoDto = {
-  name: string;
-  code: string;
-  detectable: boolean;
-};
+export type LanguageInfoDto = { name: string, code: string, detectable: boolean, };

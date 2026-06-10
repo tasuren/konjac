@@ -2,7 +2,4 @@
 import type { ResolvedSourceLanguageDto } from "./ResolvedSourceLanguageDto";
 import type { ResolvedTargetLanguageDto } from "./ResolvedTargetLanguageDto";
 
-export type TranslationRequestResultDto = {
-  resolvedSourceLanguage: ResolvedSourceLanguageDto;
-  resolvedTargetLanguage: ResolvedTargetLanguageDto;
-};
+export type TranslationRequestResultDto = { resolvedSourceLanguage: ResolvedSourceLanguageDto, resolvedTargetLanguage: ResolvedTargetLanguageDto, };

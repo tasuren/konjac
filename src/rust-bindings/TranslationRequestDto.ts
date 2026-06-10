@@ -3,11 +3,4 @@ import type { ProviderKindDto } from "./ProviderKindDto";
 import type { SourceLanguageDto } from "./SourceLanguageDto";
 import type { TargetLanguageDto } from "./TargetLanguageDto";
 
-export type TranslationRequestDto = {
-  requestId: number;
-  provider: ProviderKindDto;
-  modelId: string;
-  sourceLanguage: SourceLanguageDto;
-  targetLanguage: TargetLanguageDto;
-  text: string;
-};
+export type TranslationRequestDto = { requestId: number, provider: ProviderKindDto, modelId: string, sourceLanguage: SourceLanguageDto, targetLanguage: TargetLanguageDto, text: string, };
