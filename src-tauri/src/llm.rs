@@ -122,11 +122,17 @@ impl From<Message> for completion::Message {
         match value {
             Message::SystemMessage(text) => completion::Message::System { content: text },
             Message::UserMessage(text) => completion::Message::User {
-                content: OneOrMany::one(UserContent::Text(Text { text })),
+                content: OneOrMany::one(UserContent::Text(Text {
+                    text,
+                    additional_params: None,
+                })),
             },
             Message::AssistantMessage(text) => completion::Message::Assistant {
                 id: None,
-                content: OneOrMany::one(AssistantContent::Text(Text { text })),
+                content: OneOrMany::one(AssistantContent::Text(Text {
+                    text,
+                    additional_params: None,
+                })),
             },
         }
     }
@@ -161,13 +167,13 @@ impl LlmProvider for OllamaProvider {
                         GenerationEvent::Finished(Some(final_response.response().to_owned())),
                     ),
                     MultiTurnStreamItem::StreamAssistantItem(StreamedAssistantContent::Text(
-                        Text { text },
+                        Text { text, .. },
                     )) => Some(GenerationEvent::Delta(text)),
                     MultiTurnStreamItem::StreamAssistantItem(StreamedAssistantContent::Final(
                         _,
                     )) => None,
                     _ => {
-                        log::warn!("Ignore `MultiTurnStreamItem`");
+                        log::debug!("Ignore `MultiTurnStreamItem`: {item:?}");
                         None
                     }
                 },
