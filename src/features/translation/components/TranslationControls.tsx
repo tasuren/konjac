@@ -94,7 +94,7 @@ function SourceLanguageSelect() {
 
   return (
     <Select
-      className="max-w-40"
+      className="max-w-80"
       value={
         sourceLanguage.type === "auto_detect"
           ? "auto-detection"
