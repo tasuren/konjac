@@ -10,7 +10,7 @@ use crate::{
         SourceLanguage, TargetLanguage,
     },
     settings::{
-        AutoDetectionSettings, LanguageDetectionScopeSetting, LanguageListScopeSetting,
+        LanguageDetectionSettings, LanguageDetectionScopeSetting, LanguageListScopeSetting,
         SourceLanguageSetting, TargetLanguageSetting,
     },
 };
@@ -565,14 +565,14 @@ impl From<LanguageDetectionScopeSettingDto> for LanguageDetectionScopeSetting {
 #[derive(Debug, Clone, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
-pub struct AutoDetectionSettingsDto {
+pub struct LanguageDetectionSettingsDto {
     pub scope: LanguageDetectionScopeSettingDto,
     pub custom_detection_scope: Vec<DetectableLanguageDto>,
     pub fallback_to: DetectableLanguageDto,
 }
 
-impl From<AutoDetectionSettings> for AutoDetectionSettingsDto {
-    fn from(value: AutoDetectionSettings) -> Self {
+impl From<LanguageDetectionSettings> for LanguageDetectionSettingsDto {
+    fn from(value: LanguageDetectionSettings) -> Self {
         Self {
             scope: value.scope.into(),
             custom_detection_scope: value
@@ -587,8 +587,8 @@ impl From<AutoDetectionSettings> for AutoDetectionSettingsDto {
     }
 }
 
-impl From<AutoDetectionSettingsDto> for AutoDetectionSettings {
-    fn from(value: AutoDetectionSettingsDto) -> Self {
+impl From<LanguageDetectionSettingsDto> for LanguageDetectionSettings {
+    fn from(value: LanguageDetectionSettingsDto) -> Self {
         Self {
             scope: value.scope.into(),
             custom_detection_scope: value

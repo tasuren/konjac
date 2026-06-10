@@ -134,7 +134,7 @@ pub struct Settings {
     pub fallback_target_language: TargetLanguageSetting,
     pub language_list_scope: LanguageListScopeSetting,
     pub custom_language_list_scope: Vec<LanguageCode>,
-    pub auto_detection: AutoDetectionSettings,
+    pub language_detection: LanguageDetectionSettings,
 
     pub system_prompt: Option<String>,
     #[serde(default = "default_translation_prompt")]
@@ -158,7 +158,7 @@ impl Default for Settings {
                 .iter()
                 .map(|l| LanguageCode(l.code.to_owned()))
                 .collect::<Vec<_>>(),
-            auto_detection: AutoDetectionSettings::default(),
+            language_detection: LanguageDetectionSettings::default(),
             system_prompt: None,
             translation_prompt: default_translation_prompt(),
         }
@@ -250,13 +250,13 @@ impl From<LanguageDetectionScopeSetting> for LanguageDetectionScope {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct AutoDetectionSettings {
+pub struct LanguageDetectionSettings {
     pub scope: LanguageDetectionScopeSetting,
     pub custom_detection_scope: Vec<DetectableLanguage>,
     pub fallback_to: LanguageCode,
 }
 
-impl Default for AutoDetectionSettings {
+impl Default for LanguageDetectionSettings {
     fn default() -> Self {
         Self {
             scope: LanguageDetectionScopeSetting::default(),

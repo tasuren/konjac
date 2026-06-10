@@ -10,7 +10,7 @@ export function useLanguageCatalog(): {
   languages: LanguageInfoDto[];
   detectableLanguages: LanguageInfoDto[];
 } {
-  const { languageListScope, customLanguageListScope, autoDetection } =
+  const { languageListScope, customLanguageListScope, languageDetection } =
     useSettingsStore();
   const [languages, setLanguages] = useState<LanguageInfoDto[]>([]);
   const [detectableLanguages, setDetectableLanguages] = useState<
@@ -24,11 +24,11 @@ export function useLanguageCatalog(): {
   useEffect(() => {
     setDetectableLanguages(
       filterWithDetectableScope(
-        autoDetection.scope,
-        autoDetection.customDetectionScope,
+        languageDetection.scope,
+        languageDetection.customDetectionScope,
       ),
     );
-  }, [autoDetection.scope, autoDetection.customDetectionScope]);
+  }, [languageDetection.scope, languageDetection.customDetectionScope]);
 
   return { languages, detectableLanguages };
 }

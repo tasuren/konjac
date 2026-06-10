@@ -221,15 +221,15 @@ export function LanguageDetectionScopeSelect({
   name: string;
   id: string;
 }) {
-  const { autoDetection, updateSettings } = useSettingsStore();
+  const { languageDetection, updateSettings } = useSettingsStore();
   const { t } = useTranslation();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       updateSettings((settings) => ({
         ...settings,
-        autoDetection: {
-          ...settings.autoDetection,
+        languageDetection: {
+          ...settings.languageDetection,
           scope: event.currentTarget.value as LanguageDetectionScopeSettingDto,
         },
       }));
@@ -241,8 +241,8 @@ export function LanguageDetectionScopeSelect({
     (languages: LanguageCodeDto[]) => {
       updateSettings((settings) => ({
         ...settings,
-        autoDetection: {
-          ...settings.autoDetection,
+        languageDetection: {
+          ...settings.languageDetection,
           customDetectionScope: languages as DetectableLanguageDto[],
         },
       }));
@@ -257,16 +257,16 @@ export function LanguageDetectionScopeSelect({
         id={id}
         className="w-40"
         onChange={onChange}
-        value={autoDetection.scope}
+        value={languageDetection.scope}
       >
         <option value="all">{t("language.scopes.all")}</option>
         <option value="common">{t("language.scopes.common")}</option>
         <option value="custom">{t("language.scopes.custom")}</option>
       </Select>
 
-      {autoDetection.scope === "common" && <CommonLanguageNotice />}
+      {languageDetection.scope === "common" && <CommonLanguageNotice />}
 
-      {autoDetection.scope === "custom" && (
+      {languageDetection.scope === "custom" && (
         <SettingsField
           htmlFor="custom-detection-list-scope-select"
           label={t("settings.customLanguageList")}
@@ -274,7 +274,7 @@ export function LanguageDetectionScopeSelect({
         >
           <LanguageList
             catalog={filterWithDetectable("all")}
-            languageList={autoDetection.customDetectionScope}
+            languageList={languageDetection.customDetectionScope}
             selectId="custom-detection-list-scope-select"
             setLanguageList={setDetectionLanguageList}
           />
@@ -389,15 +389,15 @@ export function LanguageDetectionFallbackSelect({
   name: string;
   id: string;
 }) {
-  const { autoDetection, updateSettings } = useSettingsStore();
+  const { languageDetection, updateSettings } = useSettingsStore();
   const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       updateSettings((settings) => ({
         ...settings,
-        autoDetection: {
-          ...settings.autoDetection,
+        languageDetection: {
+          ...settings.languageDetection,
           fallbackTo: event.target.value as DetectableLanguageDto,
         },
       }));
@@ -409,7 +409,7 @@ export function LanguageDetectionFallbackSelect({
     <Select
       name={name}
       id={id}
-      value={autoDetection.fallbackTo}
+      value={languageDetection.fallbackTo}
       onChange={onChange}
     >
       {languageDisplay.sort(filterWithDetectable("all")).map((language) => (

@@ -234,7 +234,7 @@ pub struct SettingsDto {
     pub fallback_target_language: TargetLanguageSettingDto,
     pub language_list_scope: LanguageListScopeSettingDto,
     pub custom_language_list_scope: Vec<LanguageCodeDto>,
-    pub auto_detection: AutoDetectionSettingsDto,
+    pub language_detection: LanguageDetectionSettingsDto,
 
     pub system_prompt: Option<String>,
     pub translation_prompt: String,
@@ -257,7 +257,7 @@ impl From<Settings> for SettingsDto {
                 .into_iter()
                 .map(Into::into)
                 .collect(),
-            auto_detection: value.auto_detection.into(),
+            language_detection: value.language_detection.into(),
             system_prompt: value.system_prompt,
             translation_prompt: value.translation_prompt,
         }
@@ -282,7 +282,7 @@ impl From<SettingsDto> for Settings {
                 .into_iter()
                 .map(Into::into)
                 .collect(),
-            auto_detection: value.auto_detection.into(),
+            language_detection: value.language_detection.into(),
             system_prompt: value.system_prompt,
             translation_prompt: value.translation_prompt,
         }

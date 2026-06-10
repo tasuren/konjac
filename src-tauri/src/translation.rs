@@ -118,16 +118,16 @@ impl TranslationSettings {
 
 fn build_language_resolver(settings: &Settings) -> LanguageResolver {
     LanguageResolver::new(
-        settings.auto_detection.scope.clone().into(),
+        settings.language_detection.scope.clone().into(),
         settings
-            .auto_detection
+            .language_detection
             .custom_detection_scope
             .iter()
             .cloned()
             .map(Into::into)
             .collect(),
         settings
-            .auto_detection
+            .language_detection
             .fallback_to
             .clone()
             .0
