@@ -22,6 +22,7 @@
   --color-markdown-quote-bg: #ecece8;
   --color-markdown-quote-border: #c8d6eb;
   --color-markdown-table-header: #e8e8e4;
+  --color-markdown-table-header-text: #2a2a27;
   --color-markdown-selection: #c9d9f0;
 }
 
@@ -44,7 +45,8 @@
     --color-markdown-inline-code-bg: #404040;
     --color-markdown-quote-bg: #262623;
     --color-markdown-quote-border: #4f6f9f;
-    --color-markdown-table-header: #2d2d29;
+    --color-markdown-table-header: #3f403a;
+    --color-markdown-table-header-text: #f7f7f2;
     --color-markdown-selection: #314766;
   }
 }
@@ -96,7 +98,8 @@ body {
   margin-left: 0;
 }
 
-[data-streamdown="code-block-header"] + div:has([data-streamdown="code-block-actions"]) {
+[data-streamdown="code-block-header"]
+  + div:has([data-streamdown="code-block-actions"]) {
   height: 2rem;
   margin-top: -2rem;
   top: 5px;
@@ -118,4 +121,27 @@ body {
   background: var(--color-markdown-inline-code-bg);
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+[data-streamdown="table-wrapper"] {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  gap: 0;
+  padding: 0;
+}
+
+[data-streamdown="table-wrapper"] > div:has(> [data-streamdown="table"]) {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+[data-streamdown="table-header"] {
+  background: var(--color-markdown-table-header);
+  color: var(--color-markdown-table-header-text);
+}
+
+[data-streamdown="table-header-cell"] {
+  color: inherit;
 }

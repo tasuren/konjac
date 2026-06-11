@@ -108,7 +108,10 @@ export function TranslationOutput({
               {outputRenderMode === "markdown" ? (
                 <Streamdown
                   plugins={{ cjk }}
-                  controls={{ code: { download: false } }}
+                  controls={{
+                    code: { download: false },
+                    table: false,
+                  }}
                   remend={{ linkMode: "text-only" }}
                   linkSafety={{
                     enabled: true,
