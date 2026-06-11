@@ -7,6 +7,8 @@
         "title": "Konjac / コンニャク (Beta)",
         "width": 900,
         "height": 650,
+        "minWidth": 900,
+        "minHeight": 600,
         "hiddenTitle": true,
         "titleBarStyle": "Overlay",
         "decorations": false,
