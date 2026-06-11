@@ -30,12 +30,12 @@ export function TranslationControls({
   }, [models, model]);
 
   return (
-    <div className="flex items-center gap-6 relative pointer-events-none [&>*>*]:pointer-events-auto">
-      <div className="flex-1 basis-0 min-w-0 flex justify-end px-2">
-        <SourceLanguageSelect />
-      </div>
+    <div className="grid grid-cols-[minmax(0,2.8fr)_minmax(6rem,1fr)] items-center gap-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+      <div className="grid min-w-0 grid-cols-[minmax(8rem,1fr)_auto_minmax(8rem,1fr)] items-center gap-3 md:col-start-2">
+        <div className="min-w-0">
+          <SourceLanguageSelect />
+        </div>
 
-      <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
         <IconButton
           className="active:opacity-60"
           disabled={swapDisabled}
@@ -45,22 +45,22 @@ export function TranslationControls({
         >
           <ArrowRightLeft size={26} />
         </IconButton>
+
+        <div className="min-w-0">
+          <TargetLanguageSelect />
+        </div>
       </div>
 
-      <div className="flex-1 basis-0 min-w-0 flex justify-between px-2">
-        <TargetLanguageSelect />
-      </div>
-
-      <div className="absolute right-0 mr-2 text-muted">
+      <div className="min-w-0 text-muted md:col-start-3">
         <button
           type="button"
-          className="flex items-center gap-0.5 hover:underline"
+          className="flex w-full items-center justify-end gap-0.5 hover:underline"
           onClick={focusModelSelect}
         >
-          <span>
+          <span className="min-w-0 truncate">
             {modelDisplay === null ? t("llm.noModelSelected") : modelDisplay}
           </span>
-          <ArrowUpRight className="inline" size={16} />
+          <ArrowUpRight className="shrink-0" size={16} />
         </button>
       </div>
     </div>
@@ -94,7 +94,8 @@ function SourceLanguageSelect() {
 
   return (
     <Select
-      className="max-w-80"
+      containerClassName="w-full min-w-0"
+      className="w-full min-w-0 truncate"
       value={
         sourceLanguage.type === "auto_detect"
           ? "auto-detection"
@@ -131,7 +132,12 @@ function TargetLanguageSelect() {
   );
 
   return (
-    <Select className="max-w-40" value={targetLanguage} onChange={onChange}>
+    <Select
+      containerClassName="w-full min-w-0"
+      className="w-full min-w-0 truncate"
+      value={targetLanguage}
+      onChange={onChange}
+    >
       {languageDisplay.sort(languages).map((lang) => (
         <option key={lang.code} value={lang.code}>
           {languageDisplay.name(lang)}

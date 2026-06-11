@@ -2,11 +2,18 @@ import { cn } from "@sglara/cn";
 import { ChevronDown } from "lucide-react";
 import type { ComponentPropsWithRef } from "react";
 
-export type SelectProps = ComponentPropsWithRef<"select">;
+export type SelectProps = ComponentPropsWithRef<"select"> & {
+  containerClassName?: string;
+};
 
-export function Select({ className, children, ...props }: SelectProps) {
+export function Select({
+  className,
+  containerClassName,
+  children,
+  ...props
+}: SelectProps) {
   return (
-    <div className="relative w-fit">
+    <div className={cn("relative w-fit", containerClassName)}>
       <select
         className={cn(
           "appearance-none border border-border bg-surface-elevated rounded-lg px-2 py-1 pr-8",

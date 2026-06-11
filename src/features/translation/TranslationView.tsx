@@ -121,30 +121,30 @@ function TranslationPane({
   }, [setInput]);
 
   return (
-    <>
-      <TranslationControls
-        swapDisabled={swapDisabled}
-        onSwap={handleSwap}
-        focusModelSelect={focusModelSelect}
-      />
-
-      <div className="grow flex min-h-0 gap-6">
-        <TranslationInput
-          input={input}
-          setInput={setInput}
-          handleCompositionStart={handleCompositionStart}
-          handleCompositionEnd={handleCompositionEnd}
-        />
-
-        <TranslationOutput
-          model={model}
-          input={input}
-          output={output}
-          status={status}
-          availabilityError={availabilityError}
-          translationError={translationError}
+    <div className="grow min-h-0 grid grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-6 md:grid-cols-2 md:grid-rows-[auto_minmax(0,1fr)]">
+      <div className="min-w-0 md:col-span-2">
+        <TranslationControls
+          swapDisabled={swapDisabled}
+          onSwap={handleSwap}
+          focusModelSelect={focusModelSelect}
         />
       </div>
-    </>
+
+      <TranslationInput
+        input={input}
+        setInput={setInput}
+        handleCompositionStart={handleCompositionStart}
+        handleCompositionEnd={handleCompositionEnd}
+      />
+
+      <TranslationOutput
+        model={model}
+        input={input}
+        output={output}
+        status={status}
+        availabilityError={availabilityError}
+        translationError={translationError}
+      />
+    </div>
   );
 }
