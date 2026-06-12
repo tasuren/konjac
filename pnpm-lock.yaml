@@ -35,6 +35,9 @@ importers:
       '@tauri-apps/plugin-os':
         specifier: ~2.3.2
         version: 2.3.2
+      '@tauri-apps/plugin-window-state':
+        specifier: ~2.4.1
+        version: 2.4.1
       es-toolkit:
         specifier: ^1.47.0
         version: 1.47.0
@@ -655,6 +658,9 @@ packages:
 
   '@tauri-apps/plugin-os@2.3.2':
     resolution: {integrity: sha512-n+nXWeuSeF9wcEsSPmRnBEGrRgOy6jjkSU+UVCOV8YUGKb2erhDOxis7IqRXiRVHhY8XMKks00BJ0OAdkpf6+A==}
+
+  '@tauri-apps/plugin-window-state@2.4.1':
+    resolution: {integrity: sha512-OuvdrzyY8Q5Dbzpj+GcrnV1iCeoZbcFdzMjanZMMcAEUNy/6PH5pxZPXpaZLOR7whlzXiuzx0L9EKZbH7zpdRw==}
 
   '@tybys/wasm-util@0.10.2':
     resolution: {integrity: sha512-RoBvJ2X0wuKlWFIjrwffGw1IqZHKQqzIchKaadZZfnNpsAYp2mM0h36JtPCjNDAHGgYez/15uMBpfGwchhiMgg==}
@@ -2285,6 +2291,10 @@ snapshots:
       '@tauri-apps/api': 2.11.0
 
   '@tauri-apps/plugin-os@2.3.2':
+    dependencies:
+      '@tauri-apps/api': 2.11.0
+
+  '@tauri-apps/plugin-window-state@2.4.1':
     dependencies:
       '@tauri-apps/api': 2.11.0
 

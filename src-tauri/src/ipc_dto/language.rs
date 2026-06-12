@@ -10,7 +10,7 @@ use crate::{
         SourceLanguage, TargetLanguage,
     },
     settings::{
-        LanguageDetectionSettings, LanguageDetectionScopeSetting, LanguageListScopeSetting,
+        LanguageDetectionScopeSetting, LanguageDetectionSettings, LanguageListScopeSetting,
         SourceLanguageSetting, TargetLanguageSetting,
     },
 };
