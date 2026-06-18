@@ -8,7 +8,8 @@ import { useSettingsStore } from "../stores/settingsStore";
 const tauriWindow = getCurrentWindow();
 
 export function useAppInitializer() {
-  const { theme, appLocale } = useSettingsStore();
+  const theme = useSettingsStore((state) => state.theme);
+  const appLocale = useSettingsStore((state) => state.appLocale);
 
   // Set up OS theme change listener
   useEffect(() => {

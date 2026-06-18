@@ -8,7 +8,8 @@ import { Select } from "../../../shared/components/Select";
 import { useSettingsStore } from "../../../shared/stores/settingsStore";
 
 export function ThemeSelect({ name, id }: { name: string; id: string }) {
-  const { theme, updateSettings } = useSettingsStore();
+  const theme = useSettingsStore((state) => state.theme);
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const { t } = useTranslation();
 
   const onChange = useCallback(
@@ -35,7 +36,8 @@ export function ThemeSelect({ name, id }: { name: string; id: string }) {
 }
 
 export function AppLocaleSelect({ name, id }: { name: string; id: string }) {
-  const { appLocale, updateSettings } = useSettingsStore();
+  const appLocale = useSettingsStore((state) => state.appLocale);
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const { t } = useTranslation();
 
   const onChange = useCallback(

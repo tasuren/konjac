@@ -28,7 +28,8 @@ function genModelKey(model: ModelSelectionDto) {
 }
 
 export function ModelSelect({ name, id }: { name: string; id: string }) {
-  const { model, updateSettings } = useSettingsStore();
+  const model = useSettingsStore((state) => state.model);
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const provider = model?.provider ?? "ollama";
   const { models, status, error, refresh } = useProviderModelCatalog(provider);
   const { t } = useTranslation();
@@ -130,7 +131,8 @@ export function SystemPromptTextArea({
   name: string;
   id: string;
 }) {
-  const { systemPrompt, updateSettings } = useSettingsStore();
+  const systemPrompt = useSettingsStore((state) => state.systemPrompt);
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const [composition, setComposition] = useState(false);
 
   const debouncedOnChange = useMemo(
@@ -171,7 +173,10 @@ export function TranslationPromptTextArea({
   name: string;
   id: string;
 }) {
-  const { translationPrompt, updateSettings } = useSettingsStore();
+  const translationPrompt = useSettingsStore(
+    (state) => state.translationPrompt,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const [composition, setComposition] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { t } = useTranslation();
@@ -249,7 +254,10 @@ export function TranslationPromptTextArea({
 }
 
 export function OllamaBaseUrl({ name, id }: { name: string; id: string }) {
-  const { providers, updateSettings } = useSettingsStore();
+  const ollamaBaseUrl = useSettingsStore(
+    (state) => state.providers.ollama.baseUrl,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
 
   const writeBaseUrl = useMemo(
     () =>
@@ -273,14 +281,17 @@ export function OllamaBaseUrl({ name, id }: { name: string; id: string }) {
       type="url"
       name={name}
       id={id}
-      defaultValue={providers.ollama.baseUrl}
+      defaultValue={ollamaBaseUrl}
       onChange={(event) => writeBaseUrl(event.currentTarget.value)}
     />
   );
 }
 
 export function OllamaKeepAlive({ name, id }: { name: string; id: string }) {
-  const { providers, updateSettings } = useSettingsStore();
+  const ollamaKeepAlive = useSettingsStore(
+    (state) => state.providers.ollama.keepAlive,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
 
   const writeKeepAlive = useMemo(
     () =>
@@ -306,7 +317,7 @@ export function OllamaKeepAlive({ name, id }: { name: string; id: string }) {
       type="text"
       name={name}
       id={id}
-      defaultValue={providers.ollama.keepAlive || ""}
+      defaultValue={ollamaKeepAlive || ""}
       onChange={(event) => writeKeepAlive(event.currentTarget.value)}
     />
   );

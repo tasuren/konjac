@@ -26,7 +26,10 @@ export function SourceLanguageSelect({
   name: string;
   id: string;
 }) {
-  const { defaultSourceLanguage, updateSettings } = useSettingsStore();
+  const defaultSourceLanguage = useSettingsStore(
+    (state) => state.defaultSourceLanguage,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const { t } = useTranslation();
   const languageDisplay = useLanguageDisplay();
 
@@ -80,7 +83,10 @@ export function TargetLanguageSelect({
   name: string;
   id: string;
 }) {
-  const { defaultTargetLanguage, updateSettings } = useSettingsStore();
+  const defaultTargetLanguage = useSettingsStore(
+    (state) => state.defaultTargetLanguage,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
@@ -118,7 +124,10 @@ export function FallbackTargetLanguageSelect({
   name: string;
   id: string;
 }) {
-  const { fallbackTargetLanguage, updateSettings } = useSettingsStore();
+  const fallbackTargetLanguage = useSettingsStore(
+    (state) => state.fallbackTargetLanguage,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
@@ -155,8 +164,13 @@ export function LanguageListScopeSelect({
   name: string;
   id: string;
 }) {
-  const { languageListScope, customLanguageListScope, updateSettings } =
-    useSettingsStore();
+  const languageListScope = useSettingsStore(
+    (state) => state.languageListScope,
+  );
+  const customLanguageListScope = useSettingsStore(
+    (state) => state.customLanguageListScope,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const { t } = useTranslation();
 
   const onChange = useCallback(
@@ -221,7 +235,13 @@ export function LanguageDetectionScopeSelect({
   name: string;
   id: string;
 }) {
-  const { languageDetection, updateSettings } = useSettingsStore();
+  const languageDetectionScope = useSettingsStore(
+    (state) => state.languageDetection.scope,
+  );
+  const customDetectionScope = useSettingsStore(
+    (state) => state.languageDetection.customDetectionScope,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const { t } = useTranslation();
 
   const onChange = useCallback(
@@ -257,16 +277,16 @@ export function LanguageDetectionScopeSelect({
         id={id}
         className="w-40"
         onChange={onChange}
-        value={languageDetection.scope}
+        value={languageDetectionScope}
       >
         <option value="all">{t("language.scopes.all")}</option>
         <option value="common">{t("language.scopes.common")}</option>
         <option value="custom">{t("language.scopes.custom")}</option>
       </Select>
 
-      {languageDetection.scope === "common" && <CommonLanguageNotice />}
+      {languageDetectionScope === "common" && <CommonLanguageNotice />}
 
-      {languageDetection.scope === "custom" && (
+      {languageDetectionScope === "custom" && (
         <SettingsField
           htmlFor="custom-detection-list-scope-select"
           label={t("settings.customLanguageList")}
@@ -274,7 +294,7 @@ export function LanguageDetectionScopeSelect({
         >
           <LanguageList
             catalog={filterWithDetectable("all")}
-            languageList={languageDetection.customDetectionScope}
+            languageList={customDetectionScope}
             selectId="custom-detection-list-scope-select"
             setLanguageList={setDetectionLanguageList}
           />
@@ -389,7 +409,10 @@ export function LanguageDetectionFallbackSelect({
   name: string;
   id: string;
 }) {
-  const { languageDetection, updateSettings } = useSettingsStore();
+  const languageDetectionFallbackTo = useSettingsStore(
+    (state) => state.languageDetection.fallbackTo,
+  );
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
   const languageDisplay = useLanguageDisplay();
 
   const onChange = useCallback(
@@ -409,7 +432,7 @@ export function LanguageDetectionFallbackSelect({
     <Select
       name={name}
       id={id}
-      value={languageDetection.fallbackTo}
+      value={languageDetectionFallbackTo}
       onChange={onChange}
     >
       {languageDisplay.sort(filterWithDetectable("all")).map((language) => (

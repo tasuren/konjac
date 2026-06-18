@@ -37,15 +37,28 @@ function TranslationPane({
 }: {
   focusModelSelect: () => void;
 }) {
-  const {
-    sourceLanguage,
-    resolvedSourceLanguage,
-    setSourceLanguage,
-    setResolvedSourceLanguage,
-    targetLanguage,
-    setTargetLanguage,
-  } = useTranslationSelectionStore();
-  const { model, quickCopyTranslate } = useSettingsStore();
+  const sourceLanguage = useTranslationSelectionStore(
+    (state) => state.sourceLanguage,
+  );
+  const resolvedSourceLanguage = useTranslationSelectionStore(
+    (state) => state.resolvedSourceLanguage,
+  );
+  const setSourceLanguage = useTranslationSelectionStore(
+    (state) => state.setSourceLanguage,
+  );
+  const setResolvedSourceLanguage = useTranslationSelectionStore(
+    (state) => state.setResolvedSourceLanguage,
+  );
+  const targetLanguage = useTranslationSelectionStore(
+    (state) => state.targetLanguage,
+  );
+  const setTargetLanguage = useTranslationSelectionStore(
+    (state) => state.setTargetLanguage,
+  );
+  const model = useSettingsStore((state) => state.model);
+  const quickCopyTranslateEnabled = useSettingsStore(
+    (state) => state.quickCopyTranslate.enabled,
+  );
   const [clipboardInputMode, setClipboardInputMode] =
     useState<ClipboardInputMode>("markdown");
   const [clipboardInputVariants, setClipboardInputVariantsState] =
@@ -192,7 +205,7 @@ function TranslationPane({
         clipboardInputMode={clipboardInputMode}
         setClipboardInputMode={handleClipboardInputModeChange}
         applyClipboardInputVariants={applyClipboardInputVariants}
-        quickCopyTranslateEnabled={quickCopyTranslate.enabled}
+        quickCopyTranslateEnabled={quickCopyTranslateEnabled}
         handleCompositionStart={handleCompositionStart}
         handleCompositionEnd={handleCompositionEnd}
       />

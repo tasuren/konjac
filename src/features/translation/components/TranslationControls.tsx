@@ -68,8 +68,15 @@ export function TranslationControls({
 }
 
 function SourceLanguageSelect() {
-  const { sourceLanguage, resolvedSourceLanguage, setSourceLanguage } =
-    useTranslationSelectionStore();
+  const sourceLanguage = useTranslationSelectionStore(
+    (state) => state.sourceLanguage,
+  );
+  const resolvedSourceLanguage = useTranslationSelectionStore(
+    (state) => state.resolvedSourceLanguage,
+  );
+  const setSourceLanguage = useTranslationSelectionStore(
+    (state) => state.setSourceLanguage,
+  );
   const { languages } = useLanguageCatalog();
   const { t } = useTranslation();
   const languageDisplay = useLanguageDisplay();
@@ -119,7 +126,12 @@ function SourceLanguageSelect() {
 }
 
 function TargetLanguageSelect() {
-  const { targetLanguage, setTargetLanguage } = useTranslationSelectionStore();
+  const targetLanguage = useTranslationSelectionStore(
+    (state) => state.targetLanguage,
+  );
+  const setTargetLanguage = useTranslationSelectionStore(
+    (state) => state.setTargetLanguage,
+  );
   const { languages } = useLanguageCatalog();
   const languageDisplay = useLanguageDisplay();
 
