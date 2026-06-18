@@ -51,21 +51,22 @@ export function TranslationInput({
       const html = event.clipboardData.getData("text/html");
       if (!html) return;
 
-      event.preventDefault();
-
-      const rawText = event.clipboardData.getData("text/plain") || html;
-      const markdown = await toMarkdown(html).catch(() => rawText);
-
       const target = event.currentTarget;
+      const pastedIntoInput = target.value;
       const start = target.selectionStart;
       const end = target.selectionEnd;
+      const rawText = event.clipboardData.getData("text/plain") || html;
+
+      event.preventDefault();
+
+      const markdown = await toMarkdown(html).catch(() => rawText);
 
       applyClipboardInputVariants({
-        rawInput: replaceTextRange(input, start, end, rawText),
-        markdownInput: replaceTextRange(input, start, end, markdown),
+        rawInput: replaceTextRange(pastedIntoInput, start, end, rawText),
+        markdownInput: replaceTextRange(pastedIntoInput, start, end, markdown),
       });
     },
-    [input, applyClipboardInputVariants],
+    [applyClipboardInputVariants],
   );
 
   const clipboardInputModeOptions: Array<{
