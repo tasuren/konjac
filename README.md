@@ -3,11 +3,13 @@
 Konjac is a desktop translation app designed for seamless text translation.
 With Ollama support, translations can be performed entirely locally using your own language models.
 
-Press the copy shortcut twice to instantly translate the copied text.
+- **Quick copy translation** — Double-tap your copy shortcut (⌘C / Ctrl+C) to instantly translate selected text.
+- **Markdown web paste** — Paste web page content directly as Markdown.
+- **Cross-platform** — Supports Windows and macOS, with Linux support planned.
 
-The application was built with Tauri and React. **Currently under development.**
+This application was built with Tauri and React.
 
-<img width="600" alt="screenshot of Konjac" src="https://github.com/user-attachments/assets/717bce09-e383-43ed-8577-220ef0a09c52" />
+<img width="700" alt="screenshot of Konjac" src="https://github.com/user-attachments/assets/f76d885d-b657-4165-880a-ef70051f236e" />
 
 ## License
 
