@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TitleBar } from "../../shared/components/TitleBar";
 import { useSettingsStore } from "../../shared/stores/settingsStore";
 import { listenQuickCopyTranslationInput } from "../../shared/tauri/quickCopyTranslate";
 import { TranslationControls } from "./components/TranslationControls";
-import { TranslationInput } from "./components/TranslationInput";
+import {
+  type ClipboardInputMode,
+  type ClipboardInputVariants,
+  TranslationInput,
+} from "./components/TranslationInput";
 import { TranslationOutput } from "./components/TranslationOutput";
 import { useTranslationSession } from "./hooks/useTranslationSession";
 import { useTranslationSelectionStore } from "./stores/translationLanguageStore";
@@ -42,6 +46,10 @@ function TranslationPane({
     setTargetLanguage,
   } = useTranslationSelectionStore();
   const { model, quickCopyTranslate } = useSettingsStore();
+  const [clipboardInputMode, setClipboardInputMode] =
+    useState<ClipboardInputMode>("markdown");
+  const [clipboardInputVariants, setClipboardInputVariantsState] =
+    useState<ClipboardInputVariants | null>(null);
 
   const {
     output,
@@ -93,6 +101,39 @@ function TranslationPane({
     status !== "idle" ||
     (sourceLanguage.type === "auto_detect" && resolvedSourceLanguage === null);
 
+  const applyClipboardInputVariants = useCallback(
+    (variants: ClipboardInputVariants) => {
+      setClipboardInputVariantsState(variants);
+      setInput(
+        clipboardInputMode === "markdown"
+          ? variants.markdownInput
+          : variants.rawInput,
+      );
+    },
+    [clipboardInputMode, setInput],
+  );
+
+  const handleClipboardInputModeChange = useCallback(
+    (mode: ClipboardInputMode) => {
+      setClipboardInputMode(mode);
+
+      if (
+        clipboardInputVariants === null ||
+        (input !== clipboardInputVariants.rawInput &&
+          input !== clipboardInputVariants.markdownInput)
+      ) {
+        return;
+      }
+
+      setInput(
+        mode === "markdown"
+          ? clipboardInputVariants.markdownInput
+          : clipboardInputVariants.rawInput,
+      );
+    },
+    [clipboardInputVariants, input, setInput],
+  );
+
   useEffect(() => {
     if (input.length === 0) {
       setResolvedSourceLanguage(null);
@@ -100,11 +141,26 @@ function TranslationPane({
   }, [input, setResolvedSourceLanguage]);
 
   useEffect(() => {
+    if (
+      clipboardInputVariants !== null &&
+      input !== clipboardInputVariants.rawInput &&
+      input !== clipboardInputVariants.markdownInput
+    ) {
+      setClipboardInputVariantsState(null);
+    }
+  }, [clipboardInputVariants, input]);
+
+  useEffect(() => {
     let unlisten: (() => void) | undefined;
     let disposed = false;
 
-    listenQuickCopyTranslationInput(({ text }) => {
-      setInput(text);
+    listenQuickCopyTranslationInput(({ rawText, markdownText }) => {
+      const variants = {
+        rawInput: rawText,
+        markdownInput: markdownText ?? rawText,
+      };
+
+      applyClipboardInputVariants(variants);
     }).then((dispose) => {
       if (disposed) {
         dispose();
@@ -118,7 +174,7 @@ function TranslationPane({
       disposed = true;
       unlisten?.();
     };
-  }, [setInput]);
+  }, [applyClipboardInputVariants]);
 
   return (
     <div className="grow min-h-0 grid grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)] gap-6 md:grid-cols-2 md:grid-rows-[auto_minmax(0,1fr)]">
@@ -133,6 +189,9 @@ function TranslationPane({
       <TranslationInput
         input={input}
         setInput={setInput}
+        clipboardInputMode={clipboardInputMode}
+        setClipboardInputMode={handleClipboardInputModeChange}
+        applyClipboardInputVariants={applyClipboardInputVariants}
         quickCopyTranslateEnabled={quickCopyTranslate.enabled}
         handleCompositionStart={handleCompositionStart}
         handleCompositionEnd={handleCompositionEnd}

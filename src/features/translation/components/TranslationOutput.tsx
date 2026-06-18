@@ -9,6 +9,7 @@ import { Streamdown } from "streamdown";
 import type { ModelSelectionDto } from "../../../rust-bindings/ModelSelectionDto";
 import { CustomLinkModal } from "../../../shared/components/CustomLinkModal";
 import { IconButton } from "../../../shared/components/IconButton";
+import { SegmentedControl } from "../../../shared/components/SegmentedControl";
 import type { TranslationStatus } from "../hooks/useTranslationSession";
 
 type OutputRenderMode = "plain" | "markdown";
@@ -67,6 +68,23 @@ export function TranslationOutput({
     (!requesting && translating) || (input.length > 0 && input === lastInput);
   const showRenderModeControl =
     showOutput && output.length > 0 && !visibleError;
+  
+  const outputRenderModeOptions: Array<{
+    value: OutputRenderMode;
+    label: string;
+    title: string;
+  }> = [
+    {
+      value: "plain",
+      label: t("translation.outputPlain"),
+      title: t("translation.showPlainOutput"),
+    },
+    {
+      value: "markdown",
+      label: t("translation.outputMarkdown"),
+      title: t("translation.showMarkdownOutput"),
+    },
+  ];
 
   return (
     <div
@@ -152,8 +170,10 @@ export function TranslationOutput({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <OutputRenderModeControl
+                <SegmentedControl
+                  legend={t("translation.outputRenderMode")}
                   value={outputRenderMode}
+                  options={outputRenderModeOptions}
                   onChange={setOutputRenderMode}
                 />
               </motion.div>
@@ -203,61 +223,6 @@ export function TranslationOutput({
         </div>
       </div>
     </div>
-  );
-}
-
-function OutputRenderModeControl({
-  value,
-  onChange,
-}: {
-  value: OutputRenderMode;
-  onChange: (value: OutputRenderMode) => void;
-}) {
-  const { t } = useTranslation();
-
-  const modes: Array<{
-    value: OutputRenderMode;
-    label: string;
-    title: string;
-  }> = [
-    {
-      value: "plain",
-      label: t("translation.outputPlain"),
-      title: t("translation.showPlainOutput"),
-    },
-    {
-      value: "markdown",
-      label: t("translation.outputMarkdown"),
-      title: t("translation.showMarkdownOutput"),
-    },
-  ];
-
-  return (
-    <fieldset className="flex rounded-md border border-border bg-surface-elevated p-0.5 text-xs">
-      <legend className="sr-only">{t("translation.outputRenderMode")}</legend>
-
-      {modes.map((mode) => {
-        const selected = value === mode.value;
-
-        return (
-          <button
-            key={mode.value}
-            type="button"
-            title={mode.title}
-            aria-label={mode.title}
-            aria-pressed={selected}
-            className={cn(
-              "rounded px-2 py-1 transition-colors",
-              "hover:text-text active:opacity-70",
-              selected ? "bg-surface text-text shadow-sm" : "text-muted",
-            )}
-            onClick={() => onChange(mode.value)}
-          >
-            {mode.label}
-          </button>
-        );
-      })}
-    </fieldset>
   );
 }
 

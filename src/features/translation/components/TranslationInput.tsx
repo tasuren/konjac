@@ -4,11 +4,22 @@ import { Trash2 } from "lucide-react";
 import { type ClipboardEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../../../shared/components/IconButton";
+import { SegmentedControl } from "../../../shared/components/SegmentedControl";
 import { toMarkdown } from "../../../shared/tauri/translation";
+
+export type ClipboardInputMode = "text" | "markdown";
+
+export type ClipboardInputVariants = {
+  rawInput: string;
+  markdownInput: string;
+};
 
 export type TranslationInputProps = {
   input: string;
   setInput: (text: string) => void;
+  clipboardInputMode: ClipboardInputMode;
+  setClipboardInputMode: (mode: ClipboardInputMode) => void;
+  applyClipboardInputVariants: (variants: ClipboardInputVariants) => void;
   quickCopyTranslateEnabled: boolean;
   handleCompositionStart: () => void;
   handleCompositionEnd: () => void;
@@ -19,6 +30,9 @@ const quickCopyShortcut = platform() === "macos" ? "⌘C" : "Ctrl+C";
 export function TranslationInput({
   input,
   setInput,
+  clipboardInputMode,
+  setClipboardInputMode,
+  applyClipboardInputVariants,
   quickCopyTranslateEnabled,
   handleCompositionStart,
   handleCompositionEnd,
@@ -38,26 +52,38 @@ export function TranslationInput({
       if (!html) return;
 
       event.preventDefault();
-      const markdown = await toMarkdown(html);
 
-      // We mainly use deprecated `execCommand` to support undo.
-      // TODO: Use selection approach with undo feature.
-      const methodName: string = "execCommand";
-      // @ts-expect-error
-      const execCommand = (...obj) => document[methodName](...obj);
+      const rawText = event.clipboardData.getData("text/plain") || html;
+      const markdown = await toMarkdown(html).catch(() => rawText);
 
-      if (execCommand) {
-        execCommand("insertText", false, markdown);
-      } else {
-        const selection = getSelection();
-        if (selection === null) return;
+      const target = event.currentTarget;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
 
-        selection.deleteFromDocument();
-        selection.getRangeAt(0).insertNode(document.createTextNode(markdown));
-      }
+      applyClipboardInputVariants({
+        rawInput: replaceTextRange(input, start, end, rawText),
+        markdownInput: replaceTextRange(input, start, end, markdown),
+      });
     },
-    [],
+    [input, applyClipboardInputVariants],
   );
+
+  const clipboardInputModeOptions: Array<{
+    value: ClipboardInputMode;
+    label: string;
+    title: string;
+  }> = [
+    {
+      value: "text",
+      label: t("translation.clipboardInputText"),
+      title: t("translation.useClipboardTextInput"),
+    },
+    {
+      value: "markdown",
+      label: t("translation.clipboardInputMarkdown"),
+      title: t("translation.useClipboardMarkdownInput"),
+    },
+  ];
 
   return (
     <div
@@ -79,17 +105,35 @@ export function TranslationInput({
         }}
       ></textarea>
 
-      <div className="h-13 shrink-0 px-3 flex justify-end items-center gap-4">
-        {input.length > 0 && (
-          <IconButton
-            title={t("translation.inputClear")}
-            aria-label={t("translation.inputClear")}
-            onClick={() => setInput("")}
-          >
-            <Trash2 />
-          </IconButton>
-        )}
+      <div className="h-13 shrink-0 px-3 flex justify-between items-center gap-4">
+        <SegmentedControl
+          legend={t("translation.clipboardInputMode")}
+          value={clipboardInputMode}
+          options={clipboardInputModeOptions}
+          onChange={setClipboardInputMode}
+        />
+
+        <div className="flex shrink-0 items-center gap-4">
+          {input.length > 0 && (
+            <IconButton
+              title={t("translation.inputClear")}
+              aria-label={t("translation.inputClear")}
+              onClick={() => setInput("")}
+            >
+              <Trash2 />
+            </IconButton>
+          )}
+        </div>
       </div>
     </div>
   );
+}
+
+function replaceTextRange(
+  text: string,
+  start: number,
+  end: number,
+  replacement: string,
+) {
+  return text.slice(0, start) + replacement + text.slice(end);
 }

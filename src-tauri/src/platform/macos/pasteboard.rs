@@ -5,7 +5,8 @@ use objc2_app_kit::{NSPasteboard, NSPasteboardTypeHTML, NSPasteboardTypeString};
 
 /// Clipboard content captured from the macOS general pasteboard.
 pub struct CapturedClipboard {
-    pub text: String,
+    pub raw_text: String,
+    pub html: Option<String>,
     pub format: CapturedClipboardFormat,
 }
 
@@ -28,18 +29,23 @@ pub fn capture_after_change(wait_ms: u64) -> Option<CapturedClipboard> {
             sleep(poll_interval);
         }
 
+        let raw_text = pasteboard
+            .stringForType(unsafe { NSPasteboardTypeString })
+            .map(|text| text.to_string())
+            .filter(|text| !text.trim().is_empty());
+
         if let Some(html) = pasteboard.stringForType(unsafe { NSPasteboardTypeHTML }) {
             return Some(CapturedClipboard {
-                text: html.to_string(),
+                raw_text: raw_text.unwrap_or_else(|| html.to_string()),
+                html: Some(html.to_string()),
                 format: CapturedClipboardFormat::Html,
             });
         }
 
-        pasteboard
-            .stringForType(unsafe { NSPasteboardTypeString })
-            .map(|text| CapturedClipboard {
-                text: text.to_string(),
-                format: CapturedClipboardFormat::PlainText,
-            })
+        raw_text.map(|text| CapturedClipboard {
+            raw_text: text,
+            html: None,
+            format: CapturedClipboardFormat::PlainText,
+        })
     })
 }

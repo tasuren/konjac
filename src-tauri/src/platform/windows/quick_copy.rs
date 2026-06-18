@@ -43,7 +43,8 @@ const WM_KONJAC_STOP: u32 = WM_APP + 3;
 
 /// Clipboard content captured after a repeated copy shortcut on Windows.
 pub struct CapturedClipboard {
-    pub text: String,
+    pub raw_text: String,
+    pub html: Option<String>,
     pub format: CapturedClipboardFormat,
 }
 
@@ -349,21 +350,22 @@ fn run_monitor(
 
 fn read_clipboard() -> anyhow::Result<Option<CapturedClipboard>> {
     let _guard = ClipboardGuard::open()?;
+    let raw_text = read_plain_text_clipboard()?.filter(|text| !text.trim().is_empty());
 
     if let Some(html) = read_html_clipboard()?
         && !html.trim().is_empty()
     {
         return Ok(Some(CapturedClipboard {
-            text: html,
+            raw_text: raw_text.unwrap_or_else(|| html.clone()),
+            html: Some(html),
             format: CapturedClipboardFormat::Html,
         }));
     }
 
-    if let Some(text) = read_plain_text_clipboard()?
-        && !text.trim().is_empty()
-    {
+    if let Some(text) = raw_text {
         return Ok(Some(CapturedClipboard {
-            text,
+            raw_text: text,
+            html: None,
             format: CapturedClipboardFormat::PlainText,
         }));
     }

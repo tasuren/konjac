@@ -206,7 +206,12 @@ fn plan_runtime_update(
 
 fn handle_captured_quick_copy(app: &AppHandle, captured: CapturedQuickCopyInput) {
     let payload = captured.into_translation_input();
-    if payload.text.trim().is_empty() {
+    if payload.raw_text.trim().is_empty()
+        && payload
+            .markdown_text
+            .as_ref()
+            .is_none_or(|text| text.trim().is_empty())
+    {
         return;
     }
 
@@ -215,7 +220,8 @@ fn handle_captured_quick_copy(app: &AppHandle, captured: CapturedQuickCopyInput)
 }
 
 struct CapturedQuickCopyInput {
-    text: String,
+    raw_text: String,
+    html: Option<String>,
     format: CapturedQuickCopyFormat,
 }
 
@@ -226,24 +232,23 @@ enum CapturedQuickCopyFormat {
 
 impl CapturedQuickCopyInput {
     fn into_translation_input(self) -> QuickCopyTranslationInputDto {
-        match self.format {
-            CapturedQuickCopyFormat::Html => {
-                let text = match crate::markdown::html_to_markdown(&self.text) {
-                    Ok(text) => text,
+        let markdown_text =
+            self.html
+                .as_deref()
+                .and_then(|html| match crate::markdown::html_to_markdown(html) {
+                    Ok(text) => Some(text),
                     Err(e) => {
                         log::warn!("Failed to convert quick-copy HTML to Markdown: {e:?}");
-                        self.text
+                        None
                     }
-                };
+                });
 
-                QuickCopyTranslationInputDto {
-                    text,
-                    format: ClipboardInputFormatDto::Html,
-                }
-            }
-            CapturedQuickCopyFormat::PlainText => QuickCopyTranslationInputDto {
-                text: self.text,
-                format: ClipboardInputFormatDto::PlainText,
+        QuickCopyTranslationInputDto {
+            raw_text: self.raw_text,
+            markdown_text,
+            format: match self.format {
+                CapturedQuickCopyFormat::Html => ClipboardInputFormatDto::Html,
+                CapturedQuickCopyFormat::PlainText => ClipboardInputFormatDto::PlainText,
             },
         }
     }
@@ -253,7 +258,8 @@ impl CapturedQuickCopyInput {
 impl From<pasteboard::CapturedClipboard> for CapturedQuickCopyInput {
     fn from(value: pasteboard::CapturedClipboard) -> Self {
         Self {
-            text: value.text,
+            raw_text: value.raw_text,
+            html: value.html,
             format: match value.format {
                 pasteboard::CapturedClipboardFormat::PlainText => {
                     CapturedQuickCopyFormat::PlainText
@@ -268,7 +274,8 @@ impl From<pasteboard::CapturedClipboard> for CapturedQuickCopyInput {
 impl From<quick_copy::CapturedClipboard> for CapturedQuickCopyInput {
     fn from(value: quick_copy::CapturedClipboard) -> Self {
         Self {
-            text: value.text,
+            raw_text: value.raw_text,
+            html: value.html,
             format: match value.format {
                 quick_copy::CapturedClipboardFormat::PlainText => {
                     CapturedQuickCopyFormat::PlainText
@@ -333,6 +340,25 @@ impl DoublePressDetector {
 mod tests {
     use super::*;
 
+    #[cfg(test)]
+    impl CapturedQuickCopyInput {
+        fn plain_text(text: impl Into<String>) -> Self {
+            Self {
+                raw_text: text.into(),
+                html: None,
+                format: CapturedQuickCopyFormat::PlainText,
+            }
+        }
+
+        fn html(raw_text: impl Into<String>, html: impl Into<String>) -> Self {
+            Self {
+                raw_text: raw_text.into(),
+                html: Some(html.into()),
+                format: CapturedQuickCopyFormat::Html,
+            }
+        }
+    }
+
     fn settings(
         enabled: bool,
         double_press_interval_ms: u64,
@@ -388,5 +414,29 @@ mod tests {
             plan_runtime_update(Some(&current), &changed_wait),
             QuickCopyRuntimeUpdate::Restart
         );
+    }
+
+    #[test]
+    fn quick_copy_payload_preserves_raw_text_when_html_is_converted() {
+        let payload = CapturedQuickCopyInput::html("Hello", "<p><strong>Hello</strong></p>")
+            .into_translation_input();
+
+        assert_eq!(payload.raw_text, "Hello");
+        assert_eq!(payload.format, ClipboardInputFormatDto::Html);
+        assert!(
+            payload
+                .markdown_text
+                .as_deref()
+                .is_some_and(|text| text.contains("Hello"))
+        );
+    }
+
+    #[test]
+    fn quick_copy_payload_uses_raw_text_only_for_plain_text() {
+        let payload = CapturedQuickCopyInput::plain_text("Hello").into_translation_input();
+
+        assert_eq!(payload.raw_text, "Hello");
+        assert_eq!(payload.markdown_text, None);
+        assert_eq!(payload.format, ClipboardInputFormatDto::PlainText);
     }
 }

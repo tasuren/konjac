@@ -142,12 +142,13 @@ impl From<TranslationStreamEvent> for TranslationStreamEventDto {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct QuickCopyTranslationInputDto {
-    pub text: String,
+    pub raw_text: String,
+    pub markdown_text: Option<String>,
     pub format: ClipboardInputFormatDto,
 }
 
 /// Clipboard format captured before normalization.
-#[derive(Debug, Clone, Serialize, ts_rs::TS)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, ts_rs::TS)]
 #[serde(rename_all = "snake_case")]
 #[ts(export)]
 pub enum ClipboardInputFormatDto {
