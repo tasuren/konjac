@@ -29,6 +29,11 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "publisher": "Takagi Tasuku",
+    "copyright": "(c) 2026 Takagi Tasuku",
+    "shortDescription": "Desktop AI translator powered by Ollama.",
+    "category": "Productivity",
+    "license": "GPL-3.0-or-later",
     "icon": [
       "icons/common/32x32.png",
       "icons/common/128x128.png",
