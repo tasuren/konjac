@@ -93,6 +93,8 @@ export const zhCN = {
   },
   translation: {
     inputPlaceholder: "输入要翻译的文本",
+    inputPlaceholderWithQuickCopy:
+      "输入要翻译的文本，或选择文本后按两次 {{shortcut}} 进行翻译",
     inputClear: "清除输入",
     noModel: "当前未设置用于翻译的 AI 模型。设置后即可翻译。",
     failed: "翻译失败。",

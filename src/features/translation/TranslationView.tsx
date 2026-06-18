@@ -41,7 +41,7 @@ function TranslationPane({
     targetLanguage,
     setTargetLanguage,
   } = useTranslationSelectionStore();
-  const { model } = useSettingsStore();
+  const { model, quickCopyTranslate } = useSettingsStore();
 
   const {
     output,
@@ -133,6 +133,7 @@ function TranslationPane({
       <TranslationInput
         input={input}
         setInput={setInput}
+        quickCopyTranslateEnabled={quickCopyTranslate.enabled}
         handleCompositionStart={handleCompositionStart}
         handleCompositionEnd={handleCompositionEnd}
       />

@@ -1,4 +1,5 @@
 import { cn } from "@sglara/cn";
+import { platform } from "@tauri-apps/plugin-os";
 import { Trash2 } from "lucide-react";
 import { type ClipboardEvent, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,17 +9,26 @@ import { toMarkdown } from "../../../shared/tauri/translation";
 export type TranslationInputProps = {
   input: string;
   setInput: (text: string) => void;
+  quickCopyTranslateEnabled: boolean;
   handleCompositionStart: () => void;
   handleCompositionEnd: () => void;
 };
 
+const quickCopyShortcut = platform() === "macos" ? "⌘C" : "Ctrl+C";
+
 export function TranslationInput({
   input,
   setInput,
+  quickCopyTranslateEnabled,
   handleCompositionStart,
   handleCompositionEnd,
 }: TranslationInputProps) {
   const { t } = useTranslation();
+  const placeholder = quickCopyTranslateEnabled
+    ? t("translation.inputPlaceholderWithQuickCopy", {
+        shortcut: quickCopyShortcut,
+      })
+    : t("translation.inputPlaceholder");
 
   const onPaste = useCallback(
     async (event: ClipboardEvent<HTMLTextAreaElement>) => {
@@ -57,7 +67,7 @@ export function TranslationInput({
       )}
     >
       <textarea
-        placeholder={t("translation.inputPlaceholder")}
+        placeholder={placeholder}
         className="flex-1 min-h-0 w-full p-4 overflow-y-auto select-auto resize-none bg-transparent focus-visible:outline-none!"
         value={input}
         onPaste={onPaste}

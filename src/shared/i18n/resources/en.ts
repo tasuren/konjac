@@ -97,6 +97,8 @@ export const en = {
   },
   translation: {
     inputPlaceholder: "Enter text to translate",
+    inputPlaceholderWithQuickCopy:
+      "Enter text to translate, or select text and press {{shortcut}} twice to translate",
     inputClear: "Clear input",
     noModel:
       "No AI model is configured for translation. Configure a model to start translating.",

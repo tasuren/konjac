@@ -96,6 +96,8 @@ export const ja = {
   },
   translation: {
     inputPlaceholder: "翻訳したいテキストを入力",
+    inputPlaceholderWithQuickCopy:
+      "翻訳したいテキストを入力、または {{shortcut}} を2回連続で押して選択中のテキストを翻訳",
     inputClear: "入力を削除",
     noModel:
       "現在、翻訳を処理するAIモデルが設定されていません。設定後、翻訳が可能となります。",
