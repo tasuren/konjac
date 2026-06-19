@@ -1,4 +1,5 @@
 use tauri::{AppHandle, State};
+use tauri_plugin_log::log;
 use tokio::sync::Mutex;
 
 use crate::{
@@ -96,15 +97,6 @@ pub async fn save_settings(
 ) -> Result<(), String> {
     let next_settings = Settings::from(settings);
 
-    quick_copy
-        .apply_settings(app.clone(), &next_settings.quick_copy_translate)
-        .await
-        .map_err(|e| e.to_string())?;
-    translation
-        .apply_settings(&next_settings)
-        .await
-        .map_err(|e| e.to_string())?;
-
     {
         let mut app_settings = app_settings_state.lock().await;
         *app_settings = next_settings.clone();
@@ -113,6 +105,17 @@ pub async fn save_settings(
     write_settings(&app, &next_settings)
         .await
         .map_err(|e| e.to_string())?;
+
+    if let Err(e) = quick_copy
+        .apply_settings(app.clone(), &next_settings.quick_copy_translate)
+        .await
+    {
+        log::warn!("Failed to apply quick copy translate settings: {}", e)
+    };
+
+    if let Err(e) = translation.apply_settings(&next_settings).await {
+        log::warn!("Failed to apply translation settings: {}", e)
+    };
 
     Ok(())
 }
