@@ -28,7 +28,7 @@ export function CustomLinkModal({
           transition={{ duration: 0.16 }}
           className={cn(
             "absolute top-0 left-0 w-screen h-screen",
-            "backdrop-blur-xs flex justify-center items-center",
+            "bg-black/40 flex justify-center items-center",
           )}
         >
           <button
@@ -41,24 +41,26 @@ export function CustomLinkModal({
           <div
             role="dialog"
             aria-modal="true"
-            className="relative z-10 select-none bg-modal p-4 rounded-xl flex flex-col gap-2 min-w-1/3 max-w-5/6"
+            className="relative z-10 select-none bg-modal border border-border shadow-xl p-4 rounded-xl flex flex-col gap-2 min-w-1/3 max-w-5/6"
             onMouseUp={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-bold">{t("linkModal.title")}</h2>
             <p>{t("linkModal.message")}</p>
-            <code className="overflow-auto">{url}</code>
+            <code className="wrap-anywhere overflow-y-auto max-h-40">
+              {url}
+            </code>
 
             <div className="mt-4 px-2 flex gap-4">
               <button
                 type="button"
-                className="cursor-pointer px-2 py-1 rounded-lg"
+                className="cursor-pointer px-1 py-1.5 rounded-lg"
                 onClick={onClose}
               >
                 {t("common.cancel")}
               </button>
               <button
                 type="button"
-                className="px-2 py-1 rounded-lg bg-surface-elevated border border-border cursor-pointer"
+                className="px-3.5 py-1.5 rounded-lg bg-surface-elevated border border-border cursor-pointer"
                 onClick={onConfirm}
               >
                 {t("common.continue")}
