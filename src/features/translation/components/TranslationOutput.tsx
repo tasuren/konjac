@@ -68,7 +68,7 @@ export function TranslationOutput({
     (!requesting && translating) || (input.length > 0 && input === lastInput);
   const showRenderModeControl =
     showOutput && output.length > 0 && !visibleError;
-  
+
   const outputRenderModeOptions: Array<{
     value: OutputRenderMode;
     label: string;
@@ -121,6 +121,7 @@ export function TranslationOutput({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
+              data-allow-context-menu
               className="p-4 h-full overflow-y-auto select-text cursor-auto"
             >
               {outputRenderMode === "markdown" ? (
