@@ -87,6 +87,10 @@ export function useTranslationSession({
   const availabilityError =
     providerUnavailableError ?? selectedModelUnavailableError;
 
+  // Tracks the most recently started request so that results from a
+  // superseded (but not yet disposed) request can't clobber newer state.
+  const requestGenerationRef = useRef(0);
+
   const translate = useCallback(
     async (text: string) => {
       if (model === null) {
@@ -97,6 +101,9 @@ export function useTranslationSession({
         setStatus("idle");
         return;
       }
+
+      const generation = ++requestGenerationRef.current;
+      const isSuperseded = () => requestGenerationRef.current !== generation;
 
       setStatus("requesting");
       setTranslationError(null);
@@ -113,27 +120,31 @@ export function useTranslationSession({
             },
             {
               onDelta(fullText) {
+                if (isSuperseded()) return;
                 setStatus("translating");
                 setOutput(fullText);
               },
               onFinished(fullText) {
+                dispose();
+                if (isSuperseded()) return;
                 setOutput(fullText);
                 setTranslationError(null);
-                dispose();
                 setStatus("idle");
               },
               onFailed(message) {
                 dispose();
+                if (isSuperseded()) return;
                 setTranslationError(message);
                 setStatus("idle");
               },
             },
           );
 
+        if (isSuperseded()) return;
         setResolvedSourceLanguage(resolvedSourceLanguage);
         setTargetLanguage(resolvedTargetLanguage);
       } catch {
-        setStatus("idle");
+        if (!isSuperseded()) setStatus("idle");
       }
     },
     [
