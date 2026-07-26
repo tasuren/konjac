@@ -148,18 +148,17 @@ export function useTranslationSession({
     ],
   );
 
-  const isComposingRef = useRef(false);
+  const [isComposing, setIsComposing] = useState(false);
   const lastRequestedKeyRef = useRef("");
 
   // Prevent translation during IME composition.
   const handleCompositionStart = useCallback(() => {
-    isComposingRef.current = true;
+    setIsComposing(true);
   }, []);
 
   const handleCompositionEnd = useCallback(() => {
-    isComposingRef.current = false;
-    void translate(input);
-  }, [input, translate]);
+    setIsComposing(false);
+  }, []);
 
   const swapInputOutput = useCallback(() => {
     setInput(output);
@@ -180,7 +179,7 @@ export function useTranslationSession({
     if (
       normalizedText.length === 0 ||
       availabilityError !== null ||
-      isComposingRef.current ||
+      isComposing ||
       requestKey === lastRequestedKeyRef.current
     ) {
       return;
@@ -202,6 +201,7 @@ export function useTranslationSession({
     targetLanguage,
     model,
     availabilityError,
+    isComposing,
   ]);
 
   return {
