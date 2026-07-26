@@ -91,7 +91,7 @@ export function TranslationOutput({
       className={cn(
         "border border-border bg-surface rounded-xl flex flex-col justify-between",
         maximized
-          ? "absolute top-14 left-3 right-3 bottom-3"
+          ? "absolute top-14 inset-x-6 bottom-6"
           : "flex-1 basis-0 min-w-0 min-h-0",
       )}
     >
