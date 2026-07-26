@@ -3,6 +3,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { ChevronLeft, Settings, Settings2, X } from "lucide-react";
 import { type ReactNode, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useIsFullscreen } from "../hooks/useIsFullscreen";
 import { useWindowDragging } from "../hooks/useWindowDragging";
 import { IconButton } from "./IconButton";
 import { WindowsCaptionControls } from "./WindowCaptionControls";
@@ -25,13 +26,15 @@ export function TitleBar({
     includesChildren: true,
     maximizable: true,
   });
+  const isFullscreen = useIsFullscreen();
 
   return (
     <header
       className={cn(
         "w-full bg-titlebar border-b border-border shrink-0 flex items-center gap-2",
         titleBarClassName,
-        platform() === "macos" && "pl-20.5 h-11 pr-2",
+        platform() === "macos" && "h-11 px-2",
+        platform() === "macos" && !isFullscreen && "pl-20.5",
         platform() !== "macos" && "pl-2 h-10",
       )}
       ref={titleBarRef}
